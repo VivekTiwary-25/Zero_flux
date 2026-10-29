@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="440" viewBox="0 0 900 440" role="img" aria-label="Concept illustration: pose landmarks on a rescuer doing compressions on a manikin, next to a live feedback panel">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1120"/>
+      <stop offset="1" stop-color="#160b1a"/>
+    </linearGradient>
+    <linearGradient id="scan" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5eead4" stop-opacity="0"/>
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0.18"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <style>
+      /* one compression every 0.545s = 110/min */
+      .press { animation: press 0.545s ease-in-out infinite; }
+      @keyframes press { 0%,100% { transform: translateY(0); } 45% { transform: translateY(9px); } }
+      .chest { transform-box: fill-box; transform-origin: center; animation: chest 0.545s ease-in-out infinite; }
+      @keyframes chest { 0%,100% { transform: scale(1); opacity: 0.25; } 45% { transform: scale(1.5); opacity: 0.6; } }
+      .scan { animation: scan 2.6s ease-in-out infinite alternate; }
+      @keyframes scan { from { transform: translateY(0); } to { transform: translateY(330px); } }
+      .bar { animation: bar 1.09s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom; }
+      @keyframes bar { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(0.82); } }
+      .rec { animation: rec 1s steps(2, start) infinite; }
+      @keyframes rec { to { visibility: hidden; } }
+      text { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif; }
+      .mono { font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, Menlo, monospace; }
+    </style>
+    <clipPath id="cam"><rect x="24" y="24" width="500" height="392" rx="18"/></clipPath>
+  </defs>
+
+  <rect width="900" height="440" rx="24" fill="url(#bg)"/>
+
+  <!-- ===== Camera view ===== -->
+  <rect x="24" y="24" width="500" height="392" rx="18" fill="#0e1628" stroke="#24324d"/>
+  <g clip-path="url(#cam)">
+    <!-- floor -->
+    <line x1="24" y1="382" x2="524" y2="382" stroke="#24324d" stroke-width="2"/>
+
+    <!-- rescuer legs (behind manikin) -->
+    <g stroke="#5eead4" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.9">
+      <line x1="400" y1="290" x2="372" y2="378"/>
+      <line x1="372" y1="378" x2="470" y2="380"/>
+    </g>
+
+    <!-- manikin -->
+    <g>
+      <rect x="120" y="322" width="300" height="46" rx="23" fill="#3a465e"/>
+      <circle cx="104" cy="338" r="28" fill="#3a465e"/>
+      <ellipse class="chest" cx="300" cy="324" rx="26" ry="7" fill="#ff2d55"/>
+    </g>
+
+    <!-- rescuer upper body: moves with each compression -->
+    <g class="press">
+      <g stroke="#5eead4" stroke-width="4" stroke-linecap="round" fill="none">
+        <line x1="400" y1="290" x2="306" y2="176"/>   <!-- torso -->
+        <line x1="306" y1="176" x2="303" y2="248"/>   <!-- upper arm -->
+        <line x1="303" y1="248" x2="300" y2="316"/>   <!-- forearm -->
+        <line x1="306" y1="176" x2="296" y2="152"/>   <!-- neck -->
+      </g>
+      <circle cx="288" cy="128" r="24" fill="none" stroke="#5eead4" stroke-width="3" opacity="0.8"/>
+      <!-- elbow angle arc -->
+      <path d="M305 226 A22 22 0 0 1 302 270" fill="none" stroke="#facc15" stroke-width="2.5"/>
+      <text x="332" y="254" class="mono" font-size="15" fill="#facc15">172°</text>
+      <!-- landmarks -->
+      <g fill="#0e1628" stroke="#fff" stroke-width="2.5">
+        <circle cx="306" cy="176" r="6"/>
+        <circle cx="303" cy="248" r="6"/>
+        <circle cx="300" cy="316" r="6"/>
+        <circle cx="400" cy="290" r="6"/>
+      </g>
+      <g class="mono" font-size="11" fill="#8fb3c9">
+        <text x="234" y="180">SHOULDER</text>
+        <text x="250" y="252">ELBOW</text>
+        <text x="250" y="312">WRIST</text>
+      </g>
+    </g>
+    <g fill="#0e1628" stroke="#fff" stroke-width="2.5"><circle cx="372" cy="378" r="6"/></g>
+
+    <!-- scan line -->
+    <rect class="scan" x="24" y="24" width="500" height="60" fill="url(#scan)"/>
+  </g>
+
+  <!-- viewfinder corners -->
+  <g stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7">
+    <path d="M44 70 V44 H70"/><path d="M478 44 H504 V70"/>
+    <path d="M44 370 V396 H70"/><path d="M478 396 H504 V370"/>
+  </g>
+  <circle class="rec" cx="62" cy="62" r="6" fill="#ff2d55"/>
+  <text x="76" y="67" class="mono" font-size="13" fill="#cbd5e1">LIVE · ON-DEVICE</text>
+
+  <!-- ===== Feedback panel ===== -->
+  <g transform="translate(548 24)">
+    <rect width="328" height="392" rx="18" fill="#0e1628" stroke="#24324d"/>
+
+    <text x="24" y="40" class="mono" font-size="12" letter-spacing="2" fill="#8fb3c9">COMPRESSION RATE</text>
+    <text x="24" y="104" font-size="64" font-weight="800" fill="#fff">112</text>
+    <text x="146" y="104" font-size="20" fill="#9aa0b4">/ min</text>
+    <!-- rate bars -->
+    <g fill="#22c55e">
+      <rect class="bar" x="230" y="62" width="10" height="42" rx="3"/>
+      <rect class="bar" x="246" y="54" width="10" height="50" rx="3" style="animation-delay:.15s"/>
+      <rect class="bar" x="262" y="66" width="10" height="38" rx="3" style="animation-delay:.3s"/>
+      <rect class="bar" x="278" y="58" width="10" height="46" rx="3" style="animation-delay:.45s"/>
+    </g>
+    <!-- target band -->
+    <rect x="24" y="124" width="280" height="10" rx="5" fill="#1f2a40"/>
+    <rect x="148" y="124" width="62" height="10" rx="5" fill="#22c55e" fill-opacity="0.35"/>
+    <circle cx="186" cy="129" r="8" fill="#22c55e" stroke="#0e1628" stroke-width="3"/>
+    <text x="148" y="154" class="mono" font-size="11" fill="#86efac">100 – 120 target</text>
+
+    <line x1="24" y1="174" x2="304" y2="174" stroke="#24324d"/>
+
+    <text x="24" y="206" class="mono" font-size="12" letter-spacing="2" fill="#8fb3c9">ELBOWS</text>
+    <text x="304" y="206" text-anchor="end" font-size="16" font-weight="700" fill="#86efac">Straight ✓</text>
+    <text x="24" y="242" class="mono" font-size="12" letter-spacing="2" fill="#8fb3c9">PAUSES</text>
+    <text x="304" y="242" text-anchor="end" font-size="16" font-weight="700" fill="#e2e8f0">0.0 s</text>
+    <text x="24" y="278" class="mono" font-size="12" letter-spacing="2" fill="#8fb3c9">TRACKING</text>
+    <text x="304" y="278" text-anchor="end" font-size="16" font-weight="700" fill="#e2e8f0">Good</text>
+
+    <!-- voice bubble -->
+    <g transform="translate(24 304)">
+      <rect width="280" height="64" rx="16" fill="#ff2d55" fill-opacity="0.14" stroke="#ff2d55" stroke-opacity="0.6"/>
+      <!-- speaker icon -->
+      <g transform="translate(20 22)" fill="#ff8fa6">
+        <path d="M0 6 h6 l8 -6 v20 l-8 -6 h-6 z"/>
+        <path d="M18 3 a9 9 0 0 1 0 14" fill="none" stroke="#ff8fa6" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+      <text x="56" y="30" font-size="17" font-weight="700" fill="#fff">“Keep going!”</text>
+      <text x="56" y="50" class="mono" font-size="11" fill="#ffb3c1">spoken in your chosen language</text>
+    </g>
+  </g>
+</svg>
