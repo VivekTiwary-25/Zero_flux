@@ -1,5 +1,7 @@
 """Config files: local.json (per PC) and swarm/config/* (in the repo)."""
 import copy
+import json
+import os
 import platform
 from pathlib import Path
 
@@ -52,7 +54,15 @@ def routing():
 
 
 def settings():
-    return routing()["settings"]
+    result = dict(routing()["settings"])
+    # test hook: SWARM_SETTINGS_OVERRIDE='{"peer_dead_sec": 60}'
+    try:
+        extra = json.loads(os.environ.get("SWARM_SETTINGS_OVERRIDE") or "{}")
+        if isinstance(extra, dict):
+            result.update(extra)
+    except ValueError:
+        pass
+    return result
 
 
 def _os_name():
