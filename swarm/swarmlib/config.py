@@ -56,12 +56,16 @@ def routing():
 def settings():
     result = dict(routing()["settings"])
     # test hook: SWARM_SETTINGS_OVERRIDE='{"peer_dead_sec": 60}'
+    # (or the same json in <SWARM_HOME>/settings_override.json, which a scheduled task can see too)
     try:
         extra = json.loads(os.environ.get("SWARM_SETTINGS_OVERRIDE") or "{}")
         if isinstance(extra, dict):
             result.update(extra)
     except ValueError:
         pass
+    extra = util.load_json(util.home() / "settings_override.json", {})
+    if isinstance(extra, dict):
+        result.update(extra)
     return result
 
 
