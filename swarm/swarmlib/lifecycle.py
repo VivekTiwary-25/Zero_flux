@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 
@@ -27,7 +28,8 @@ def _wait(predicate, seconds=20):
 def start_watchdog():
     if util.instance_running("watchdog"):
         return "watchdog already running"
-    if autostart.status() == "enabled" and autostart.start():
+    # a test instance (SWARM_HOME set) must not use the shared scheduled task: it would run without the env
+    if not os.environ.get("SWARM_HOME") and autostart.status() == "enabled" and autostart.start():
         return "watchdog started by autostart"
     cmd = [sys.executable, str(util.code_dir() / "swarm.py"), "watchdog"]
     pid = util.spawn_detached(cmd, util.state_dir() / "watchdog.out")
@@ -39,7 +41,9 @@ def up(args=None):
     if flag.exists():
         flag.unlink()
     status = autostart.status()
-    if status == "missing":
+    if os.environ.get("SWARM_HOME"):
+        pass
+    elif status == "missing":
         autostart.install()
     elif status == "disabled":
         autostart.enable()
