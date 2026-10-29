@@ -1,0 +1,54 @@
+{
+  "machine": "vivek-pc",
+  "os": "windows",
+  "workers": [
+    {
+      "name": "codex-luna",
+      "harness": "omp",
+      "model": "openai-codex/gpt-6-luna",
+      "profile": null,
+      "usage_provider": "openai-codex",
+      "usage_match": "",
+      "kinds": [
+        "routine"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "codex-sol",
+      "harness": "omp",
+      "model": "openai-codex/gpt-6.1-sol",
+      "profile": null,
+      "usage_provider": "openai-codex",
+      "usage_match": "",
+      "kinds": [
+        "hard"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "grok",
+      "harness": "omp",
+      "model": "xai-oauth/grok-4.7",
+      "profile": null,
+      "usage_provider": "xai-oauth",
+      "usage_match": "SuperGrok",
+      "kinds": [
+        "routine"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "antigravity",
+      "harness": "omp",
+      "model": "google-antigravity/gemini-3.8-flash",
+      "profile": null,
+      "usage_provider": "google-antigravity",
+      "usage_match": "Gemini",
+      "kinds": [
+        "second"
+      ],
+      "enabled": true
+    }
+  ]
+}
