@@ -34,11 +34,26 @@ def _systemctl(*args):
     return util.run(["systemctl", "--user"] + list(args), timeout=60)
 
 
+def _install_windows_ps():
+    ps = ("$u=[Environment]::UserName;"
+          "$a=New-ScheduledTaskAction -Execute '%s' -Argument '\"%s\" watchdog';"
+          "$t=New-ScheduledTaskTrigger -AtLogOn -User $u;"
+          "$p=New-ScheduledTaskPrincipal -UserId $u -LogonType Interactive -RunLevel Limited;"
+          "$s=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries "
+          "-ExecutionTimeLimit ([TimeSpan]::Zero) -StartWhenAvailable;"
+          "Register-ScheduledTask -TaskName '%s' -Action $a -Trigger $t -Principal $p -Settings $s -Force "
+          "-ErrorAction Stop | Out-Null" % (util.python_exe(), util.code_dir() / "swarm.py", _task_name()))
+    return util.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps], timeout=90).ok
+
+
 def install():
     if util.is_windows():
         r = util.run(["schtasks", "/Create", "/TN", _task_name(), "/TR", _watchdog_command(),
                       "/SC", "ONLOGON", "/IT", "/RL", "LIMITED", "/F"], timeout=60)
-        return r.ok
+        if r.ok:
+            return True
+        # schtasks ONLOGON needs admin; a logon trigger for the current user does not.
+        return _install_windows_ps()
     if not _has_systemd():
         return False
     text = ("[Unit]\nDescription=swarm watchdog\n\n[Service]\n"
