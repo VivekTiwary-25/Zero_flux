@@ -1,0 +1,16 @@
+{
+  "machine": "test-pc2",
+  "os": "windows",
+  "workers": [
+    {
+      "name": "fake",
+      "harness": "fake",
+      "model": "fake/fake",
+      "profile": null,
+      "usage_provider": "",
+      "usage_match": "",
+      "kinds": [],
+      "enabled": true
+    }
+  ]
+}
