@@ -93,7 +93,7 @@ def _fake_task(rep, machine):
     tid = "selftest-%s-%s" % (machine, time.strftime("%y%m%d%H%M%S"))
     worker = {"name": "selftest", "harness": "fake", "model": "fake/fake"}
     path = util.state_dir() / (tid + ".md")
-    task = {"id": tid, "title": "selftest", "kind": "routine", "body": "Write fake_output.txt.\n"}
+    task = {"id": tid, "title": "selftest", "kind": "routine", "body": "Write hello in your report.\n"}
     path.write_text(tasks.render(task), encoding="utf-8", newline="\n")
     try:
         res = tasks.run_task(worker, path, {})
