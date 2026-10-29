@@ -14,10 +14,9 @@ FAKE_SCRIPT = (
     "    print(fail, file=sys.stderr)\n"
     "    sys.exit(1)\n"
     "tid = os.environ.get('SWARM_TASK_ID', 'unknown')\n"
-    "Path('fake_output.txt').write_text('hello from fake worker')\n"
     "rep = Path('swarm/reports')\n"
     "rep.mkdir(parents=True, exist_ok=True)\n"
-    "(rep / (tid + '.md')).write_text('The fake worker wrote fake_output.txt.\\n')\n"
+    "(rep / (tid + '.md')).write_text('The fake worker says hello (fake harness, no real change).\\n')\n"
     "print('OK')\n"
 )
 
