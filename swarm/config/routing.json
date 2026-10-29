@@ -1,0 +1,22 @@
+{
+  "boss": {
+    "machine": "vivek-pc",
+    "note": "Vivek's Opus in Claude Code. Backup: Vachana's Claude on same PC (/logout, /login)."
+  },
+  "routes": {
+    "routine": ["openai-codex/gpt-6-luna", "*/claude-haiku-5-5", "*/deepseek-v4.1-flash", "xai-oauth/*"],
+    "hard": ["opencode-go/gemini-4-argon", "openai-codex/gpt-6.1-sol", "openai-codex/gpt-6.1-terra", "*/deepseek-v4-pro"],
+    "second": ["google-antigravity/*", "*/gemini-4-argon"]
+  },
+  "never_models": ["*astra*"],
+  "settings": {
+    "heartbeat_sec": 60,
+    "peer_stale_sec": 180,
+    "peer_dead_sec": 600,
+    "task_timeout_min": 45,
+    "low_usage_pct": 3,
+    "boss_low_pct": 10,
+    "usage_refresh_sec": 300,
+    "renotify_min": 30
+  }
+}

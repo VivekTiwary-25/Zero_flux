@@ -1,0 +1,132 @@
+{
+  "codex-luna": {
+    "name": "codex-luna",
+    "harness": "omp",
+    "model": "openai-codex/gpt-6-luna",
+    "profile": null,
+    "usage_provider": "openai-codex",
+    "usage_match": "",
+    "kinds": [
+      "routine"
+    ],
+    "enabled": true
+  },
+  "codex-sol": {
+    "name": "codex-sol",
+    "harness": "omp",
+    "model": "openai-codex/gpt-6.1-sol",
+    "profile": null,
+    "usage_provider": "openai-codex",
+    "usage_match": "",
+    "kinds": [
+      "hard"
+    ],
+    "enabled": true
+  },
+  "codex-terra": {
+    "name": "codex-terra",
+    "harness": "omp",
+    "model": "openai-codex/gpt-6.1-terra",
+    "profile": null,
+    "usage_provider": "openai-codex",
+    "usage_match": "",
+    "kinds": [
+      "hard"
+    ],
+    "enabled": true
+  },
+  "grok": {
+    "name": "grok",
+    "harness": "omp",
+    "model": "xai-oauth/grok-4.7",
+    "profile": null,
+    "usage_provider": "xai-oauth",
+    "usage_match": "SuperGrok",
+    "kinds": [
+      "routine"
+    ],
+    "enabled": true
+  },
+  "antigravity": {
+    "name": "antigravity",
+    "harness": "omp",
+    "model": "google-antigravity/gemini-3.8-flash",
+    "profile": null,
+    "usage_provider": "google-antigravity",
+    "usage_match": "Gemini",
+    "kinds": [
+      "second"
+    ],
+    "enabled": true
+  },
+  "argon": {
+    "name": "argon",
+    "harness": "omp",
+    "model": "opencode-go/gemini-4-argon",
+    "profile": null,
+    "usage_provider": "opencode-go",
+    "usage_match": "",
+    "kinds": [
+      "hard"
+    ],
+    "enabled": true
+  },
+  "flash": {
+    "name": "flash",
+    "harness": "omp",
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "profile": null,
+    "usage_provider": "opencode-go",
+    "usage_match": "",
+    "kinds": [
+      "routine"
+    ],
+    "enabled": true
+  },
+  "haiku": {
+    "name": "haiku",
+    "harness": "omp",
+    "model": "opencode-go/claude-haiku-5-5",
+    "profile": null,
+    "usage_provider": "opencode-go",
+    "usage_match": "",
+    "kinds": [
+      "routine"
+    ],
+    "enabled": true
+  },
+  "dspro": {
+    "name": "dspro",
+    "harness": "omp",
+    "model": "opencode-go/deepseek-v4-pro",
+    "profile": null,
+    "usage_provider": "opencode-go",
+    "usage_match": "",
+    "kinds": [
+      "hard"
+    ],
+    "enabled": true
+  },
+  "ag-argon": {
+    "name": "ag-argon",
+    "harness": "omp",
+    "model": "google-antigravity/gemini-4-argon",
+    "profile": null,
+    "usage_provider": "google-antigravity",
+    "usage_match": "Gemini",
+    "kinds": [
+      "second"
+    ],
+    "enabled": true
+  },
+  "fake": {
+    "name": "fake",
+    "harness": "fake",
+    "model": "fake/fake",
+    "profile": null,
+    "usage_provider": "",
+    "usage_match": "",
+    "kinds": [],
+    "enabled": true
+  }
+}
