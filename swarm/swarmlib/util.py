@@ -83,17 +83,17 @@ def _text(value):
     if value is None:
         return ""
     if isinstance(value, bytes):
-        return value.decode("utf-8", errors="replace")
-    return value
+        value = value.decode("utf-8", errors="replace")
+    return value.replace("\r\n", "\n")
 
 
 def run(cmd, cwd=None, env=None, timeout=None, input=None):
-    kwargs = dict(cwd=str(cwd) if cwd else None, env=env, capture_output=True,
-                  text=True, encoding="utf-8", errors="replace", timeout=timeout)
+    # bytes mode: text mode would translate LF to CRLF on Windows stdin (breaks git mktree)
+    kwargs = dict(cwd=str(cwd) if cwd else None, env=env, capture_output=True, timeout=timeout)
     if input is None:
         kwargs["stdin"] = subprocess.DEVNULL
     else:
-        kwargs["input"] = input
+        kwargs["input"] = input.encode("utf-8") if isinstance(input, str) else input
     if is_windows():
         kwargs["creationflags"] = CREATE_NO_WINDOW
     try:
