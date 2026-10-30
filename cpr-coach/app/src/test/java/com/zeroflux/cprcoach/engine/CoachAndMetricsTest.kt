@@ -253,4 +253,55 @@ class CoachAndMetricsTest {
         val secondPause = run(policy, 8_250, 18_000) { paused(it) }
         assertTrue("expected KEEP_GOING on the second pause, got $secondPause", secondPause.any { it.second == Phrase.KEEP_GOING })
     }
+
+    @Test
+    fun `keep going plays on a second pause after resuming good compressions`() {
+        val policy = CoachPolicy()
+        assertEquals(listOf(2_000L to Phrase.KEEP_GOING), run(policy, 0, 2_250) { paused(it) })
+        run(policy, 2_250, 10_000) { t -> pushing(t, null, TrackingState.BEATING) }
+        val secondPause = run(policy, 10_000, 16_000) { paused(it) }
+        assertEquals(listOf(Phrase.KEEP_GOING), secondPause.map { it.second })
+    }
+
+    @Test
+    fun `elbows straight is coached again after fixing posture and bending again`() {
+        val policy = CoachPolicy()
+        assertEquals(
+            listOf(2_000L to Phrase.ELBOWS_STRAIGHT),
+            run(policy, 0, 2_250) { pushing(it, PostureIssue.ELBOWS_BENT) },
+        )
+        run(policy, 2_250, 10_000) { pushing(it, null) }
+        val relapsed = run(policy, 10_000, 20_000) { pushing(it, PostureIssue.ELBOWS_BENT) }
+        assertEquals(listOf(Phrase.ELBOWS_STRAIGHT), relapsed.map { it.second })
+    }
+
+    @Test
+    fun `brief rate wobble does not starve a continuous elbow correction`() {
+        val policy = CoachPolicy()
+        val spoken = run(policy, 0, 20_000) { t ->
+            val rate = if (t % 2_500 < 1_000) 95 else 105
+            pushing(t, PostureIssue.ELBOWS_BENT, TrackingState.BEATING).copy(ratePerMinute = rate)
+        }
+        assertTrue("expected ELBOWS_STRAIGHT during 20 s of bent elbows, got $spoken", spoken.any { it.second == Phrase.ELBOWS_STRAIGHT })
+    }
+
+    @Test
+    fun `alternating beating and pushing without a rate does not starve a continuous elbow correction`() {
+        val policy = CoachPolicy()
+        val spoken = run(policy, 0, 20_000) { t ->
+            if (t % 4_000 < 2_500) pushing(t, PostureIssue.ELBOWS_BENT, TrackingState.BEATING).copy(ratePerMinute = 90)
+            else pushing(t, PostureIssue.ELBOWS_BENT)
+        }
+        assertTrue("expected ELBOWS_STRAIGHT, got $spoken", spoken.any { it.second == Phrase.ELBOWS_STRAIGHT })
+    }
+
+    @Test
+    fun `brief lost frame after pause is already confirmed does not drop pending keep going`() {
+        val policy = CoachPolicy()
+        assertEquals(listOf(3_000L to Phrase.PUSH_FASTER), run(policy, 0, 3_250) { beating(it, 90) })
+        run(policy, 4_000, 8_500) { paused(it) }
+        policy.update(lost(8_500))
+        val spoken = run(policy, 8_750, 10_500) { paused(it) }
+        assertEquals(listOf(Phrase.KEEP_GOING), spoken.map { it.second })
+    }
 }

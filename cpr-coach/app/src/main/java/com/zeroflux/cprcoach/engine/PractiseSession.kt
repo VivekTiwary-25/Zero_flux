@@ -151,6 +151,7 @@ class PractiseSession(
         } else {
             // The rescuer has moved, so old readings no longer apply.
             analyzer = LiveAnalyzer()
+            coach = CoachPolicy()
             audio.startMetronome()
         }
     }

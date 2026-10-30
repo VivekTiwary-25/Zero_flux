@@ -151,4 +151,20 @@ class PractiseSessionTest {
         assertFalse(audio.played.contains("session_done"))
         assertFalse(audio.metronome)
     }
+
+    @Test
+    fun `resuming from the user's pause resets the coach so a new pause is coached again`() {
+        startSession()
+        run(4_000, 110.0)
+        run(5_000, 0.0)
+        assertTrue(audio.played.contains("keep_going"))
+        val before = audio.played.count { it == "keep_going" }
+
+        session.togglePause()
+        clock += 10_000
+        session.togglePause()
+
+        run(7_000, 0.0)
+        assertEquals(before + 1, audio.played.count { it == "keep_going" })
+    }
 }

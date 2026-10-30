@@ -21,14 +21,17 @@ class CoachPolicy(
     private val cooldownMs: Long = 6_000,
     private val praiseEveryMs: Long = 20_000,
 ) {
-    private var candidate: Phrase? = null
-    private var candidateSinceMs = 0L
+    // When each currently wanted phrase started to be wanted without a break; a phrase that drops out loses its time.
+    private val wantedSinceMs = java.util.EnumMap<Phrase, Long>(Phrase::class.java)
     private var lastSpokenMs: Long? = null
     private var lastPhrase: Phrase? = null
     private var pausedSinceMs: Long? = null
     private val pausedReads = ArrayDeque<Pair<Long, Boolean>>()
     private var pendingRecovery = false
     private var pauseAcknowledged = false
+    // A pause already confirmed (2 s still) survives a short LOST gap, so Keep going isn't lost while waiting for cooldown.
+    private var pauseConfirmed = false
+    private var lastPausedReadMs = 0L
     private var pushingSinceMs: Long? = null
     private var pushedSinceCue = false
     private var absentSinceMs: Long? = null
@@ -40,20 +43,19 @@ class CoachPolicy(
         val now = reading.timeMs
         trackPause(reading)
 
-        val wanted = wantedPhrase(reading, now)
-        if (wanted != candidate) {
-            candidate = wanted
-            candidateSinceMs = now
+        val wanted = wantedPhrases(reading, now)
+        wantedSinceMs.keys.retainAll(wanted.toSet())
+        for (p in wanted) wantedSinceMs.putIfAbsent(p, now)
+        // The highest-priority phrase that has itself been wanted long enough. A higher one still waiting holds back
+        // a lower one only if it has been wanted at least as long, so a flicker in a rate phrase can't starve a posture one.
+        var pendingSince = Long.MAX_VALUE
+        var phrase: Phrase? = null
+        for (p in wanted) {
+            val since = wantedSinceMs.getValue(p)
+            if (now - since >= requiredMs(p) && since < pendingSince) { phrase = p; break }
+            pendingSince = minOf(pendingSince, since)
         }
-        val phrase = candidate ?: return null
-        // Recovering from a pause should be acknowledged quickly, everything else must be steady.
-        val requiredMs = when (phrase) {
-            Phrase.KEEP_GOING -> 0
-            // The posture judge already waits about a second, so the voice follows the amber screen promptly.
-            Phrase.ELBOWS_STRAIGHT, Phrase.SHOULDERS_OVER_HANDS -> postureSteadyMs
-            else -> steadyMs
-        }
-        if (now - candidateSinceMs < requiredMs) return null
+        if (phrase == null) return null
         lastSpokenMs?.let { if (now - it < cooldownMs) return null }
 
         lastSpokenMs = now
@@ -61,13 +63,22 @@ class CoachPolicy(
         absentSinceMs = null
         repeatAllowed = false
         absentReads = 0
-        candidate = null
+        wantedSinceMs.clear()
         if (phrase == Phrase.KEEP_GOING) {
             pendingRecovery = false
+            pauseConfirmed = false
             pauseAcknowledged = true
             pushedSinceCue = false
         }
         return phrase
+    }
+
+    // Recovering from a pause should be acknowledged quickly, everything else must be steady.
+    private fun requiredMs(phrase: Phrase) = when (phrase) {
+        Phrase.KEEP_GOING -> 0
+        // The posture judge already waits about a second, so the voice follows the amber screen promptly.
+        Phrase.ELBOWS_STRAIGHT, Phrase.SHOULDERS_OVER_HANDS -> postureSteadyMs
+        else -> steadyMs
     }
 
     /**
@@ -78,12 +89,15 @@ class CoachPolicy(
         when (reading.tracking) {
             TrackingState.PAUSED -> {
                 val now = reading.timeMs
+                if (now - lastPausedReadMs > MIN_PAUSE_MS) pauseConfirmed = false
+                lastPausedReadMs = now
                 pausedReads.addLast(now to reading.moving)
                 while (now - pausedReads.first().first > MIN_PAUSE_MS) pausedReads.removeFirst()
                 val still = pausedReads.count { !it.second } * 2 >= pausedReads.size
                 if (!still) {
                     // Mostly moving: the rescuer is pushing without a locked rate, so there is no pause to time.
                     pausedSinceMs = null
+                    pauseConfirmed = false
                     if (pushingSinceMs == null) pushingSinceMs = now
                     if (now - pushingSinceMs!! >= MIN_PUSH_MS) {
                         // Sustained pushing counts like BEATING: the next stop is a new pause.
@@ -101,10 +115,12 @@ class CoachPolicy(
                     a.second && b.second && now - b.first <= STILL_NOW_MS
                 }
                 pendingRecovery = !pauseAcknowledged && still && !reading.moving && stillNow &&
-                    now - pausedSinceMs!! >= MIN_PAUSE_MS
+                    (pauseConfirmed || now - pausedSinceMs!! >= MIN_PAUSE_MS)
+                if (pendingRecovery) pauseConfirmed = true
             }
             TrackingState.BEATING -> {
                 clearPause()
+                pauseConfirmed = false
                 pauseAcknowledged = false
                 // Real pushing (moving hands under a locked rate) is what lets Keep going repeat.
                 val now = reading.timeMs
@@ -115,7 +131,8 @@ class CoachPolicy(
                 }
             }
             // We can't see the arms, so this time can't count as part of a pause.
-            TrackingState.LOST, TrackingState.WARMING -> clearPause()
+            TrackingState.LOST -> clearPause()
+            TrackingState.WARMING -> { clearPause(); pauseConfirmed = false }
         }
         if (reading.tracking != TrackingState.BEATING && reading.tracking != TrackingState.PAUSED) pushingSinceMs = null
     }
@@ -126,13 +143,14 @@ class CoachPolicy(
         pendingRecovery = false
     }
 
-    private fun wantedPhrase(reading: LiveReading, now: Long): Phrase? {
-        if (reading.tracking == TrackingState.LOST || reading.tracking == TrackingState.WARMING) return null
+    /** Phrases wanted right now, highest priority first. */
+    private fun wantedPhrases(reading: LiveReading, now: Long): List<Phrase> {
+        if (reading.tracking == TrackingState.LOST || reading.tracking == TrackingState.WARMING) return emptyList()
         // Only real pushing since the last cue lets Keep going repeat; otherwise it never plays twice in a row.
-        if (pendingRecovery) return Phrase.KEEP_GOING.takeIf { it != lastPhrase || pushedSinceCue }
+        if (pendingRecovery) return if (lastPhrase != Phrase.KEEP_GOING || pushedSinceCue) listOf(Phrase.KEEP_GOING) else emptyList()
         val beating = reading.tracking == TrackingState.BEATING
         // Bent or leaning pushing often has no locked rate, so posture is also coached while PAUSED and moving.
-        if (!beating && !reading.moving) return null
+        if (!beating && !reading.moving) return emptyList()
 
         val rate = reading.ratePerMinute?.takeIf { beating }
         val wanted = ArrayList<Phrase>(3)
@@ -152,7 +170,7 @@ class CoachPolicy(
             absentReads++
         }
         if (absentReads >= CLEAR_READS && absentSinceMs?.let { now - it >= CLEAR_MS } == true) repeatAllowed = true
-        return wanted.firstOrNull { it != last || (repeatAllowed && it != Phrase.GOOD) }
+        return wanted.filter { it != last || (repeatAllowed && it != Phrase.GOOD) }
     }
 
     private companion object {
