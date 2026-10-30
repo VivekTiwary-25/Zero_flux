@@ -147,35 +147,24 @@ Do this after the live checks, with the rescuer on the cushion and the holder co
 - [ ] Tap **Home**. It returns to Home.
 - [ ] The card shows only the agreed results; no extra score is invented.
 
+
 ## Emergency
-- [ ] Emergency audio uses voice mode. Check it is loud enough with the volume buttons before a call, and again during a connected call on speaker. (M0 only tested this while dialling, so a connected call is still unproven.)
 
-- [ ] From Home, tap **Emergency**. The Emergency screen opens at once, with no setup.
-- [ ] A large coral **Call 112** clay button is at the top.
-- [ ] **Start compressions** and **Helper camera** are visible, and the mic and **Hold to stop** are easy to reach.
-- [ ] Tap **Start compressions**. The metronome starts at about 110 per minute, and the screen shows and speaks the first steps: call 112, hands in the centre of the chest, push hard and fast with the beat.
-- [ ] Put the phone on the floor nearby and step back. The metronome and spoken steps continue without the camera.
-- [ ] Without the helper camera, no rate number and no scorecard appear in Emergency.
-- [ ] After two minutes, the app says "If someone can take over, switch now."
-- [ ] Listen for the AED reminder. It plays once and is not repeated.
-- [ ] Tap **Helper camera**. The camera view opens over the emergency screen and the button becomes **Close camera**.
-- [ ] While the helper camera is on, the Call 112 button is hidden.
-- [ ] The helper camera shows the same live camera overlay used in Practise.
-- [ ] With the helper camera on, cover the camera or step out of view. The metronome and spoken steps keep going, and no fake number appears.
-- [ ] Tap **Close camera**. The normal emergency screen returns and Call 112 reappears.
-- [ ] Hold **Hold to stop** until the bar fills. The app goes straight to Home.
-- [ ] The mic button stays available while compressions play.
+**Never call 112 during a test.** Stop at the dialer; do not press its call button.
 
-## Call 112
+- [ ] From Home, tap **Emergency** once. The screen opens in landscape and the metronome and spoken emergency steps start at once; CPR does not wait for the camera.
+- [ ] The camera opens without a setup flow. The non-blocking hint says to hold the phone from the side or prop it on the floor facing the rescuer's side.
+- [ ] With arms visible, the screen shows one huge instruction word in the selected language, inside a coral-red frame, with elapsed time in a corner and no numbers. Observe the word change among **FASTER**, **GOOD**, **SLOWER** and **STRAIGHTEN ARMS** as coaching conditions change.
+- [ ] Spoken emergency steps cover calling 112, hands on chest, swapping every 2 minutes, and the AED reminder once. Spoken corrections from the Practise analysis blend with those steps when arms are visible.
+- [ ] Call 112 remains visible while the camera is on. Tap it: the dialer opens with 112 filled in, no call is placed, and the metronome continues. Do not press the dialer's call button; return without calling.
+- [ ] Move the arms out of view. The word area says **Keep pushing with the beat**; the metronome and spoken steps continue and no number is made up.
+- [ ] Revoke or deny camera permission, then enter Emergency. The metronome and spoken coaching still start and continue without camera tracking.
+- [ ] Press the device Back button during Emergency. The Emergency session, metronome and spoken steps continue.
+- [ ] With the camera unavailable, the instruction/measurement display uses dashes for unmeasured values; it never shows invented numbers.
+- [ ] Deliberately hold **Stop**. The **For the ambulance crew** summary opens in portrait and shows total CPR time, average rate and pauses; unmeasured values are dashes.
+- [ ] From the summary, tap **Home**. Home appears in portrait.
 
-**Never call 112.** This check only confirms that the dialer opens with 112 filled in, and stops there.
-
-- [ ] In Emergency, tap the coral **Call 112**. The phone's dialer opens with **112** already filled in.
-- [ ] The app did not start the call by itself; the dialer is waiting for you.
-- [ ] Do not press the call button. Press **Back**. The Emergency screen returns.
-- [ ] Turn on **Helper camera**. The Call 112 button disappears. Turn the camera off and it returns.
-- [ ] The button's label changes to the selected language (for example, Kannada).
-- [ ] If any test needs a real call, you dial a teammate's number. You never dial 112.
+**Not yet proven:** rate detection on a real person and the redesigned Emergency screen with a real person. Connected-call audio is also unproven. Do not report results or quote accuracy or latency numbers.
 
 ## Mic commands
 

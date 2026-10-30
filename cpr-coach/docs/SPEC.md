@@ -79,11 +79,15 @@ Anything from transport, BLE, RFCOMM, DTN, network, relay, SOS, identity, contac
    - **Arms out of frame:** the number greys out and shows "Can't see arms". The rescuer only hears the metronome. **Never show a made-up number.**
 5. **Scorecard:** time in the 100–120 range, average rate, elbows straight %, number of pauses. Buttons: "Swap roles and try again" and "Home".
 
-### Emergency (no setup, straight in)
-- **Call 112 button**, always visible on emergency screens. It opens the dialer with 112 filled in (`ACTION_DIAL`, **never auto-calls**). It hides only while the helper camera is on.
-- **Start compressions:** metronome ~110/min plus short spoken steps. Every 2 minutes: "If someone can take over, switch now." One AED reminder. Works with the phone just lying nearby: no camera, no score.
-- **Helper camera** (optional button): the same live overlay as Practise. If tracking fails, the metronome and voice keep going.
-- **Stop:** long-press, goes straight to Home.
+### Emergency (zero setup, panic-proof)
+- **Entry and audio:** one tap on **Emergency** opens the camera in landscape and immediately starts the metronome and spoken steps. CPR never waits for camera readiness. Emergency provides no setup flow.
+- **Guidance:** spoken steps cover calling 112, hands on chest, swapping every 2 minutes, and one AED reminder. Once the arms are visible, the same camera analysis and coaching as Practise add spoken corrections blended with the emergency steps.
+- **Screen:** show one huge instruction word in the chosen language—**FASTER**, **GOOD**, **SLOWER** or **STRAIGHTEN ARMS**—inside a coral-red frame, with elapsed time in a corner. Show no numbers. Keep a non-blocking hint on screen: hold the phone from the side, or prop it on the floor facing the rescuer's side.
+- **Tracking unavailable:** keep the metronome and voice going; show **Keep pushing with the beat** in the word area. Never invent a number.
+- **Call 112:** always visible, including while the camera is on. It opens the dialer with 112 filled in (`ACTION_DIAL`) and never places a call.
+- **Stop and summary:** a deliberate hold on Stop opens the portrait **For the ambulance crew** summary with total CPR time, average rate and pauses. Show measured values only; use a dash when a value is unmeasured. Home returns in portrait.
+- **Changed from the previous design:** Emergency now starts camera, metronome and voice together on entry; there is no Start compressions or Helper camera control, and Call 112 no longer hides while the camera is active. Emergency replaces the old optional-camera view/no-score flow with the instruction-word screen and ambulance summary.
+- **Not yet proven:** rate detection on a real person, the redesigned Emergency screen with a real person, and audio during a connected call. Do not claim accuracy or latency measurements.
 
 ### Parked (only if time is left)
 Solo mode (phone strapped to the forearm, motion sensor gives rate and pauses), past sessions list, leaderboard, session length choice.
