@@ -51,5 +51,8 @@
   "em_step_push": "Push hard and fast, with the beat.",
   "mic_enable": "Turn on hands-free listening",
   "camera_numeric_value": "{value}",
-  "live_no_rate": "—"
+  "live_no_rate": "—",
+  "debug_replay": "Debug replay — synthetic input, not measurements",
+  "debug_replay_error": "Debug replay failed — check trace file; camera disabled",
+  "practise_help": "?"
 }
