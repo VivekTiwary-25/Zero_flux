@@ -62,8 +62,10 @@ class HandsFreeController(
         synchronized(lock) {
             if (released) return
             if (session != null) {
+                // While draining transcripts the mic already shows off, so a tap means start again.
+                val draining = mutableState.value == MicState.OFF
                 stopSession()
-                return
+                if (!draining) return
             }
             if (!hasMicrophonePermission()) {
                 Log.w(TAG, "Microphone permission denied")
