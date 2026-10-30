@@ -27,6 +27,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     androidResources {
         // MediaPipe memory-maps the model, which needs it uncompressed in the APK.

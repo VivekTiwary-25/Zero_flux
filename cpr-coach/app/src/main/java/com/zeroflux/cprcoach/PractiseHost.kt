@@ -3,6 +3,7 @@ package com.zeroflux.cprcoach
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import androidx.camera.core.ImageProxy
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,7 @@ import com.zeroflux.cprcoach.ui.AppSettings
 import com.zeroflux.cprcoach.ui.CameraOverlay
 import com.zeroflux.cprcoach.ui.CameraUiState
 import com.zeroflux.cprcoach.ui.CoachColors
+import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.ui.MicButton
 import com.zeroflux.cprcoach.ui.PoseCameraView
 import com.zeroflux.cprcoach.ui.ScorecardScreen
@@ -49,6 +51,7 @@ import com.zeroflux.cprcoach.ui.WalkthroughScreen
 import com.zeroflux.cprcoach.voice.VoiceCommand
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
@@ -62,6 +65,10 @@ fun PractiseHost(
     onHome: () -> Unit,
 ) {
     val context = LocalContext.current
+    val replayName = remember(context) {
+        if (BuildConfig.DEBUG) PractiseReplay.requestedFile(context) else null
+    }
+    var replayFailed by remember(replayName) { mutableStateOf(false) }
     val audio = remember { PractiseAudio() }
     // Keep the completion clip alive on the scorecard; the Practise host owns its audio.
     DisposableEffect(voice, audio) {
@@ -85,37 +92,50 @@ fun PractiseHost(
         onDispose { reportCameraVisible(false) }
     }
 
-    when {
-        walkthrough -> PractiseQuietScreen(voice) { modifier ->
-            val finishWalkthrough = {
-                settings.walkthroughSeen = true
-                walkthrough = false
+    Column(Modifier.fillMaxSize()) {
+        if (replayName != null) {
+            Text(
+                LocalStrings.current.get(if (replayFailed) "debug_replay_error" else "debug_replay"),
+                color = CoachColors.Amber,
+                modifier = Modifier.fillMaxWidth().background(CoachColors.CameraScrim).padding(8.dp),
+            )
+        }
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            when {
+                walkthrough -> PractiseQuietScreen(voice) { modifier ->
+                    val finishWalkthrough = {
+                        settings.walkthroughSeen = true
+                        walkthrough = false
+                    }
+                    WalkthroughScreen(
+                        onSkip = finishWalkthrough,
+                        onStart = finishWalkthrough,
+                        modifier = modifier,
+                    )
+                }
+                scorecard != null -> PractiseQuietScreen(voice) { modifier ->
+                    ScorecardScreen(
+                        card = requireNotNull(scorecard),
+                        onSwapRoles = { scorecard = null },
+                        onHome = onHome,
+                        modifier = modifier,
+                    )
+                }
+                else -> PractiseCamera(
+                    audio = audio,
+                    voice = voice,
+                    cameraPermission = cameraPermission,
+                    replayName = replayName,
+                    onReplayError = { replayFailed = true },
+                    onWalkthrough = {
+                        audio.engine?.stopClips()
+                        walkthrough = true
+                    },
+                    onScorecard = { scorecard = it },
+                    onHome = onHome,
+                )
             }
-            WalkthroughScreen(
-                onSkip = finishWalkthrough,
-                onStart = finishWalkthrough,
-                modifier = modifier,
-            )
         }
-        scorecard != null -> PractiseQuietScreen(voice) { modifier ->
-            ScorecardScreen(
-                card = requireNotNull(scorecard),
-                onSwapRoles = { scorecard = null },
-                onHome = onHome,
-                modifier = modifier,
-            )
-        }
-        else -> PractiseCamera(
-            audio = audio,
-            voice = voice,
-            cameraPermission = cameraPermission,
-            onWalkthrough = {
-                audio.engine?.stopClips()
-                walkthrough = true
-            },
-            onScorecard = { scorecard = it },
-            onHome = onHome,
-        )
     }
 }
 
@@ -151,6 +171,8 @@ private fun PractiseCamera(
     audio: PractiseAudio,
     voice: VoiceRouter,
     cameraPermission: Boolean,
+    replayName: String?,
+    onReplayError: () -> Unit,
     onWalkthrough: () -> Unit,
     onScorecard: (Scorecard) -> Unit,
     onHome: () -> Unit,
@@ -164,15 +186,17 @@ private fun PractiseCamera(
     val showScorecard by rememberUpdatedState(onScorecard)
     val goHome by rememberUpdatedState(onHome)
     val permission by rememberUpdatedState(cameraPermission)
+    val replaying = BuildConfig.DEBUG && replayName != null
+    val reportReplayError by rememberUpdatedState(onReplayError)
     val traceDirectory = remember(context) {
         File(context.getExternalFilesDir(null) ?: context.filesDir, "traces")
     }
 
     val startSession: () -> Unit = {
-        if (permission) {
+        if (permission || replaying) {
             val wasFraming = session.ui.value is CameraUiState.Framing
             session.start(SystemClock.uptimeMillis())
-            if (wasFraming && session.ui.value is CameraUiState.Countdown) {
+            if (!replaying && wasFraming && session.ui.value is CameraUiState.Countdown) {
                 capture.startTrace(traceDirectory)
             }
         }
@@ -204,20 +228,33 @@ private fun PractiseCamera(
         }
     }
 
-    DisposableEffect(session, cameraPermission) {
+    DisposableEffect(session, cameraPermission, replaying) {
         val active = AtomicBoolean(true)
-        if (cameraPermission) {
+        if (!replaying && cameraPermission) {
             capture.open(PoseEngine(context) { frame ->
                 handler.post {
                     if (active.get()) session.onFrame(frame)
                 }
             })
-        } else {
+        } else if (!replaying) {
             session.onFrame(PoseFrame(SystemClock.uptimeMillis(), null, null, 0L))
         }
         onDispose {
             active.set(false)
             capture.close()
+        }
+    }
+
+    LaunchedEffect(session, replayName) {
+        if (replaying) {
+            try {
+                PractiseReplay.play(context, requireNotNull(replayName), session::onFrame)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.e("CPR_REPLAY", "Replay failed; camera remains disabled", error)
+                reportReplayError()
+            }
         }
     }
 
@@ -235,11 +272,11 @@ private fun PractiseCamera(
     }
 
     Box(Modifier.fillMaxSize().background(CoachColors.Navy)) {
-        if (cameraPermission) {
+        if (!replaying && cameraPermission) {
             PoseCameraView(onImage = capture::submit, modifier = Modifier.fillMaxSize())
         }
         CameraOverlay(
-            state = if (cameraPermission) ui else CameraUiState.Framing(false, "frame_no_person"),
+            state = if (cameraPermission || replaying) ui else CameraUiState.Framing(false, "frame_no_person"),
             micState = micState,
             onStart = startSession,
             onPauseToggle = session::togglePause,
@@ -252,7 +289,7 @@ private fun PractiseCamera(
                 .windowInsetsPadding(WindowInsets.safeDrawing).padding(8.dp)
                 .sizeIn(minWidth = 48.dp, minHeight = 48.dp),
         ) {
-            Text("?", color = CoachColors.TextPrimary)
+            Text(LocalStrings.current.get("practise_help"), color = CoachColors.TextPrimary)
         }
     }
 }
