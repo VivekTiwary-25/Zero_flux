@@ -275,6 +275,9 @@ def _finish_task(w, st, result):
 
 
 def _first_runnable(me, name, st, skip):
+    # New swarm code is waiting: let running tasks finish so the listener can restart, or busy PCs never update.
+    if CTX.get("hash") != code_hash():
+        return None
     for path in _queued(me, name):
         if path.stem not in skip and path.stem not in st["failed"]:
             return path
