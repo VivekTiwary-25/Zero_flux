@@ -40,6 +40,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun WalkthroughScreen(
@@ -53,6 +55,7 @@ fun WalkthroughScreen(
     Column(
         modifier
             .fillMaxSize()
+            .background(CoachColors.Navy)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(horizontal = 24.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
