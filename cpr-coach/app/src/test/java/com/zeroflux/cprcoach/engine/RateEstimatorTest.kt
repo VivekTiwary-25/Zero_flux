@@ -129,6 +129,15 @@ class RateEstimatorTest {
     }
 
     @Test
+    fun `a hot phone at about 7 frames a second still measures the rate`() {
+        for (rate in listOf(100.0, 110.0, 120.0)) {
+            val estimator = RateEstimator()
+            feed(estimator, rate, fps = 7.0, jitterMs = 20)
+            assertEquals("at $rate/min", rate, rateOf(estimator), 5.0)
+        }
+    }
+
+    @Test
     fun `too few frames gives no rate rather than an aliased one`() {
         val estimator = RateEstimator()
         feed(estimator, 110.0, fps = 3.0, jitterMs = 0)

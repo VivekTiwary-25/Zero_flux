@@ -106,19 +106,28 @@ class RateEstimator(
         return sqrt(sum / recent) < minAmplitude
     }
 
-    /** How well the last stretch matches itself one beat earlier. Noise after a stop scores near zero. */
+    /**
+     * Pool matches over nearby whole cycles, rather than only adjacent cycles.
+     * Sparse frames can distort a single cycle; noise after a stop still has to match several cycles.
+     * Every pair includes a recent sample, so older compressions cannot extend the pause window.
+     */
     private fun recentCorrelation(x: DoubleArray, lag: Int): Double {
-        val start = x.size - (stillWindowMs * SAMPLE_HZ / 1000).toInt()
+        val recent = (stillWindowMs * SAMPLE_HZ / 1000).toInt()
+        val start = x.size - recent
         if (start - lag < 0) return 1.0
         var cross = 0.0
         var a = 0.0
         var b = 0.0
-        for (i in start until x.size) {
-            cross += x[i] * x[i - lag]
-            a += x[i] * x[i]
-            b += x[i - lag] * x[i - lag]
+        for (i in start until x.size) a += x[i] * x[i]
+        // Bound the reference to four cycles to limit accumulated whole-sample lag error.
+        val maxOffset = minOf(start, 4 * lag)
+        for (offset in lag..maxOffset step lag) {
+            for (i in start until x.size) {
+                cross += x[i] * x[i - offset]
+                b += x[i - offset] * x[i - offset]
+            }
         }
-        val denominator = sqrt(a * b)
+        val denominator = sqrt(a * (maxOffset / lag) * b)
         return if (denominator > 1e-9) cross / denominator else 0.0
     }
 
@@ -168,6 +177,6 @@ class RateEstimator(
         const val MAX_LAG = SAMPLE_HZ * 60 / MIN_RATE
         const val OCTAVE_PREFERENCE = 0.6
         const val MIN_RECENT_CORRELATION = 0.5
-        const val MIN_FPS = 8
+        const val MIN_FPS = 6
     }
 }

@@ -12,8 +12,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -208,7 +206,6 @@ private fun cameraStatusKey(tracking: TrackingState, isPaused: Boolean): String?
     TrackingState.WARMING, TrackingState.BEATING -> if (isPaused) "live_paused" else null
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, onStop: () -> Unit) {
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -225,14 +222,16 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
             )
             TimeLeftRing(state.secondsLeft, state.totalSeconds)
         }
-        FlowRow(
+        // The elbow label comes and goes, so it gets its own space: Pause and Stop must never move under a finger.
+        Row(
             Modifier.fillMaxWidth().padding(end = 72.dp),
-            itemVerticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (!state.isPaused && state.tracking == TrackingState.BEATING) {
-                ElbowIndicator(state.elbowsBent)
+            Box(Modifier.weight(1f)) {
+                if (!state.isPaused && state.tracking == TrackingState.BEATING) {
+                    ElbowIndicator(state.elbowsBent)
+                }
             }
             LiveControls(state.isPaused, onPauseToggle, onStop)
         }
