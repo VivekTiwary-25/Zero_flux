@@ -1,0 +1,54 @@
+{
+  "machine": "pratham-pc",
+  "os": "linux",
+  "workers": [
+    {
+      "name": "argon",
+      "harness": "omp",
+      "model": "opencode-go/gemini-4-argon",
+      "profile": null,
+      "usage_provider": "opencode-go",
+      "usage_match": "",
+      "kinds": [
+        "hard"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "flash",
+      "harness": "omp",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "profile": null,
+      "usage_provider": "opencode-go",
+      "usage_match": "",
+      "kinds": [
+        "routine"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "haiku",
+      "harness": "omp",
+      "model": "opencode-go/claude-haiku-5-5",
+      "profile": null,
+      "usage_provider": "opencode-go",
+      "usage_match": "",
+      "kinds": [
+        "routine"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "dspro",
+      "harness": "omp",
+      "model": "opencode-go/deepseek-v4-pro",
+      "profile": null,
+      "usage_provider": "opencode-go",
+      "usage_match": "",
+      "kinds": [
+        "hard"
+      ],
+      "enabled": true
+    }
+  ]
+}
