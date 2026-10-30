@@ -125,6 +125,29 @@ class CoachAndMetricsTest {
     }
 
     @Test
+    fun `a new pause after real pushing says keep going again`() {
+        val policy = CoachPolicy()
+        run(policy, 0, 8_000) { beating(it, 110).copy(moving = true) }
+        val first = run(policy, 8_000, 12_000) { paused(it) }
+        run(policy, 12_000, 20_000) { beating(it, 110).copy(moving = true) }
+        val second = run(policy, 20_000, 24_000) { paused(it) }
+        assertEquals(listOf(Phrase.KEEP_GOING), first.map { it.second })
+        assertEquals(listOf(Phrase.KEEP_GOING), second.map { it.second })
+    }
+
+    @Test
+    fun `elbows can be corrected again once posture was good in between`() {
+        val policy = CoachPolicy()
+        val first = run(policy, 0, 6_000) { beating(it, 110, bent = true).copy(moving = true) }
+        val stillBent = run(policy, 6_000, 12_000) { beating(it, 110, bent = true).copy(moving = true) }
+        run(policy, 12_000, 20_000) { beating(it, 110).copy(moving = true) }
+        val second = run(policy, 20_000, 26_000) { beating(it, 110, bent = true).copy(moving = true) }
+        assertEquals(listOf(Phrase.ELBOWS_STRAIGHT), first.map { it.second })
+        assertTrue(stillBent.isEmpty())
+        assertEquals(listOf(Phrase.ELBOWS_STRAIGHT), second.map { it.second })
+    }
+
+    @Test
     fun `coaching carries on after a pause`() {
         val policy = CoachPolicy()
         run(policy, 0, 8_000) { beating(it, 110) }

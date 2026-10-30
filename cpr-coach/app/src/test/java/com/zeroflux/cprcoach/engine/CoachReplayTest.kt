@@ -78,6 +78,14 @@ class CoachReplayTest {
         assertTrue("elbows straight in a bent block", spoken.any { it.phrase == Phrase.ELBOWS_STRAIGHT && it.tS in 38.0..62.0 })
     }
 
+    @Test
+    fun `recording 15 corrects the elbows in both bent blocks and still leans`() {
+        val spoken = replay("real-cph2467-15.csv")
+        assertTrue("elbows in first bent block 38-44 s", spoken.any { it.phrase == Phrase.ELBOWS_STRAIGHT && it.tS in 38.0..44.0 })
+        assertTrue("elbows in second bent block 54-62 s", spoken.any { it.phrase == Phrase.ELBOWS_STRAIGHT && it.tS in 54.0..62.0 })
+        assertTrue("shoulders over hands near 70 s", spoken.any { it.phrase == Phrase.SHOULDERS_OVER_HANDS && it.tS in 64.0..76.0 })
+    }
+
     private companion object {
         const val ASPECT = 4f / 3f
     }
