@@ -44,7 +44,7 @@ It opens the phone dialer with 112 already filled in and waits — it never plac
 CPR instructions only help if you understand them while panicking. The picker lists English, Hindi, Kannada, Tamil, Telugu, Malayalam, Marathi, Gujarati, Bengali and Odia, each in its own script, with every visible word and every spoken clip in the selected language.
 
 **Which languages really work yet?**
-Only English and Hindi speech are verified on real phones so far. The other eight voice and text translations are generated drafts: per `docs/CLIP_STATUS.md`, "checked by a person" is NO for every clip — nobody has listened to them yet. The demo runs in English.
+This app has not yet been run end to end on a phone. The speech models were checked on real phones for English and Hindi in an earlier project (iTantra). One Lab test on an RMX3392 showed hand-held pose tracking working outdoors, and voice-mode audio kept playing while dialling. The other eight voice and text translations are generated drafts: per `docs/CLIP_STATUS.md`, "checked by a person" is NO for every clip — nobody has listened to them yet. The demo runs in English.
 
 **Does it work offline?**
 Yes. The pose model, signal math, feedback logic, pre-recorded coaching clips and speech recognition all run on the phone. The app has no networking at all, so there are no dead zones and no data leaves the device.
@@ -61,4 +61,4 @@ No. It is guided practice for the motion of compressions: rate, elbows, continui
 Colleges, NSS units and community groups that want supervised practice between instructor sessions — always with the safety line: call 112 in a real emergency, follow the dispatcher, start CPR right away.
 
 **What is still unproven?**
-Counted rate-accuracy runs, connected-call audio behaviour, per-language voice checks by native speakers, and testing across more phones, lighting and camera angles. The honest status of each is tracked in `docs/MEASUREMENTS.md`, `docs/CLIP_STATUS.md` and `docs/PHONE_TEST.md`.
+Counted rate-accuracy runs (not done yet), an end-to-end run of this app on a phone, connected-call audio behaviour, per-language voice checks by native speakers, and testing across more phones, lighting and camera angles. The honest status of each is tracked in `docs/MEASUREMENTS.md`, `docs/CLIP_STATUS.md` and `docs/PHONE_TEST.md`.
