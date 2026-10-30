@@ -40,6 +40,8 @@ import com.zeroflux.cprcoach.engine.Scorecard
 import com.zeroflux.cprcoach.engine.SessionAudio
 import com.zeroflux.cprcoach.ui.AppLanguage
 import com.zeroflux.cprcoach.ui.AppSettings
+import com.zeroflux.cprcoach.engine.OverlayPose
+import com.zeroflux.cprcoach.ui.ArmOverlay
 import com.zeroflux.cprcoach.ui.CameraOverlay
 import com.zeroflux.cprcoach.ui.CameraUiState
 import com.zeroflux.cprcoach.ui.CoachColors
@@ -180,6 +182,7 @@ private fun PractiseCamera(
     val context = LocalContext.current
     val session = remember { PractiseSession(audio) }
     val capture = remember { PractiseCapture() }
+    val overlayPose = remember { OverlayPose() }
     val handler = remember { Handler(Looper.getMainLooper()) }
     val ui by session.ui.collectAsState()
     val micState by voice.state.collectAsState()
@@ -232,6 +235,7 @@ private fun PractiseCamera(
         val active = AtomicBoolean(true)
         if (!replaying && cameraPermission) {
             capture.open(PoseEngine(context) { frame ->
+                overlayPose.push(frame, SystemClock.uptimeMillis())
                 handler.post {
                     if (active.get()) session.onFrame(frame)
                 }
@@ -248,7 +252,10 @@ private fun PractiseCamera(
     LaunchedEffect(session, replayName) {
         if (replaying) {
             try {
-                PractiseReplay.play(context, requireNotNull(replayName), session::onFrame)
+                PractiseReplay.play(context, requireNotNull(replayName)) { frame ->
+                    overlayPose.push(frame, SystemClock.uptimeMillis())
+                    session.onFrame(frame)
+                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
@@ -276,6 +283,7 @@ private fun PractiseCamera(
         if (!replaying && cameraPermission) {
             PoseCameraView(onImage = capture::submit, modifier = Modifier.fillMaxSize())
         }
+        ArmOverlay(overlayPose, (ui as? CameraUiState.Live)?.posture, showLabels = true)
         CameraOverlay(
             state = if (cameraPermission || replaying) ui else CameraUiState.Framing(false, "frame_no_person"),
             micState = micState,
