@@ -1,0 +1,30 @@
+{
+  "machine": "prabal-pc",
+  "os": "linux",
+  "workers": [
+    {
+      "name": "codex-luna",
+      "harness": "omp",
+      "model": "openai-codex/gpt-6-luna",
+      "profile": null,
+      "usage_provider": "openai-codex",
+      "usage_match": "",
+      "kinds": [
+        "routine"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "codex-sol",
+      "harness": "omp",
+      "model": "openai-codex/gpt-6.1-sol",
+      "profile": null,
+      "usage_provider": "openai-codex",
+      "usage_match": "",
+      "kinds": [
+        "hard"
+      ],
+      "enabled": true
+    }
+  ]
+}
