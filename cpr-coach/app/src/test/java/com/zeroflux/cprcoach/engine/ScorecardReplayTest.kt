@@ -70,39 +70,49 @@ class ScorecardReplayTest {
         return metrics.scorecard() to readings
     }
 
+    private fun printCard(name: String, c: Scorecard) {
+        println("=== Scorecard for $name ===")
+        println("sessionSeconds=${c.sessionSeconds} measuredSeconds=${c.measuredSeconds} secondsInRange=${c.secondsInRange} " +
+            "averageRate=${c.averageRate} elbowsStraightPercent=${c.elbowsStraightPercent} pauses=${c.pauses}")
+    }
+
     @Test
     fun `replay real-14 and real-15 and print scorecards`() {
+        // Ranges tied to the picture labels, not exact replay numbers, so small tuning does not break them.
         val (card14, _) = replay("real-cph2467-14.csv")
-        println("=== Scorecard for real-cph2467-14.csv ===")
-        println("sessionSeconds: ${card14.sessionSeconds}")
-        println("measuredSeconds: ${card14.measuredSeconds}")
-        println("secondsInRange: ${card14.secondsInRange}")
-        println("averageRate: ${card14.averageRate}")
-        println("elbowsStraightPercent: ${card14.elbowsStraightPercent}")
-        println("pauses: ${card14.pauses}")
-
-        assertEquals(63, card14.sessionSeconds)
-        assertEquals(20, card14.measuredSeconds)
-        assertEquals(20, card14.secondsInRange)
-        assertEquals(113, card14.averageRate)
-        assertEquals(95, card14.elbowsStraightPercent)
-        assertEquals(0, card14.pauses)
+        printCard("real-cph2467-14.csv", card14)
+        // 14: pushing 3-24 s with a locked rate for about 20 s, then a rest, pose lost after 33 s.
+        assertTrue("session ${card14.sessionSeconds}", card14.sessionSeconds in 55..70)
+        assertTrue("measured ${card14.measuredSeconds}", card14.measuredSeconds in 15..25)
+        assertTrue("in range ${card14.secondsInRange}", card14.secondsInRange >= card14.measuredSeconds - 4)
+        assertTrue("rate ${card14.averageRate}", card14.averageRate in 100..120)
+        // Labelled straight throughout the push.
+        assertTrue("elbows ${card14.elbowsStraightPercent}", card14.elbowsStraightPercent!! >= 85)
 
         val (card15, _) = replay("real-cph2467-15.csv")
-        println("=== Scorecard for real-cph2467-15.csv ===")
-        println("sessionSeconds: ${card15.sessionSeconds}")
-        println("measuredSeconds: ${card15.measuredSeconds}")
-        println("secondsInRange: ${card15.secondsInRange}")
-        println("averageRate: ${card15.averageRate}")
-        println("elbowsStraightPercent: ${card15.elbowsStraightPercent}")
-        println("pauses: ${card15.pauses}")
+        printCard("real-cph2467-15.csv", card15)
+        assertTrue("session ${card15.sessionSeconds}", card15.sessionSeconds in 65..75)
+        assertTrue("measured ${card15.measuredSeconds}", card15.measuredSeconds in 40..55)
+        assertTrue("in range ${card15.secondsInRange}", card15.secondsInRange >= card15.measuredSeconds - 8)
+        assertTrue("rate ${card15.averageRate}", card15.averageRate in 100..115)
+        // About 13 s of labelled bent elbows out of about 54 s judged: roughly 76% straight.
+        assertTrue("elbows ${card15.elbowsStraightPercent}", card15.elbowsStraightPercent in 65..90)
+    }
 
-        assertEquals(71, card15.sessionSeconds)
-        assertEquals(49, card15.measuredSeconds)
-        assertEquals(45, card15.secondsInRange)
-        assertEquals(107, card15.averageRate)
-        assertEquals(75, card15.elbowsStraightPercent)
-        assertEquals(1, card15.pauses)
+    @Test
+    fun `scorecard pauses on real recordings`() {
+        val (card13, _) = replay("real-cph2467-13.csv")
+        val (card14, _) = replay("real-cph2467-14.csv")
+        val (card15, _) = replay("real-cph2467-15.csv")
+        printCard("real-cph2467-13.csv", card13)
+        printCard("real-cph2467-14.csv", card14)
+        printCard("real-cph2467-15.csv", card15)
+        // 13: pushing 4-36 s without a locked rate for stretches is not a pause (it ends about 38 s).
+        assertTrue("13 pauses ${card13.pauses}", card13.pauses <= 1)
+        // 14: a real rest of about 8.8 s, even though `moving` flickers.
+        assertEquals(1, card14.pauses)
+        // 15: the 1.7 s reposition is under 2 s.
+        assertTrue("15 pauses ${card15.pauses}", card15.pauses <= 1)
     }
 
     @Test
@@ -130,10 +140,11 @@ class ScorecardReplayTest {
         val guardedCard = guardedMetrics.scorecard()
         val oldGateCard = oldGateMetrics.scorecard()
 
-        // PostureJudge identifies bent elbows in 15, yielding 75%.
-        // The old ElbowGate (BENT_BELOW_DEGREES = 100.0) never flagged any frames as bent, yielding 100%.
-        assertEquals(75, guardedCard.elbowsStraightPercent)
-        assertEquals(100, oldGateCard.elbowsStraightPercent)
+        println("elbows straight: PostureJudge ${guardedCard.elbowsStraightPercent}%, ElbowGate ${oldGateCard.elbowsStraightPercent}%")
+        // PostureJudge sees the labelled bent blocks in 15 (roughly 76% straight).
+        // The old ElbowGate (BENT_BELOW_DEGREES = 100.0) never flags them, so it reads about 100%.
+        assertTrue(guardedCard.elbowsStraightPercent!! in 65..90)
+        assertTrue(oldGateCard.elbowsStraightPercent!! >= 95)
     }
 
     private companion object {

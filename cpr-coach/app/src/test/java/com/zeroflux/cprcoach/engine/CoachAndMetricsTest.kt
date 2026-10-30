@@ -178,6 +178,24 @@ class CoachAndMetricsTest {
     }
 
     @Test
+    fun `a rest with flickering movement counts one pause`() {
+        val metrics = SessionMetrics()
+        var t = 0L
+        repeat(8) { metrics.add(beating(t, 110)); t += 250 }
+        repeat(40) { metrics.add(paused(t).copy(moving = (t / 250) % 4 == 0L)); t += 250 } // 10 s rest, one read in four moves
+        assertEquals(1, metrics.scorecard().pauses)
+    }
+
+    @Test
+    fun `pushing without a rate is not a pause on the scorecard`() {
+        val metrics = SessionMetrics()
+        var t = 0L
+        repeat(8) { metrics.add(beating(t, 110)); t += 250 }
+        repeat(40) { metrics.add(paused(t).copy(moving = (t / 250) % 4 != 0L)); t += 250 }
+        assertEquals(0, metrics.scorecard().pauses)
+    }
+
+    @Test
     fun `scorecard counts only measured time`() {
         val metrics = SessionMetrics()
         var t = 0L
