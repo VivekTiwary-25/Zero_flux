@@ -175,8 +175,10 @@ class HandsFreeController(
             }
             val lastSpeechAt = AtomicLong(SystemClock.elapsedRealtime())
             synchronized(lock) {
+                // Loading may finish after stop/release. Serialize this final gate and startup
+                // with stopSession so a disposed owner can never start the microphone later.
                 owner.ensureActive()
-                check(session === owner) { "Microphone session was replaced" }
+                check(!released && session === owner) { "Microphone session is no longer current" }
                 check(hasMicrophonePermission()) { "Microphone permission revoked" }
                 activeRecorder = input
                 input.startRecording()

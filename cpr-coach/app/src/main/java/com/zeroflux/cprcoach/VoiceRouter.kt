@@ -97,8 +97,24 @@ class VoiceRouter(
         onCommand: (VoiceCommand) -> Unit,
     ): () -> Unit {
         val binding = Route(allowed, allowLanguages, onCommand)
+        // A replacement owner must not inherit the previous screen's microphone session.
+        stopListening()
         route = binding
-        return { if (route === binding) route = null }
+        return {
+            if (route === binding) {
+                route = null
+                stopListening()
+            }
+        }
+    }
+
+    private fun stopListening() {
+        commandTimeoutJob?.cancel()
+        commandTimeoutJob = null
+        micEpoch += 1
+        controller.stop()
+        // Do not wait for the state collector to restore coaching audio after navigation.
+        engines.forEach { it.setVoiceMuted(false) }
     }
 
     fun attachAudio(engine: AudioEngine): () -> Unit {
@@ -132,6 +148,7 @@ class VoiceRouter(
             controller.stop()
             return
         }
+        if (route == null) return
         if (ContextCompat.checkSelfPermission(app, Manifest.permission.RECORD_AUDIO) !=
             PackageManager.PERMISSION_GRANTED || !speech.hasModel(language.code)) return
         // The existing recognizer reports English as available even when its assets are absent.
