@@ -69,28 +69,38 @@ class CommandMatcher(val table: Map<String, CommandTable>) {
         return MatchResult.None
     }
 
+    /**
+     * Keeps letters, digits and combining marks (needed by Indian scripts), and turns all else into single
+     * spaces. Plain character checks, because Android's regex engine differs from the JVM's that tests run on.
+     */
     private fun normalize(text: String): String {
-        return text
-            .lowercase()
-            .replace(PUNCTUATION_REGEX, " ")
-            .replace(WHITESPACE_REGEX, " ")
-            .trim()
+        val out = StringBuilder(text.length)
+        var pendingSpace = false
+        for (c in text.lowercase()) {
+            if (c.isLetterOrDigit() || Character.getType(c).toByte() in COMBINING_MARKS) {
+                if (pendingSpace && out.isNotEmpty()) out.append(' ')
+                pendingSpace = false
+                out.append(c)
+            } else {
+                pendingSpace = true
+            }
+        }
+        return out.toString()
     }
 
     private fun matchesAny(cleanedTranscript: String, phrases: List<String>): Boolean {
-        for (phrase in phrases) {
+        val padded = " $cleanedTranscript "
+        return phrases.any { phrase ->
             val norm = normalize(phrase)
-            if (norm.isEmpty()) continue
-            val regex = Regex("""(?U)\b${Regex.escape(norm)}\b""")
-            if (regex.containsMatchIn(cleanedTranscript)) {
-                return true
-            }
+            norm.isNotEmpty() && padded.contains(" $norm ")
         }
-        return false
     }
 
-    companion object {
-        private val PUNCTUATION_REGEX = Regex("""(?U)[\p{P}\p{S}\u0964\u0965]""")
-        private val WHITESPACE_REGEX = Regex("""\s+""")
+    private companion object {
+        val COMBINING_MARKS = setOf(
+            Character.NON_SPACING_MARK,
+            Character.COMBINING_SPACING_MARK,
+            Character.ENCLOSING_MARK,
+        )
     }
 }
