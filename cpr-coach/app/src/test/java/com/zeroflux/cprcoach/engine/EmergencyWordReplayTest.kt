@@ -190,6 +190,10 @@ class EmergencyWordReplayTest {
             "15 shows shoulders over hands during lean 65.0-69.5 s",
             r.wordsIn(65.0, 69.5).any { it == EmergencyWord.SHOULDERS_OVER_HANDS },
         )
+        // Measured 58% (11 of 19 ticks, word from 67.0 s; before the side-on hold it was 3 of 19, from 69.0 s). Picture labels, not a person's.
+        val share = r.share(65.0, 69.5, EmergencyWord.SHOULDERS_OVER_HANDS)
+        println(String.format(Locale.ROOT, "emergency 15: lean word share of 65-69.5 s %.0f%%", share * 100))
+        assertTrue("15 lean word covers a clear share of the lean block", share > 0.4)
     }
 
     private companion object {

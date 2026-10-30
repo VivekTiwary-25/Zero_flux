@@ -136,8 +136,9 @@ class PostureReplayTest {
                 // The second bend is mild (elbow 144-166, median 151): only the personal baseline (178) lifts the threshold to it.
                 assertTrue("15: second bent block flagged bent for at least half of it", bent2 >= 0.5)
                 assertTrue("15: second bent block is not called good", bent2Good < 0.1)
-                assertTrue("15: lean block flagged for a clear share", lean > 0.25)
-                assertTrue("15: lean fires within 3.5 s of the lean block (measured 2.8 s: 1 s median plus 1 s sustain)", leanFirst != null && leanFirst - 65.0 <= 3.5)
+                // Measured 82%: the side-on flag flickers at 64.3-65.3 s and used to wipe the lean state (36-41% flagged, first at 67.8 s).
+                assertTrue("15: lean block flagged for most of it", lean > 0.6)
+                assertTrue("15: lean flagged within 2 s of the lean block (measured at its start: the issue survives the side-on flicker)", leanFirst != null && leanFirst - 65.0 <= 2.0)
             }
             if (file.name == "real-cph2467-11.csv") {
                 assertTrue("11 (straight throughout) never says bent",

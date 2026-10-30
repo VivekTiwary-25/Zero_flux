@@ -7,7 +7,8 @@ import kotlin.math.hypot
  * Judges the rescuer's position from one side-on 2D camera. Rule: if unsure, say less.
  * Order: (1) joints seen well enough, else null; (2) view side-on, else NOT_SIDE_ON or null;
  * (3) only then elbow angle and shoulder-over-wrist, each a median over about one second,
- * needing about a second sustained to fire and about a second of good to clear.
+ * needing about a second sustained to fire and about a second of good to clear. A confirmed issue is kept
+ * through a short side-on flicker or median refill ([HOLD_MS]) instead of being wiped.
  * Pure Kotlin, one thread. Frames should come through [LandmarkGuard] first. Thresholds marked GUESS were not measured.
  */
 class PostureJudge(
@@ -21,6 +22,7 @@ class PostureJudge(
     private val sideWin = ArrayDeque<Timed>()
     private var lastTimeMs: Long? = null
     private var notSideSinceMs: Long? = null
+    private var lastJudgedMs: Long? = null
     private val elbow = Issue()
     private val lean = Issue()
 
@@ -67,8 +69,21 @@ class PostureJudge(
         sideWin.clear()
         lastTimeMs = null
         notSideSinceMs = null
+        lastJudgedMs = null
         elbow.reset()
         lean.reset()
+    }
+
+    /** A confirmed issue stays reported through a short loss of judging (side-on window refilling, median refilling). */
+    private fun held(t: Long): PostureReading {
+        val j = lastJudgedMs
+        val issue = when {
+            j == null || t - j > HOLD_MS -> null
+            elbow.active -> PostureIssue.ELBOWS_BENT
+            lean.active -> PostureIssue.SHOULDERS_NOT_OVER_HANDS
+            else -> null
+        }
+        return if (issue != null) PostureReading(false, issue, null, null) else PostureReading(null, null, null, null)
     }
 
     fun update(sample: PoseSample, arm: ArmLandmarks?, aspect: Float): PostureReading {
@@ -96,15 +111,21 @@ class PostureJudge(
         val clearlyOn = sideSpan >= SIDE_MIN_SPAN_MS && notShare <= SIDE_ON_SHARE
         if (clearlyNot) {
             val s = notSideSinceMs ?: t.also { notSideSinceMs = it }
-            // The joints aren't trustworthy from this view; drop old medians so a fix starts clean.
+            // The joints aren't trustworthy from this view; drop old medians so a fix starts clean. A confirmed
+            // issue survives a short turn-away (the side-on flag flickers in a lean) and goes with NOT_SIDE_ON.
             elbowWin.clear()
             offsetWin.clear()
-            elbow.reset()
-            lean.reset()
-            return if (t - s >= NOT_SIDE_ON_MS) PostureReading(false, PostureIssue.NOT_SIDE_ON, null, null) else unknown
+            elbow.sinceMs = null
+            lean.sinceMs = null
+            if (t - s >= NOT_SIDE_ON_MS) {
+                elbow.reset()
+                lean.reset()
+                return PostureReading(false, PostureIssue.NOT_SIDE_ON, null, null)
+            }
+            return unknown
         }
         notSideSinceMs = null
-        if (!clearlyOn) return unknown
+        if (!clearlyOn) return held(t)
 
         // (3) judge
         val sx = arm.shoulderX * aspect.toDouble()
@@ -122,7 +143,8 @@ class PostureJudge(
         offsetWin.addLast(Timed(t, offset))
         trim(elbowWin, t, MEDIAN_WINDOW_MS)
         trim(offsetWin, t, MEDIAN_WINDOW_MS)
-        if (t - elbowWin.first().t < MIN_MEDIAN_SPAN_MS) return unknown
+        if (t - elbowWin.first().t < MIN_MEDIAN_SPAN_MS) return held(t)
+        lastJudgedMs = t
 
         val elbowMed = median(elbowWin)
         val offMed = median(offsetWin)
@@ -195,6 +217,9 @@ class PostureJudge(
         const val MEDIAN_WINDOW_MS = 1_000L
         const val MIN_MEDIAN_SPAN_MS = 600L
 
+        /** A confirmed issue is still reported for this long after the last judged frame (side-on or median refilling). */
+        const val HOLD_MS = 3_000L
+
         /** Sustained time to fire and to clear. */
         const val SUSTAIN_MS = 1_000L
 
@@ -224,6 +249,11 @@ class PostureJudge(
          * Lean: |offset| beyond this always counts; with a baseline, |offset - baseline| beyond [LEAN_DELTA] too.
          * L 0.19: 15's lean block (baseline 0.11, block 0.29-0.35) is flagged 36% of the time, first ~2.8 s in; 14, 11,
          * 12 before 15 s and 10 are never flagged. At 0.15-0.17 11 is flagged 9-10%, at 0.22 the lean block is lost.
+         * Sweep on picture labels of recordings 14-15 (not a person's): the late, short flag was no threshold problem.
+         * 15's side-on flag drops at 64.3-65.3 s (offset reads 0.1 there) and the old reset wiped the lean state, so
+         * judging only resumed at 66.8 s. Keeping the state through that flicker ([HOLD_MS]) lifts the block to 82%
+         * flagged, first at its start. Shorter sustain (0.6-0.8 s), delta 0.15-0.17, trimmed mean, torso-normalised
+         * offset, angle measure, lower exit bars, longer exit sustain gave no gain without false lean on 15 straight, 11 or 12.
          */
         const val LEAN_ABSOLUTE = 0.45
         const val LEAN_DELTA = 0.19

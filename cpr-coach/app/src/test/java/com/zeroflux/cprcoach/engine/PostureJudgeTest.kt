@@ -120,6 +120,21 @@ class PostureJudgeTest {
         assertTrue(r.none { it.second.issue != null })
     }
 
+    @Test fun leanSurvivesAShortSideOnFlicker() {
+        // Recording 15 (picture labels, not a person's): the side-on flag drops for about a second inside the lean and
+        // used to wipe the lean state, so judging resumed late. The issue stays through it; a long turn-away still clears.
+        val r = run(20.0) { t ->
+            Pose(pushing(168.0, t), offset = if (t >= 5.0) 0.7 else 0.05, sideOn = !(t in 9.0..10.0))
+        }
+        val flicker = r.filter { it.first in 10_700..11_500 }
+        assertTrue("frames in the refill window", flicker.isNotEmpty())
+        assertTrue("lean still reported through the flicker", flicker.all { it.second.issue == PostureIssue.SHOULDERS_NOT_OVER_HANDS })
+        val longTurn = run(30.0) { t ->
+            Pose(pushing(168.0, t), offset = if (t >= 5.0) 0.7 else 0.05, sideOn = !(t in 9.0..14.0))
+        }
+        assertTrue("a long turn-away ends the lean", longTurn.filter { it.first in 12_000..13_000 }.none { it.second.issue == PostureIssue.SHOULDERS_NOT_OVER_HANDS })
+    }
+
     @Test fun leaningShouldersFireAndClear() {
         val onset = 5.0
         val back = 12.0
