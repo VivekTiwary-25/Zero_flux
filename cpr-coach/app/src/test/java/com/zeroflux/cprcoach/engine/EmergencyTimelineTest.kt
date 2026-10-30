@@ -1,0 +1,220 @@
+// PowerShell: $env:CPR_TRACE='tools/testdata/real-cph2467-15.csv'
+// ./gradlew.bat testDebugUnitTest --tests '*EmergencyTimelineTest*' --rerun-tasks
+// Use the environment variable: Gradle does not forward -DCPR_TRACE by default.
+package com.zeroflux.cprcoach.engine
+
+import com.zeroflux.cprcoach.audio.WavClip
+import com.zeroflux.cprcoach.ui.TestAssets
+import org.junit.Assume.assumeTrue
+import org.junit.Test
+import java.io.File
+import java.util.ArrayDeque
+import java.util.Locale
+
+/** Opt-in diagnostic for any pose CSV. No recording-specific coaching expectations. */
+class EmergencyTimelineTest {
+    private data class Spoken(val timeMs: Long, val key: String)
+    private data class Snapshot(val reading: LiveReading, val word: EmergencyWord, val instructionKey: String)
+
+    @Test
+    fun `print what Emergency shows and says for a trace`() {
+        val path = System.getenv("CPR_TRACE")?.takeIf { it.isNotBlank() }
+            ?: System.getProperty("CPR_TRACE")?.takeIf { it.isNotBlank() }
+        assumeTrue("Set CPR_TRACE to a session CSV to run the Emergency timeline", path != null)
+        val requested = File(requireNotNull(path))
+        // Gradle runs tests from app/. Also accept paths relative to the Android project.
+        val trace = if (requested.isAbsolute || requested.isFile) requested else File(TestAssets.projectDir, path)
+        require(trace.isFile) { "Trace does not exist: ${trace.absolutePath}" }
+        val frames = readFrames(trace)
+        require(frames.isNotEmpty()) { "Trace has no frames: $trace" }
+        require(frames.zipWithNext().all { (a, b) -> a.timeMs <= b.timeMs }) {
+            "Trace timestamps must be nondecreasing"
+        }
+
+        val startMs = frames.first().timeMs
+        val durationMs = frames.last().timeMs - startMs
+        // Consume the final frame on the next regular read, without an extra second of silence.
+        val lastTickMs = startMs + ((durationMs + TICK_MS - 1) / TICK_MS) * TICK_MS
+        val analyzer = LiveAnalyzer()
+        val coach = EmergencyCoach(startMs)
+        val spoken = ArrayList<Spoken>()
+        val playback = ReplayPlayback(spoken)
+        playback.start(startMs)
+        val snapshots = ArrayList<Snapshot>()
+        var nextFrame = 0
+        var lastFrameMs = startMs
+        var tickMs = startMs
+        var lastSequenceTickMs: Long? = null
+        while (tickMs <= lastTickMs) {
+            while (nextFrame < frames.size && frames[nextFrame].timeMs <= tickMs) {
+                val frame = frames[nextFrame++]
+                analyzer.addFrame(frame)
+                lastFrameMs = frame.timeMs
+            }
+            check(tickMs >= lastFrameMs) { "Read preceded the latest frame" }
+            // Completion callbacks can drain the scripted queue between host polls.
+            playback.advanceTo(tickMs)
+            // EmergencyHost: sequence tick, read, update, word, then correction only if voice idle.
+            if (lastSequenceTickMs?.let { tickMs - it >= 1_000L } != false) {
+                lastSequenceTickMs = tickMs
+                playback.tick(tickMs)
+            }
+            val reading = analyzer.read(tickMs)
+            coach.update(reading)
+            val word = coach.word
+            if (playback.voiceIdle) {
+                coach.nextCorrection(reading)?.let { playback.speak(it.key, tickMs) }
+            }
+            val instructionKey = if (word == EmergencyWord.KEEP_PUSHING) playback.stepKey ?: word.key else word.key
+            snapshots.add(Snapshot(reading, word, instructionKey))
+            tickMs += TICK_MS
+        }
+        check(nextFrame == frames.size) { "Replay did not consume every frame" }
+
+        val output = buildString {
+            appendLine("Trace: ${trace.name}; frames=${frames.size}; duration=${seconds(durationMs)}s")
+            appendLine("t is recording-relative [t,t+1); state is the last 250 ms read in that second.")
+            appendLine("Final read=${seconds(lastTickMs - startMs)}s; word is the screen instruction key; coach_word is the held coach word.")
+            appendLine("English audio is ready at t=0; clip completion uses WAV duration, without device/loading latency.")
+            for ((second, snapshot) in snapshots.associateBy { (it.reading.timeMs - startMs) / 1_000L }) {
+                val reading = snapshot.reading
+                val keys = spoken.filter { (it.timeMs - startMs) in second * 1_000L until (second + 1) * 1_000L }
+                    .joinToString(", ") { "${seconds(it.timeMs - startMs)}s:${it.key}" }
+                appendLine(
+                    "t=${second}s sample=${seconds(reading.timeMs - startMs)}s " +
+                        "tracking=${reading.tracking} rate=${reading.ratePerMinute ?: "--"} " +
+                        "posture_issue=${reading.posture?.issue ?: "--"} " +
+                        "word=${snapshot.instructionKey} coach_word=${snapshot.word} spoken=${keys.ifEmpty { "--" }}",
+                )
+            }
+            appendLine("Word stretches (250 ms samples; [start,end), final endpoint is the final read):")
+            var stretchStartMs = startMs
+            var instructionKey = snapshots.first().instructionKey
+            for (snapshot in snapshots.drop(1)) {
+                if (snapshot.instructionKey != instructionKey) {
+                    appendLine("${seconds(stretchStartMs - startMs)}-${seconds(snapshot.reading.timeMs - startMs)}s $instructionKey")
+                    stretchStartMs = snapshot.reading.timeMs
+                    instructionKey = snapshot.instructionKey
+                }
+            }
+            appendLine("${seconds(stretchStartMs - startMs)}-${seconds(lastTickMs - startMs)}s $instructionKey")
+            appendLine("Spoken keys (recording-relative clip start times; no playback beyond the final read):")
+            for (event in spoken) appendLine("${seconds(event.timeMs - startMs)}s ${event.key}")
+        }
+        print(output)
+        val destination = File(TestAssets.projectDir, "app/build/emergency-timeline.txt")
+        requireNotNull(destination.parentFile).mkdirs()
+        destination.writeText(output, Charsets.UTF_8)
+    }
+
+    /** EmergencyPlayback's single-clip queue, driven by clip durations instead of Android callbacks. */
+    private class ReplayPlayback(private val spoken: MutableList<Spoken>) {
+        private val sequence = EmergencySequence()
+        private val pending = ArrayDeque<String>()
+        private val durationsMs = HashMap<String, Long>()
+        private var currentKey: String? = null
+        private var doneMs = 0L
+        var stepKey: String? = null
+            private set
+        val voiceIdle: Boolean get() = currentKey == null && pending.isEmpty()
+
+        fun start(nowMs: Long) {
+            pending.addAll(sequence.start(nowMs))
+            playNext(nowMs)
+        }
+
+        fun advanceTo(nowMs: Long) {
+            while (currentKey != null && doneMs <= nowMs) {
+                val completedMs = doneMs
+                currentKey = null
+                playNext(completedMs)
+            }
+        }
+
+        fun tick(nowMs: Long) {
+            pending.addAll(sequence.tick(nowMs))
+            playNext(nowMs)
+        }
+
+        fun speak(key: String, nowMs: Long) {
+            check(voiceIdle) { "Correction must not interrupt or queue behind another clip" }
+            pending.add(key)
+            playNext(nowMs)
+        }
+
+        private fun playNext(nowMs: Long) {
+            if (currentKey != null) return
+            if (pending.isEmpty()) {
+                stepKey = null
+                return
+            }
+            val key = pending.removeFirst()
+            currentKey = key
+            stepKey = when (key) {
+                "em_call" -> "em_step_call"
+                "em_hands" -> "em_step_hands"
+                "em_push" -> "em_step_push"
+                else -> null
+            }
+            val durationMs = durationsMs.getOrPut(key) {
+                val file = File(TestAssets.assetsDir, "clips/en/$key.wav")
+                require(file.isFile) { "Missing English clip: $file" }
+                val clip = WavClip.parse(file.readBytes())
+                (clip.samples.size * 1_000L + clip.sampleRate - 1) / clip.sampleRate
+            }
+            doneMs = nowMs + durationMs
+            spoken.add(Spoken(nowMs, key))
+        }
+    }
+
+    private fun readFrames(trace: File): List<PoseFrame> = trace.bufferedReader().use { reader ->
+        val header = requireNotNull(reader.readLine()) { "Empty trace: $trace" }
+            .removePrefix("\uFEFF").split(',').map { it.trim() }
+        val columns = header.withIndex().associate { it.value to it.index }
+        fun col(name: String): Int = requireNotNull(columns[name]) { "Missing CSV column $name" }
+        val required = listOf(
+            "t_ms", "wrist_signal", "min_vis", "side", "side_on",
+            "shoulder_x", "shoulder_y", "shoulder_vis", "elbow_x", "elbow_y", "elbow_vis",
+            "wrist_x", "wrist_y", "wrist_vis", "hip_x", "hip_y", "hip_vis",
+        )
+        required.forEach { col(it) }
+        reader.lineSequence().filter { it.isNotBlank() }.map { line ->
+            val cells = line.split(',')
+            fun value(name: String) = cells[col(name)].trim()
+            fun f(name: String) = value(name).toFloat()
+            val timeMs = value("t_ms").toLong()
+            val latencyMs = columns["latency_ms"]?.let { cells[it].trim().toLongOrNull() } ?: 0L
+            val nearRight = when (value("side")) {
+                "R" -> true
+                "L" -> false
+                else -> null
+            }
+            if (value("wrist_signal").isEmpty() || value("shoulder_x").isEmpty()) {
+                PoseFrame(timeMs, null, null, latencyMs, ASPECT, nearRight)
+            } else {
+                val arm = ArmLandmarks(
+                    f("shoulder_x"), f("shoulder_y"), f("shoulder_vis"),
+                    f("elbow_x"), f("elbow_y"), f("elbow_vis"),
+                    f("wrist_x"), f("wrist_y"), f("wrist_vis"),
+                    f("hip_x"), f("hip_y"), f("hip_vis"),
+                )
+                val sample = PoseSample(
+                    timeMs = timeMs,
+                    wristSignal = value("wrist_signal").toDouble(),
+                    elbowDegrees = PoseMath.elbowDegrees(arm, ASPECT),
+                    minVisibility = f("min_vis"),
+                    elbowVisibility = arm.elbowVis,
+                    sideOn = value("side_on") != "0",
+                    worldElbowDegrees = columns["world_elbow_deg"]?.let { cells[it].trim().toDoubleOrNull() },
+                )
+                PoseFrame(timeMs, sample, arm, latencyMs, ASPECT, nearRight)
+            }
+        }.toList()
+    }
+
+    private companion object {
+        const val ASPECT = 4f / 3f
+        const val TICK_MS = 250L
+        fun seconds(timeMs: Long): String = String.format(Locale.ROOT, "%.2f", timeMs / 1_000.0)
+    }
+}
