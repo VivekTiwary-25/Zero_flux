@@ -38,6 +38,7 @@ import com.zeroflux.cprcoach.engine.PoseEngine
 import com.zeroflux.cprcoach.engine.TrackingState
 import com.zeroflux.cprcoach.ui.AppLanguage
 import com.zeroflux.cprcoach.ui.CoachColors
+import com.zeroflux.cprcoach.ui.BeatSource
 import com.zeroflux.cprcoach.ui.EmergencyScreen
 import com.zeroflux.cprcoach.ui.EmergencySummaryScreen
 import com.zeroflux.cprcoach.ui.EmergencyUiState
@@ -80,6 +81,8 @@ fun EmergencyHost(
     val playback = remember(appContext) { EmergencyPlayback(appContext) }
     val coach = remember { EmergencyCoach(startMs) }
     val engine by MetronomeService.engine.collectAsState()
+    val currentEngine by rememberUpdatedState(engine)
+    val beat = remember { BeatSource.of { currentEngine } }
     val micState by voice.state.collectAsState()
     val currentHome by rememberUpdatedState(onHome)
     val reportCameraVisible by rememberUpdatedState(onCameraVisibleChange)
@@ -202,6 +205,7 @@ fun EmergencyHost(
         onCall112 = { openEmergencyDialer(context) },
         onStopConfirmed = finish,
         onMicTap = { voice.toggle() },
+        beat = beat,
         camera = {
             if (audioStarted && cameraPermission && replayName == null) {
                 EmergencyCamera(onFrameSample = { sample ->

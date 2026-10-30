@@ -40,7 +40,9 @@ import com.zeroflux.cprcoach.engine.Scorecard
 import com.zeroflux.cprcoach.engine.SessionAudio
 import com.zeroflux.cprcoach.ui.AppLanguage
 import com.zeroflux.cprcoach.ui.AppSettings
+import com.zeroflux.cprcoach.ui.BeatSource
 import com.zeroflux.cprcoach.ui.CameraOverlay
+import com.zeroflux.cprcoach.ui.PushLog
 import com.zeroflux.cprcoach.ui.CameraUiState
 import com.zeroflux.cprcoach.ui.CoachColors
 import com.zeroflux.cprcoach.ui.LocalStrings
@@ -180,6 +182,16 @@ private fun PractiseCamera(
     val context = LocalContext.current
     val session = remember { PractiseSession(audio) }
     val capture = remember { PractiseCapture() }
+    val pushLog = remember { PushLog() }
+    val beat = remember { BeatSource.of { audio.engine } }
+    // Real and replayed frames both pass here, so the dots always come from detected pushes.
+    val feedFrame: (PoseFrame) -> Unit = remember(session, pushLog) {
+        { frame ->
+            val live = session.ui.value as? CameraUiState.Live
+            if (live != null && !live.isPaused) pushLog.onFrame(frame)
+            session.onFrame(frame)
+        }
+    }
     val handler = remember { Handler(Looper.getMainLooper()) }
     val ui by session.ui.collectAsState()
     val micState by voice.state.collectAsState()
@@ -233,7 +245,7 @@ private fun PractiseCamera(
         if (!replaying && cameraPermission) {
             capture.open(PoseEngine(context) { frame ->
                 handler.post {
-                    if (active.get()) session.onFrame(frame)
+                    if (active.get()) feedFrame(frame)
                 }
             })
         } else if (!replaying) {
@@ -248,7 +260,7 @@ private fun PractiseCamera(
     LaunchedEffect(session, replayName) {
         if (replaying) {
             try {
-                PractiseReplay.play(context, requireNotNull(replayName), session::onFrame)
+                PractiseReplay.play(context, requireNotNull(replayName), feedFrame)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
@@ -283,6 +295,8 @@ private fun PractiseCamera(
             onPauseToggle = session::togglePause,
             onStop = stopSession,
             onMicTap = voice::toggle,
+            beat = beat,
+            pushes = pushLog,
         )
         // Help only while setting up: leaving a running session here would lose it.
         if (ui is CameraUiState.Framing) {

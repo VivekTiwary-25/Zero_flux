@@ -56,6 +56,32 @@ class AudioEngine(
     val metronomeRunning: Boolean
         get() = synchronized(lock) { metronomeOn }
 
+    /** What the audio thread last committed: sample phase as heard, and when. Replaced whole, never mutated. */
+    private class BeatClock(val heardPhase: Long, val period: Long, val atNanos: Long)
+
+    @Volatile private var beatClock: BeatClock? = null
+    // Audio thread only: frames written to the current track, to find how far playback trails the writes.
+    private var trackWritten = 0L
+
+    /**
+     * Position within the current beat, 0 (the click) up to just under 1, or null when the metronome is off,
+     * not yet producing sound, or the audio thread has stalled. Cheap and safe from any thread.
+     * Accounts for the frames still queued in the track, so it follows what is heard, not what was written.
+     */
+    fun beatPhase(): Double? {
+        val clock = beatClock ?: return null
+        val elapsedNs = System.nanoTime() - clock.atNanos
+        if (elapsedNs < 0L || elapsedNs > STALE_CLOCK_NS) return null
+        val samples = clock.heardPhase + elapsedNs * WavClip.SAMPLE_RATE / 1_000_000_000L
+        return Math.floorMod(samples, clock.period).toDouble() / clock.period
+    }
+
+    /** Beat length in milliseconds while [beatPhase] is available, else null. */
+    fun beatPeriodMs(): Double? {
+        val clock = beatClock ?: return null
+        return clock.period * 1000.0 / WavClip.SAMPLE_RATE
+    }
+
     private val thread = Thread(::runLoop, "AudioEngine").apply {
         priority = Thread.MAX_PRIORITY
     }
@@ -91,6 +117,7 @@ class AudioEngine(
             metronomeEpoch += 1
             period = nextPeriod
             phase = 0L
+            beatClock = null
             metronomeOn = true
             lock.notifyAll()
         }
@@ -99,6 +126,7 @@ class AudioEngine(
     fun stopMetronome() {
         synchronized(lock) {
             metronomeOn = false
+            beatClock = null
             metronomeEpoch += 1
             lock.notifyAll()
         }
@@ -213,6 +241,7 @@ class AudioEngine(
             closed = true
             released = true
             metronomeOn = false
+            beatClock = null
             val pending = clipDone
             clip = null
             clipDone = null
@@ -408,6 +437,7 @@ class AudioEngine(
                 null
             } else {
                 openedUsage = wantedUsage
+                trackWritten = 0L
                 track.also { trackRef = it }
             }
         } catch (_: Exception) {
@@ -425,12 +455,15 @@ class AudioEngine(
         }
     }
 
-    private fun commit(pending: AudioMixBlock, wrote: Int) {
+    private fun commit(pending: AudioMixBlock, wrote: Int, heardLag: Long) {
         synchronized(lock) {
             pending.accept(wrote)
             if (released) return
             // A UI command can replace/reset either source while a blocking write is in flight.
-            if (pending.metronomeEpoch == metronomeEpoch) phase = pending.phase
+            if (pending.metronomeEpoch == metronomeEpoch) {
+                phase = pending.phase
+                if (metronomeOn && period > 0L) publishBeatClock(heardLag)
+            }
             if (pending.playToken == playToken && pending.samples != null && clip === pending.samples) {
                 if (pending.clipFinished) {
                     val callback = clipDone
@@ -445,6 +478,18 @@ class AudioEngine(
         }
     }
 
+    // Called with lock held. [lag] is how many frames playback trails what was just written.
+    private fun publishBeatClock(lag: Long) {
+        beatClock = BeatClock(phase - lag, period, System.nanoTime())
+    }
+
+    private fun playbackLag(track: AudioTrack): Long = try {
+        val played = track.playbackHeadPosition.toLong() and 0xFFFFFFFFL
+        (trackWritten - played).coerceIn(0L, MAX_LAG_FRAMES)
+    } catch (_: Exception) {
+        0L
+    }
+
     private fun writeAll(
         track: AudioTrack,
         data: ShortArray,
@@ -455,7 +500,8 @@ class AudioEngine(
         while (offset < data.size && !released) {
             val wrote = track.write(data, offset, data.size - offset)
             if (wrote <= 0) return false
-            commit(pending, wrote)
+            trackWritten += wrote
+            commit(pending, wrote, playbackLag(track))
             recovery.accepted(wrote)
             offset += wrote
         }
@@ -469,6 +515,7 @@ class AudioEngine(
             } else {
                 released = true
                 metronomeOn = false
+                beatClock = null
                 playToken += 1
                 val callback = clipDone
                 clip = null
@@ -493,6 +540,8 @@ class AudioEngine(
         // Reuse the former 20-attempt horizon for slow retries and sustained-success detection.
         private const val RECOVERY_WINDOW_MS = 20 * REOPEN_WAIT_MS
         private const val RELEASE_WAIT_MS = 500L
+        private const val STALE_CLOCK_NS = 250_000_000L
+        private const val MAX_LAG_FRAMES = WavClip.SAMPLE_RATE * 300L / 1000
         private const val BLOCK_SAMPLES = WavClip.SAMPLE_RATE * BLOCK_MS / 1000
         private const val BYTES_PER_SAMPLE = 2
         private const val CLICK_MS = 30
