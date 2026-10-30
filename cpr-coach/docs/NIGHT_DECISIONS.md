@@ -1,0 +1,12 @@
+# Decisions taken without Vivek (31 Oct, 04:20 onward)
+
+Rule: take the safer option (no new false warnings, don't break pace counting or start/stop), write it down, keep going.
+
+- **Voices:** stay on the current offline voices (Piper / MMS). No Azure. (Vivek's call.)
+- **Posture limits:** bent and lean are judged against the rescuer's own first ~6 s of good pushing (f99a1bc). Chosen over fixed limits because fixed limits that caught recording 15's lean also flagged lean in 45-83% of straight recordings 11 and 12.
+- **Phrase repeats:** a correction may repeat only after its condition has been gone for 3 s (1c3aa4d). Stricter than "any clear" so random readings never repeat back to back (EngineFuzzTest).
+- **Rate before posture in Emergency:** a locked rate that is off target (Faster/Slower) still outranks Straighten arms, as the existing tests require (a904d2d).
+- **Rejected frames keep "person in view" for up to 1.5 s** (e50a11a), so a ghost-wrist burst doesn't blank the number; after 1.5 s without a trusted frame it shows "Can't see arms" as before.
+- **English countdown clip:** the old take wasn't clipped; Whisper misses the soft "Get" about half the time. Installed a fresh take of the same text that transcribes exactly (7e09b77). Malayalam and Odia already play the English countdown, so they get the same new take (ccb61e0).
+- **Kannada lean line:** now "ಭುಜಗಳು ಕೈಗಳ ನೇರ ಮೇಲೆ ಇರಲಿ." (directly above), 2.9 s. The imperative version ran over 3.3 s. Needs a Kannada speaker's ear.
+- **Not done:** Hindi/Bengali/etc. "both palms" rewording from the desk review: no native speaker awake, current lines already say "directly above".
