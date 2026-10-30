@@ -32,7 +32,10 @@ class CallRoutePolicy {
     }
 
     companion object {
-        /** AudioManager.MODE_IN_CALL = 2, MODE_IN_COMMUNICATION = 3. */
-        fun isCallMode(mode: Int): Boolean = mode == 2 || mode == 3
+        /**
+         * AudioManager.MODE_IN_CALL = 2, the cellular call a dispatcher is on. Not MODE_IN_COMMUNICATION:
+         * our own voice audio or mic could cause that one, and we would never switch back.
+         */
+        fun isCallMode(mode: Int): Boolean = mode == 2
     }
 }

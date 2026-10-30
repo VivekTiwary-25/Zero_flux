@@ -42,7 +42,7 @@ class CallRoutePolicyTest {
 
     @Test fun callModes() {
         assertTrue(CallRoutePolicy.isCallMode(2))
-        assertTrue(CallRoutePolicy.isCallMode(3))
+        assertFalse(CallRoutePolicy.isCallMode(3))
         assertFalse(CallRoutePolicy.isCallMode(0))
         assertFalse(CallRoutePolicy.isCallMode(1))
     }
