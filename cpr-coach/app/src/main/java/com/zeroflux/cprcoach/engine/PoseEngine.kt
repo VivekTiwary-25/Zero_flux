@@ -33,11 +33,16 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private var lastTimestampMs = 0L
     private var trace: PrintWriter? = null
     private var closed = false
-    private val landmarker: PoseLandmarker = try {
+    private val landmarker: PoseLandmarker? = try {
         create(context, Delegate.GPU)
-    } catch (e: RuntimeException) {
+    } catch (e: Exception) {
         Log.w(TAG, "GPU delegate unavailable, using CPU", e)
-        create(context, Delegate.CPU)
+        try {
+            create(context, Delegate.CPU)
+        } catch (cpuError: Exception) {
+            Log.e(TAG, "Pose unavailable: CPU delegate failed", cpuError)
+            null
+        }
     }
 
     private fun create(context: Context, delegate: Delegate): PoseLandmarker {
@@ -48,11 +53,14 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setNumPoses(1)
             .setResultListener { result, _ ->
-                val timestamp = result.timestampMs()
-                val aspect = submitted.remove(timestamp) ?: return@setResultListener
-                val latency = SystemClock.uptimeMillis() - timestamp
-                val marks = result.landmarks().firstOrNull()
-                onFrame(toFrame(marks, timestamp, aspect, latency))
+                synchronized(lifecycleLock) {
+                    if (closed) return@setResultListener
+                    val timestamp = result.timestampMs()
+                    val aspect = submitted.remove(timestamp) ?: return@setResultListener
+                    val latency = SystemClock.uptimeMillis() - timestamp
+                    val marks = result.landmarks().firstOrNull()
+                    onFrame(toFrame(marks, timestamp, aspect, latency))
+                }
             }
             .setErrorListener { e -> Log.e(TAG, "pose error", e) }
             .build()
@@ -76,6 +84,11 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             val now = SystemClock.uptimeMillis()
             if (now <= lastTimestampMs) return // MediaPipe rejects non-increasing timestamps.
             lastTimestampMs = now
+            val detector = landmarker
+            if (detector == null) {
+                onFrame(PoseFrame(now, null, null, SystemClock.uptimeMillis() - now).also(::writeTrace))
+                return
+            }
             // MediaPipe drops frames when it is busy, and those never get a result.
             submitted.keys.removeAll { now - it > STALE_FRAME_MS }
             val rotation = proxy.imageInfo.rotationDegrees
@@ -84,7 +97,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             val height = if (rotated) proxy.width else proxy.height
             submitted[now] = width.toFloat() / height
             val processing = ImageProcessingOptions.builder().setRotationDegrees(rotation).build()
-            landmarker.detectAsync(BitmapImageBuilder(proxy.toBitmap()).build(), processing, now)
+            detector.detectAsync(BitmapImageBuilder(proxy.toBitmap()).build(), processing, now)
         }
     }
 
@@ -139,12 +152,14 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     }
 
     fun close() {
-        stopTrace()
         synchronized(lifecycleLock) {
             if (closed) return
             closed = true
-            landmarker.close()
+            submitted.clear()
         }
+        stopTrace()
+        // Native teardown may wait for a result listener, so don't hold its lifecycle lock.
+        landmarker?.close()
     }
 
     private companion object {

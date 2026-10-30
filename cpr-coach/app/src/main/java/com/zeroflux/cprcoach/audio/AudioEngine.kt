@@ -125,11 +125,11 @@ class AudioEngine(
             playToken += 1
             clip = null
             clipPos = 0
-            clipDone = null
+            // Own the callback even while loading, so failure/stop can complete it.
+            clipDone = onDone
             if (cached != null) {
                 clip = cached.samples
                 clipPos = 0
-                clipDone = onDone
                 lock.notifyAll()
             }
             playToken
@@ -154,18 +154,20 @@ class AudioEngine(
             val samples = loaded?.samples
             val outcome = synchronized(lock) {
                 if (token != playToken) LoadOutcome.SUPERSEDED
-                else if (released || samples == null) LoadOutcome.DONE
+                else if (released || samples == null) {
+                    postToMain(clipDone)
+                    clipDone = null
+                    LoadOutcome.DONE
+                }
                 else {
                     clip = samples
                     clipPos = 0
-                    clipDone = onDone
                     lock.notifyAll()
                     LoadOutcome.STARTED
                 }
             }
             if (outcome == LoadOutcome.DONE) {
                 if (samples == null) Log.w(TAG, "missing clip: clips/$code/$key.wav")
-                postToMain(onDone)
             }
         }
     }
@@ -250,6 +252,7 @@ class AudioEngine(
 
     private fun cancelCurrent() {
         synchronized(lock) {
+            postToMain(clipDone)
             playToken += 1
             clip = null
             clipPos = 0
@@ -258,36 +261,37 @@ class AudioEngine(
     }
 
     private fun runLoop() {
-        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
-        val track = openTrack()
-        if (track == null) {
-            abandonPlayback()
-            return
-        }
-        trackRef = track
-        val block = ShortArray(BLOCK_SAMPLES)
+        var track: AudioTrack? = null
         try {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+            val playbackTrack = openTrack() ?: return
+            track = playbackTrack
+            trackRef = playbackTrack
+            val block = ShortArray(BLOCK_SAMPLES)
             while (true) {
                 synchronized(lock) {
                     while (!released && !metronomeOn && clip == null) {
                         try {
                             lock.wait()
                         } catch (_: InterruptedException) {
-                            if (released) return
+                            if (released) break
                         }
                     }
-                    if (released) return
                 }
-                if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
-                    track.play()
+                if (released) break
+                if (playbackTrack.playState != AudioTrack.PLAYSTATE_PLAYING) {
+                    playbackTrack.play()
                 }
                 render(block)
-                if (!writeAll(track, block)) return
+                if (!writeAll(playbackTrack, block)) break
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Audio playback failed", e)
         } finally {
+            abandonPlayback()
             trackRef = null
             try {
-                track.release()
+                track?.release()
             } catch (e: Exception) {
                 Log.w(TAG, "AudioTrack release failed", e)
             }
@@ -394,6 +398,7 @@ class AudioEngine(
             } else {
                 released = true
                 metronomeOn = false
+                playToken += 1
                 val callback = clipDone
                 clip = null
                 clipDone = null
