@@ -223,4 +223,34 @@ class CoachAndMetricsTest {
         assertEquals(TrackingState.LOST, gone.tracking)
         assertNull(gone.ratePerMinute)
     }
+
+    @Test
+    fun `stopping after pushing without a rate still waits two seconds of stillness`() {
+        val policy = CoachPolicy()
+        run(policy, 0, 2_250) { paused(it).copy(moving = true) }
+        val early = run(policy, 2_250, 4_000) { paused(it) }
+        assertTrue("spoke after under 2 s of stillness: $early", early.isEmpty())
+        val later = run(policy, 4_000, 5_500) { paused(it) }
+        assertEquals(Phrase.KEEP_GOING, later.single().second)
+    }
+
+    @Test
+    fun `a short hesitation followed by pushing does not say keep going while pushing`() {
+        val policy = CoachPolicy()
+        run(policy, 0, 1_250) { paused(it) }
+        val spoken = run(policy, 1_250, 2_500) { paused(it).copy(moving = true) }
+        assertTrue("spoke keep going while pushing: $spoken", spoken.isEmpty())
+    }
+
+    @Test
+    fun `keep going plays again when the rescuer stops after pushing with bent elbows`() {
+        val policy = CoachPolicy()
+        assertEquals(listOf(2_000L to Phrase.KEEP_GOING), run(policy, 0, 2_250) { paused(it) })
+        assertEquals(
+            listOf(8_000L to Phrase.ELBOWS_STRAIGHT),
+            run(policy, 2_250, 8_250) { pushing(it, PostureIssue.ELBOWS_BENT) },
+        )
+        val secondPause = run(policy, 8_250, 18_000) { paused(it) }
+        assertTrue("expected KEEP_GOING on the second pause, got $secondPause", secondPause.any { it.second == Phrase.KEEP_GOING })
+    }
 }

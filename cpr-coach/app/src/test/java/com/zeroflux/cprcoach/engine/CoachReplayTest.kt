@@ -49,7 +49,8 @@ class CoachReplayTest {
         var tick = t0 + 250
         while (tick <= frames.last().timeMs) {
             while (next < frames.size && frames[next].timeMs <= tick) analyzer.addFrame(frames[next++])
-            coach.update(analyzer.read(tick))?.let { spoken.add(Spoken((tick - t0) / 1000.0, it)) }
+            val dbg = analyzer.read(tick)
+            coach.update(dbg)?.let { spoken.add(Spoken((tick - t0) / 1000.0, it)) }
             tick += 250
         }
         println("coach replay $name: " + spoken.joinToString { "%.1fs %s".format(it.tS, it.phrase) })
@@ -70,6 +71,12 @@ class CoachReplayTest {
         assertTrue("bent pushing 38-44 s", !spoken.keepGoingIn(38.0, 44.0))
         assertTrue("bent pushing 54-62 s", !spoken.keepGoingIn(54.0, 62.0))
         assertTrue("lean pushing 64-70 s", !spoken.keepGoingIn(64.0, 70.0))
+    }
+
+    @Test
+    fun `recording 13 never says keep going while pushing`() {
+        val spoken = replay("real-cph2467-13.csv")
+        assertTrue("pushing 4-36 s: $spoken", !spoken.keepGoingIn(4.0, 36.0))
     }
 
     @Test

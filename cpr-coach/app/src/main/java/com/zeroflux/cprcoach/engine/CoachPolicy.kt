@@ -78,11 +78,30 @@ class CoachPolicy(
         when (reading.tracking) {
             TrackingState.PAUSED -> {
                 val now = reading.timeMs
-                if (pausedSinceMs == null) pausedSinceMs = now
                 pausedReads.addLast(now to reading.moving)
                 while (now - pausedReads.first().first > MIN_PAUSE_MS) pausedReads.removeFirst()
                 val still = pausedReads.count { !it.second } * 2 >= pausedReads.size
-                pendingRecovery = !pauseAcknowledged && now - pausedSinceMs!! >= MIN_PAUSE_MS && still
+                if (!still) {
+                    // Mostly moving: the rescuer is pushing without a locked rate, so there is no pause to time.
+                    pausedSinceMs = null
+                    if (pushingSinceMs == null) pushingSinceMs = now
+                    if (now - pushingSinceMs!! >= MIN_PUSH_MS) {
+                        // Sustained pushing counts like BEATING: the next stop is a new pause.
+                        pushedSinceCue = true
+                        pauseAcknowledged = false
+                    }
+                } else {
+                    pushingSinceMs = null
+                    // The pause clock starts at the first still read, never while the hands are moving.
+                    if (pausedSinceMs == null) pausedSinceMs = pausedReads.first { !it.second }.first
+                }
+                // Keep going is never said right after real movement: two moving reads in a row (one is flicker)
+                // in the last second mean the rescuer is pushing, or just was.
+                val stillNow = pausedReads.zipWithNext().none { (a, b) ->
+                    a.second && b.second && now - b.first <= STILL_NOW_MS
+                }
+                pendingRecovery = !pauseAcknowledged && still && !reading.moving && stillNow &&
+                    now - pausedSinceMs!! >= MIN_PAUSE_MS
             }
             TrackingState.BEATING -> {
                 clearPause()
@@ -98,7 +117,7 @@ class CoachPolicy(
             // We can't see the arms, so this time can't count as part of a pause.
             TrackingState.LOST, TrackingState.WARMING -> clearPause()
         }
-        if (reading.tracking != TrackingState.BEATING) pushingSinceMs = null
+        if (reading.tracking != TrackingState.BEATING && reading.tracking != TrackingState.PAUSED) pushingSinceMs = null
     }
 
     private fun clearPause() {
@@ -138,6 +157,7 @@ class CoachPolicy(
 
     private companion object {
         const val MIN_PAUSE_MS = 2_000L
+        const val STILL_NOW_MS = 1_000L
         const val MIN_PUSH_MS = 3_000L
         const val CLEAR_MS = 3_000L
         const val CLEAR_READS = 8
