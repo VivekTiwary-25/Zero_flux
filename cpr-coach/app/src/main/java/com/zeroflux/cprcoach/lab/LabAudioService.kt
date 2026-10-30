@@ -1,12 +1,13 @@
 package com.zeroflux.cprcoach.lab
 
-import android.annotation.SuppressLint
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.AudioFormat
@@ -15,6 +16,7 @@ import android.media.AudioTrack
 import android.media.MediaRecorder
 import android.os.IBinder
 import android.util.Log
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.PI
@@ -92,10 +94,13 @@ class LabAudioService : Service() {
         track.release()
     }
 
-    @SuppressLint("MissingPermission")
     private fun runMicMeter() {
         val rate = 16000
         val minBuffer = AudioRecord.getMinBufferSize(rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
+        check(
+            ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+        ) { "Microphone permission denied" }
         val record = AudioRecord(
             MediaRecorder.AudioSource.VOICE_COMMUNICATION,
             rate,

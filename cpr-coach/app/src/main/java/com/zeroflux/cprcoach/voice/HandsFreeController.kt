@@ -154,7 +154,10 @@ class HandsFreeController(
                 SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
             )
             check(minBufferBytes > 0) { "Unsupported microphone buffer: $minBufferBytes" }
-            check(hasMicrophonePermission()) { "Microphone permission revoked" }
+            check(
+                ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.RECORD_AUDIO) ==
+                    PackageManager.PERMISSION_GRANTED
+            ) { "Microphone permission revoked" }
             val input = AudioRecord(
                 MediaRecorder.AudioSource.VOICE_COMMUNICATION,
                 SAMPLE_RATE,
