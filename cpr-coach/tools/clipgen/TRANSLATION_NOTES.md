@@ -1,28 +1,103 @@
-# Translation Notes (Drafts — Native Speaker & First-Aid Review Required)
+# Translation notes: drafts needing native-speaker and first-aid review
 
-All translations in `app/src/main/assets/strings/<code>.json` and `tools/clipgen/phrases_<code>.json` across the 9 Indian languages (`hi`, `kn`, `ta`, `te`, `ml`, `mr`, `gu`, `bn`, `or`) are **drafts** until verified by a native speaker of each language and reviewed for first-aid clarity.
+All translations in `app/src/main/assets/strings/<code>.json` and `tools/clipgen/phrases_<code>.json` remain drafts until a native speaker listens and a first-aid reviewer checks the instructions. The English, Hindi and Kannada tables below record the exact old and new spoken lines from this revision. Every row, including each unchanged language name, needs a native speaker's ear; no listening approval is claimed.
 
----
+Only the three phrase lists and their generated clips are revised here. Screen strings are unchanged. Every compression cue names the chest; `slow_down` targets compression speed, not pressure or depth. Numbers are written as words. `shoulders_over_hands` is the sole new spoken key; `turn_phone` is deliberately absent because it is a silent holder instruction. Existing `lang_name` keys are retained without renaming the languages; no English `lang_name` key existed in the reference.
 
-## 1. Hindi (`hi` — हिन्दी)
+## English (`en`)
+
+| Key | Old line | New line | Review status |
+|---|---|---|---|
+| `countdown` | Starting in three, two, one | Get ready. Three, two, one. | Draft: needs a native speaker's ear |
+| `push_faster` | Push faster | Push the chest faster. | Draft: needs a native speaker's ear |
+| `slow_down` | Slow down | Reduce the speed of your chest compressions. | Draft: needs a native speaker's ear |
+| `elbows_straight` | Keep your elbows straight | Keep both elbows straight. | Draft: needs a native speaker's ear |
+| `keep_going` | Keep going | Keep pushing the chest. | Draft: needs a native speaker's ear |
+| `good` | Well done, keep going | Good. Keep pushing the chest. | Draft: needs a native speaker's ear |
+| `session_done` | Great work, session complete | Well done. Your practice session is complete. | Draft: needs a native speaker's ear |
+| `em_call` | Call one one two. Put it on speaker. | Call one one two. Turn on the phone's speaker. | Draft: needs a native speaker's ear |
+| `em_hands` | Place your hands in the centre of the chest. | Put both hands in the centre of the chest. | Draft: needs a native speaker's ear |
+| `em_push` | Push hard and fast, with the beat. | Push the chest hard and fast, in time with the beat. | Draft: needs a native speaker's ear |
+| `em_swap` | If someone can take over, switch now. | If someone else can push the chest, swap now. | Draft: needs a native speaker's ear |
+| `em_aed` | If there's an AED nearby, ask someone to bring it. | If an A E D is nearby, ask someone to bring it. | Draft: needs a native speaker's ear |
+| `em_continue` | Keep going until help arrives. | Keep pushing the chest until help arrives. | Draft: needs a native speaker's ear |
+| `shoulders_over_hands` | (new key) | Bring your shoulders over your hands. | Draft: needs a native speaker's ear |
+
+Review speed-versus-force clarity, the spoken emergency digits, separate A E D letters, countdown timing and whether the shoulder cue clearly puts shoulders vertically above hands.
+
+## 1. Hindi (`hi`, हिन्दी)
+
+| Key | Old line | New line | Review status |
+|---|---|---|---|
+| `lang_name` | हिन्दी | हिन्दी | Draft: needs a native speaker's ear; identity unchanged |
+| `countdown` | शुरू कर रहे हैं तीन, दो, एक | तैयार रहें। तीन, दो, एक। | Draft: needs a native speaker's ear |
+| `push_faster` | और तेज़ दबाएँ | छाती और तेज़ी से दबाएँ। | Draft: needs a native speaker's ear |
+| `slow_down` | रफ़्तार थोड़ी कम करें | छाती दबाने की रफ़्तार कम करें। | Draft: needs a native speaker's ear |
+| `elbows_straight` | कोहनी सीधी रखें | दोनों कोहनियाँ सीधी रखें। | Draft: needs a native speaker's ear |
+| `keep_going` | दबाते रहें | छाती दबाते रहें। | Draft: needs a native speaker's ear |
+| `good` | बहुत अच्छे, दबाते रहें | ठीक है। छाती दबाते रहें। | Draft: needs a native speaker's ear |
+| `session_done` | शाबाश, अभ्यास पूरा हुआ | अच्छा किया। आपका अभ्यास पूरा हो गया है। | Draft: needs a native speaker's ear |
+| `em_call` | एक एक दो पर कॉल करें। फ़ोन स्पीकर पर रखें। | एक एक दो पर फ़ोन करें। फ़ोन का स्पीकर चालू करें। | Draft: needs a native speaker's ear |
+| `em_hands` | छाती के बीच में दोनों हाथ रखें। | अपने दोनों हाथ छाती के बीचोंबीच रखें। | Draft: needs a native speaker's ear |
+| `em_push` | ताल के साथ ज़ोर से और तेज़ दबाएँ। | ताल के साथ छाती ज़ोर से और तेज़ी से दबाएँ। | Draft: needs a native speaker's ear |
+| `em_swap` | अगर कोई और कर सकता है, तो अभी बारी बदल लें। | अगर कोई और छाती दबा सकता है, तो अब बारी बदलें। | Draft: needs a native speaker's ear |
+| `em_aed` | अगर पास में शॉक मशीन या ए ई डी है, तो किसी से मँगवाएँ। | अगर पास में ए ई डी मशीन है, तो किसी से लाने को कहें। | Draft: needs a native speaker's ear |
+| `em_continue` | मदद आने तक दबाते रहें। | मदद आने तक छाती दबाते रहें। | Draft: needs a native speaker's ear |
+| `shoulders_over_hands` | (new key) | अपने कंधे हाथों के ठीक ऊपर लाएँ। | Draft: needs a native speaker's ear |
+
+Review polite imperatives and natural cadence. `रफ़्तार` refers specifically to the speed of chest compressions; it must not be heard as less force. Confirm that `ताल` is understood as the metronome beat, `बीचोंबीच` clearly identifies chest centre, and the separated emergency digits and AED letters remain intelligible in Piper. The AED cue now names the device rather than the loose label "shock machine"; confirm lay recognition of `ए ई डी मशीन`. First-aid review must check hand-placement clarity without adding medical claims.
+
+Existing screen-only review item, unchanged:
 
 | Key / File | Draft Text | Uncertainty / Reason | Medical or Safety Risk |
 |---|---|---|---|
-| `em_push` (`phrases_hi.json`, `hi.json`) | ताल के साथ ज़ोर से और तेज़ दबाएँ। | "ताल" (beat) vs. transliterated "बीट"; everyday speakers understand both, but TTS prosody should be checked. | Must convey both compression depth ("ज़ोर से") and rate ("तेज़") without sounding like jerky or violent thrusts. |
-| `em_hands` (`phrases_hi.json`, `hi.json`) | छाती के बीच में दोनों हाथ रखें। | Everyday phrasing omits "sternum" (उरोस्थि) to stay plain and spoken. | Lay rescuers could place hands too low (over xiphoid/stomach) if "छाती के बीच में" is interpreted loosely. |
-| `em_aed` (`phrases_hi.json`) | अगर पास में ए ई डी है, तो किसी से मँगवाएँ। | Phonetic letters "ए ई डी" depend on Piper TTS spacing so they are not merged into one word. | Bystanders in India may not know the acronym "AED" without "हार्ट शॉक मशीन" context, though brevity is required here. |
 | `walk_title_3` (`hi.json`) | हरा-नीला = सही। पीला = कुछ सुधारें। | "Teal" and "Amber" have no single everyday Hindi words; "हरा-नीला" and "पीला" are approximations. | Low medical risk (practice UI only), but holder must map the words to the on-screen glow colours. |
 
----
+## 2. Kannada (`kn`, ಕನ್ನಡ)
 
-## 2. Kannada (`kn` — ಕನ್ನಡ)
-
-| Key / File | Draft Text | Uncertainty / Reason | Medical or Safety Risk |
+| Key | Old line | New line | Review status |
 |---|---|---|---|
-| `countdown` (`phrases_kn.json`) | ಮೂರು, ಎರಡು, ಒಂದು, ಶುರು | Word order places numbers before "ಶುರು" (start) for natural Kannada rhythm; check if MMS TTS pauses properly at commas. | If TTS rushes the numbers together, the rescuer may start compressions out of sync with the metronome. |
-| `em_push` (`phrases_kn.json`, `kn.json`) | ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಜೋರಾಗಿ ಮತ್ತು ವೇಗವಾಗಿ ಒತ್ತಿ. | "ಜೋರಾಗಿ" commonly means both "hard/firmly" and "loudly" depending on context; paired with "ಒತ್ತಿ" (press) it means firmly. | Needs native verification that "ಜೋರಾಗಿ ಒತ್ತಿ" unambiguously instructs deep chest compressions (~5–6 cm). |
-| `em_hands` (`phrases_kn.json`, `kn.json`) | ಎದೆಯ ಮಧ್ಯದಲ್ಲಿ ಕೈಗಳನ್ನು ಇಡಿ. | Uses plain "ಎದೆಯ ಮಧ್ಯದಲ್ಲಿ" (in the middle of the chest). | Risk of hand placement slightly off the lower half of the sternum if not paired with visual guidance. |
-| `em_aed` (`phrases_kn.json`) | ಹತ್ತಿರದಲ್ಲಿ ಎ ಇ ಡಿ ಇದ್ದರೆ, ಯಾರಾದರೂ ತರಲು ಹೇಳಿ. | Short vowel letters "ಎ ಇ ಡಿ" vs. long "ಏ ಈ ಡೀ" in Meta MMS Kannada TTS. | If MMS pronounces short vowels unnaturaly fast, the acronym "AED" may be unrecognisable to listeners. |
+| `lang_name` | ಕನ್ನಡ | ಕನ್ನಡ | Draft: needs a native speaker's ear; identity unchanged |
+| `countdown` | ಶುರುವಾಗುತ್ತಿದೆ: ಮೂರು, ಎರಡು, ಒಂದು | ಸಿದ್ಧರಾಗಿ. ಮೂರು, ಎರಡು, ಒಂದು. | Draft: needs a native speaker's ear |
+| `push_faster` | ಇನ್ನೂ ವೇಗವಾಗಿ ಒತ್ತಿ | ಎದೆಯನ್ನು ಇನ್ನಷ್ಟು ವೇಗವಾಗಿ ಒತ್ತಿ. | Draft: needs a native speaker's ear |
+| `slow_down` | ವೇಗ ಸ್ವಲ್ಪ ಕಡಿಮೆ ಮಾಡಿ | ಎದೆ ಒತ್ತುವ ವೇಗವನ್ನು ಕಡಿಮೆ ಮಾಡಿ. | Draft: needs a native speaker's ear |
+| `elbows_straight` | ಮೊಣಕೈಗಳನ್ನು ನೇರವಾಗಿಡಿ | ಎರಡೂ ಮೊಣಕೈಗಳನ್ನು ನೇರವಾಗಿ ಇಡಿ. | Draft: needs a native speaker's ear |
+| `keep_going` | ಒತ್ತುತ್ತಾ ಇರಿ | ಎದೆಯನ್ನು ಒತ್ತುತ್ತಿರಿ. | Draft: needs a native speaker's ear |
+| `good` | ಚೆನ್ನಾಗಿದೆ, ಒತ್ತುತ್ತಾ ಇರಿ | ಚೆನ್ನಾಗಿದೆ. ಎದೆಯನ್ನು ಒತ್ತುತ್ತಿರಿ. | Draft: needs a native speaker's ear |
+| `session_done` | ಶಾಬಾಶ್, ಅಭ್ಯಾಸ ಮುಗಿಯಿತು | ಚೆನ್ನಾಗಿ ಮಾಡಿದಿರಿ. ನಿಮ್ಮ ಅಭ್ಯಾಸ ಮುಗಿದಿದೆ. | Draft: needs a native speaker's ear |
+| `em_call` | ಒಂದು ಒಂದು ಎರಡು ಕ್ಕೆ ಕಾಲ್ ಮಾಡಿ. ಸ್ಪೀಕರ್ ಆನ್ ಮಾಡಿ. | ಒಂದು ಒಂದು ಎರಡು ಸಂಖ್ಯೆಗೆ ಕರೆ ಮಾಡಿ. ಫೋನಿನ ಸ್ಪೀಕರ್ ಆನ್ ಮಾಡಿ. | Draft: needs a native speaker's ear |
+| `em_hands` | ಎದೆಯ ಮಧ್ಯದಲ್ಲಿ ಕೈಗಳನ್ನು ಇಡಿ. | ನಿಮ್ಮ ಎರಡೂ ಕೈಗಳನ್ನು ಎದೆಯ ಮಧ್ಯದಲ್ಲಿ ಇಡಿ. | Draft: needs a native speaker's ear |
+| `em_push` | ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಬಲವಾಗಿ ಮತ್ತು ವೇಗವಾಗಿ ಒತ್ತಿ. | ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಎದೆಯನ್ನು ಬಲವಾಗಿ ಮತ್ತು ವೇಗವಾಗಿ ಒತ್ತಿ. | Draft: needs a native speaker's ear |
+| `em_swap` | ಬೇರೆಯವರು ಇದ್ದರೆ, ಈಗ ಸರದಿ ಬದಲಿಸಿ. | ಬೇರೆಯವರು ಎದೆ ಒತ್ತಲು ಸಿದ್ಧರಿದ್ದರೆ, ಈಗ ಸರದಿ ಬದಲಿಸಿ. | Draft: needs a native speaker's ear |
+| `em_aed` | ಹತ್ತಿರದಲ್ಲಿ ಎ ಇ ಡಿ ಇದ್ದರೆ, ಯಾರಾದರೂ ತರಲು ಹೇಳಿ. | ಹತ್ತಿರ ಏ ಈ ಡಿ ಯಂತ್ರ ಇದ್ದರೆ, ಯಾರನ್ನಾದರೂ ತರಲು ಹೇಳಿ. | Draft: needs a native speaker's ear |
+| `em_continue` | ಸಹಾಯ ಬರುವವರೆಗೂ ಒತ್ತುತ್ತಾ ಇರಿ. | ಸಹಾಯ ಬರುವವರೆಗೂ ಎದೆಯನ್ನು ಒತ್ತುತ್ತಿರಿ. | Draft: needs a native speaker's ear |
+| `shoulders_over_hands` | (new key) | ನಿಮ್ಮ ಭುಜಗಳನ್ನು ಕೈಗಳ ನೇರ ಮೇಲಕ್ಕೆ ತನ್ನಿ. | Draft: needs a native speaker's ear |
+
+Review `ಎದೆಯನ್ನು` as an explicit chest object and `ವೇಗವನ್ನು ಕಡಿಮೆ ಮಾಡಿ` as reducing speed, never force. Check the polite forms, naturalness of the shoulder cue, chest-centre placement and whether `ಏ ಈ ಡಿ` sounds like separate AED letters. MMS removes punctuation before synthesis, so a person must specifically check countdown separation, sentence boundaries and the emergency digits; spelling alone is not proof of intelligibility.
+
+## Generation and machine validation
+
+The unmodified reference `generate_clips.py` is loaded outside this checkout, with its phrase-directory lookup redirected to these edited lists. Models are read only from `D:\projects\sih\iTantra\app\src\main\assets`. It generated English, Hindi and Kannada WAVs and per-language manifests without failures. Model-provided sample rates, mono sixteen-bit PCM, silence trimming and peak normalization follow the existing generator. No model files or other language packs are changed.
+
+Generation produced fourteen English, fifteen Hindi and fifteen Kannada clips, with zero generation failures. Phrase/manifest checks confirmed all original keys survive, only `shoulders_over_hands` was added, no numeric digits occur in the spoken text, and every manifest text/hash matches its phrase.
+
+Validation command (run from this task checkout; checker stays in the external reference):
+
+```powershell
+python ../ref-t261031-0212-a105/cpr-coach/tools/clipgen/check_clips.py --clips cpr-coach/app/src/main/assets/clips --phrases cpr-coach/tools/clipgen --whisper D:/projects/sih/iTantra/app/src/main/assets --indic D:/projects/sih/iTantra/app/src/main/assets --lang en,hi,kn --markdown ../ref-t261031-0212-a105/CLIP_CHECK.md --checkpoint ../ref-t261031-0212-a105/clip-check.json
+```
+
+The checker exited zero but reported **forty-four rows, thirty-two flagged**, so this is not a clean transcription pass. All forty-four clips passed its audio checks: mono sixteen-bit PCM, non-silent, unclipped and within its duration window. The generated sample rates were measured as 22050 Hz for English/Hindi and 16000 Hz for Kannada. The checker itself returns zero even when rows are flagged.
+
+| Language | Checked rows | Flagged rows | Reason |
+|---|---|---|---|
+| English | 14 | 2 | `countdown` and `shoulders_over_hands` exceed the character-error threshold |
+| Hindi | 15 | 15 | IndicConformer recognition files missing from the permitted model root; no transcripts |
+| Kannada | 15 | 15 | IndicConformer recognition files missing from the permitted model root; no transcripts |
+
+English `countdown` was transcribed as "Ready, 3, 2, 1." (15/23 character errors, 0.6522), whereas the phrase is "Get ready. Three, two, one." The recognizer's digits differ from the required spelled-out TTS input; it also omitted "Get". English `shoulders_over_hands` was transcribed as "Bring your shoulders over your hands. Bring your shoulders" (21/36 character errors, 0.5833). A person must listen to determine whether that repetition is in the audio or a recognition error; the requested instruction was not rewritten to optimize a machine score. The unflagged `good` transcript omitted "Good", so its opening also needs listening review. Emergency digits and AED letter pronunciation need listening review even where the machine score is below threshold.
+
+Hindi/Kannada transcription requires `hi.onnx`, `kn.onnx`, `languages/hi/tokens.txt`, `languages/kn/tokens.txt` and `shared/encoder.weights.bin` under the permitted assets root. They are absent there. The checker was explicitly pointed at that root instead of its default model-staging directory to respect the read-only model-location restriction. No models were fetched, copied or read outside the permitted root. Native-speaker listening and first-aid review remain required for every line; no phone or adb was used, and no Android compilation was performed for this asset-only change. No new screen-string keys are required.
 
 ---
 

@@ -1,15 +1,15 @@
 {
-  "countdown": "Starting in three, two, one",
-  "push_faster": "Push faster",
-  "slow_down": "Slow down",
-  "elbows_straight": "Keep your elbows straight",
-  "keep_going": "Keep going",
-  "good": "Well done, keep going",
-  "session_done": "Great work, session complete",
-  "em_call": "Call one one two. Put it on speaker.",
-  "em_hands": "Place your hands in the centre of the chest.",
-  "em_push": "Push hard and fast, with the beat.",
-  "em_swap": "If someone can take over, switch now.",
-  "em_aed": "If there's an AED nearby, ask someone to bring it.",
-  "em_continue": "Keep going until help arrives."
+  "countdown": "Get ready. Three, two, one.",
+  "push_faster": "Push the chest faster.",
+  "slow_down": "Reduce the speed of your chest compressions.",
+  "elbows_straight": "Keep both elbows straight.",
+  "keep_going": "Keep pushing the chest.",
+  "good": "Good. Keep pushing the chest.",
+  "session_done": "Well done. Your practice session is complete.",
+  "em_call": "Call one one two. Turn on the phone's speaker.",
+  "em_hands": "Put both hands in the centre of the chest.",
+  "em_push": "Push the chest hard and fast, in time with the beat.",
+  "em_swap": "If someone else can push the chest, swap now.",
+  "em_aed": "If an A E D is nearby, ask someone to bring it.",
+  "em_continue": "Keep pushing the chest until help arrives."
 }

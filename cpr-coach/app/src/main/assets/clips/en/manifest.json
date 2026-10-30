@@ -1,86 +1,80 @@
 [
   {
     "code": "en",
-    "key": "lang_name",
-    "text": "English",
-    "sha256": "ba118bf7fc9c1aedc1edb28a0aa86e0b43b681f222af6616e13c43be87815b06"
-  },
-  {
-    "code": "en",
     "key": "countdown",
-    "text": "Starting in three, two, one",
-    "sha256": "47174158f0ee46582e06f19eabbe22cda228876f64e0eed9f84425c31eda1781"
+    "text": "Get ready. Three, two, one.",
+    "sha256": "7d352d89bf083e79b2e20fb89a1fc58b97b8f96053468b68b595e1456582a921"
   },
   {
     "code": "en",
     "key": "push_faster",
-    "text": "Push faster",
-    "sha256": "090a225e12e7e570ecfcf54042428b00ee8ac0a91cab3419c1b51724ce54909e"
+    "text": "Push the chest faster.",
+    "sha256": "58866a3a02a7a43c26cd76c21208437f780167f69911f7eae0674497a2daf2af"
   },
   {
     "code": "en",
     "key": "slow_down",
-    "text": "Slow down",
-    "sha256": "a904382fc7ae0dff8ed32c944a61da0a66d5dc6763c97ded09531c4b0e1971e9"
+    "text": "Reduce the speed of your chest compressions.",
+    "sha256": "1b0ae6a5b5f04e4d7971ac9fcde125f3bfa36df3fb51337714ed53bfc7283036"
   },
   {
     "code": "en",
     "key": "elbows_straight",
-    "text": "Keep your elbows straight",
-    "sha256": "fae8e87738935b3572e9998253c40f5cf8af837da985ca455502d050ce7cd276"
+    "text": "Keep both elbows straight.",
+    "sha256": "087d7f85b1124ed1b2356322a32c01b63575145c38fa42998204b92d6371a194"
   },
   {
     "code": "en",
     "key": "keep_going",
-    "text": "Keep going",
-    "sha256": "9d7fd0e0bd0ac15500730fda0e9103d7e4c7dbcdadff9a2db43f262ff1e24d38"
+    "text": "Keep pushing the chest.",
+    "sha256": "2b76b72a5a62e35e7bdd3fc329a37d24f3e637be2ad93828535f5dd9bc58a086"
   },
   {
     "code": "en",
     "key": "good",
-    "text": "Well done, keep going",
-    "sha256": "4e9f7923dd429247f9b7df0f4f14708a920aafaeb7233084c599d6f278622677"
+    "text": "Good. Keep pushing the chest.",
+    "sha256": "e9904498432822841ffb3c864811848bd73aa438a1275f3ab55ee72cd03ce8a4"
   },
   {
     "code": "en",
     "key": "session_done",
-    "text": "Great work, session complete",
-    "sha256": "08bdece753a383a3f896d79013de3afabed41b8b61f061fd8ed95c74cbc5787b"
+    "text": "Well done. Your practice session is complete.",
+    "sha256": "7af2c550a312f90e853e9a4fc731e9f0b77169c8e551f19ddee5a52692340a2b"
   },
   {
     "code": "en",
     "key": "em_call",
-    "text": "Call one one two. Put it on speaker.",
-    "sha256": "6b878f6841f67f3214bfc323560b1405e56b60a554b7361bc13c9021d6214e68"
+    "text": "Call one one two. Turn on the phone's speaker.",
+    "sha256": "963674ac6286902cc51e070bf449732fa534ffc0268a07b7eda189c63fa6d526"
   },
   {
     "code": "en",
     "key": "em_hands",
-    "text": "Place your hands in the centre of the chest.",
-    "sha256": "7d3bd5e90e7bb8bb1e04f9c5e1982029e4e797cfd9834ae75ae5fdff21f8ecdc"
+    "text": "Put both hands in the centre of the chest.",
+    "sha256": "1211e1702f840190822e11c76f89b631e45412b911cdef5bb2b05dd81bd06beb"
   },
   {
     "code": "en",
     "key": "em_push",
-    "text": "Push hard and fast, with the beat.",
-    "sha256": "423623d8d47f5c26afee1841bdda87accb0648bc9a1d769eed872667daaadd12"
+    "text": "Push the chest hard and fast, in time with the beat.",
+    "sha256": "a7023696376e3d85da96b64e40a8c4d9b9d0271bfa024aebf438ecd0e3ee029e"
   },
   {
     "code": "en",
     "key": "em_swap",
-    "text": "If someone can take over, switch now.",
-    "sha256": "ebad3135fca6f4aa444469fb7b72adcd7e436107a3403ffd3938249ba4578f3a"
+    "text": "If someone else can push the chest, swap now.",
+    "sha256": "2f61eeb2dae05a8eff1dd5adbca539c049946b4a20980faea4937ced167f4443"
   },
   {
     "code": "en",
     "key": "em_aed",
-    "text": "If there's an AED nearby, ask someone to bring it.",
-    "sha256": "476fefb1ba199b491eee248d54731dddc0616f7d6a9a12a610b7032e76dd274a"
+    "text": "If an A E D is nearby, ask someone to bring it.",
+    "sha256": "d7612a2fabf0ea84edd658a7d8ecc7ecbc7186530768c382632eed0fbfb0df1d"
   },
   {
     "code": "en",
     "key": "em_continue",
-    "text": "Keep going until help arrives.",
-    "sha256": "73a898ef385ea05251e12550907ee778f4168cac74b1dd977f05824a28d75798"
+    "text": "Keep pushing the chest until help arrives.",
+    "sha256": "9e0628daebeb474e0a7b1eb5fe16390aa9cfc74fb7ffbb2f1d598eb039169ab1"
   }
 ]

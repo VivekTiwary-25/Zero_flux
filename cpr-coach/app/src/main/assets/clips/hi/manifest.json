@@ -8,79 +8,85 @@
   {
     "code": "hi",
     "key": "countdown",
-    "text": "शुरू कर रहे हैं तीन, दो, एक",
-    "sha256": "0700221232cc4aded08cbb59ef7ad5c1d7a2c8c4cae844471717469cfaa5e7c8"
+    "text": "तैयार रहें। तीन, दो, एक।",
+    "sha256": "dac2ce635df26c72ed9c5a9481b3595145ac0d9a1151881297299c2dc1cc6480"
   },
   {
     "code": "hi",
     "key": "push_faster",
-    "text": "और तेज़ दबाएँ",
-    "sha256": "6658229bd32f4a1a8a04793da8c6160b94dc930a5ff7b176a78284396155fe10"
+    "text": "छाती और तेज़ी से दबाएँ।",
+    "sha256": "7cbf6cad9adccfcccc3f143806fd5272183a1b544b879dacebb0de02b6d7a633"
   },
   {
     "code": "hi",
     "key": "slow_down",
-    "text": "रफ़्तार थोड़ी कम करें",
-    "sha256": "414a70d91b553100f7dd2d19abfe2dd3b4275e473dfa2a64b19eddf8417318e4"
+    "text": "छाती दबाने की रफ़्तार कम करें।",
+    "sha256": "6b1ac056e9d3a4754c8e9a87bb6be2418a24aa29aa07494a3f7f1a9ae75415c7"
   },
   {
     "code": "hi",
     "key": "elbows_straight",
-    "text": "कोहनी सीधी रखें",
-    "sha256": "474ad2ee33596910ddd9d9295afb0c22cd7d3e010d1f32c255b6b40102d98962"
+    "text": "दोनों कोहनियाँ सीधी रखें।",
+    "sha256": "10f1a090815eddc9ea7d55c51988f6ec607723874ebc7326d8726f50505bc1c9"
   },
   {
     "code": "hi",
     "key": "keep_going",
-    "text": "दबाते रहें",
-    "sha256": "0e9d9e552a464dab6ac7096bc0ecbfdc3b71f0467a17d1745f0b425e55110a28"
+    "text": "छाती दबाते रहें।",
+    "sha256": "b3af385259afb0d75494b63b85b793e8fa95f2fb8c163e9690764dee22ad11be"
   },
   {
     "code": "hi",
     "key": "good",
-    "text": "बहुत अच्छे, दबाते रहें",
-    "sha256": "cd7f701e75890fbd5b1f10893a834a2fbea65f89df9fa762d8521b8039e52b3b"
+    "text": "ठीक है। छाती दबाते रहें।",
+    "sha256": "568a88c78165ebcc3b7031488f4d15bd055524a5c72dda1eaf02e32ed8b499e2"
   },
   {
     "code": "hi",
     "key": "session_done",
-    "text": "शाबाश, अभ्यास पूरा हुआ",
-    "sha256": "b8b5c2744b8c4a7db00860a1bb6e8beff0d7e357786d8f08d044b1950be891ec"
+    "text": "अच्छा किया। आपका अभ्यास पूरा हो गया है।",
+    "sha256": "173f9953181ffc8ec1cd75d14e3b465d3c8212b5497c9ea39205ad6ec9728ee2"
   },
   {
     "code": "hi",
     "key": "em_call",
-    "text": "एक एक दो पर कॉल करें। फ़ोन स्पीकर पर रखें।",
-    "sha256": "33d88d6bfe7c67936fc38b7aeb2e46eae854dfbd4b43041da5b6ae5ccb88d02b"
+    "text": "एक एक दो पर फ़ोन करें। फ़ोन का स्पीकर चालू करें।",
+    "sha256": "9372a2ed31892c32d3521a457ce4cb14991dc97421b75e2986783001ac7ba59c"
   },
   {
     "code": "hi",
     "key": "em_hands",
-    "text": "छाती के बीच में दोनों हाथ रखें।",
-    "sha256": "12bdd14238ec05778b312364e797ef7365f0ce9c022316de266a8949af28cb0b"
+    "text": "अपने दोनों हाथ छाती के बीचोंबीच रखें।",
+    "sha256": "35908252c022151857cd9f3356a681605e52e1771e8aa55f2d2368cbb26f2ecb"
   },
   {
     "code": "hi",
     "key": "em_push",
-    "text": "ताल के साथ ज़ोर से और तेज़ दबाएँ।",
-    "sha256": "1b91834f4f90030d521fed7bf01fdb6eb1bf92a981f5450551d94a081d711984"
+    "text": "ताल के साथ छाती ज़ोर से और तेज़ी से दबाएँ।",
+    "sha256": "581dacab4312e86d233513b23f7a72e5b3b7773af256cd455bb0b772d4f07b98"
   },
   {
     "code": "hi",
     "key": "em_swap",
-    "text": "अगर कोई और कर सकता है, तो अभी बारी बदल लें।",
-    "sha256": "e735219a2308aeab848a5185eed7a3d8416c4e05b459823c565cf6ec20296a52"
+    "text": "अगर कोई और छाती दबा सकता है, तो अब बारी बदलें।",
+    "sha256": "3b60da38a1206c2c4b85d8da66640a57e81d8a7273f3b04ed504f1a123b0b830"
   },
   {
     "code": "hi",
     "key": "em_aed",
-    "text": "अगर पास में शॉक मशीन या ए ई डी है, तो किसी से मँगवाएँ।",
-    "sha256": "b85787dad309ad857f55087c04698549dd7e9baa0925b704f0e5aab89e03a7cf"
+    "text": "अगर पास में ए ई डी मशीन है, तो किसी से लाने को कहें।",
+    "sha256": "f223bb3381590f3573425b231ccb88e34d37d79f1c89ae9aa106ea77ea577cc6"
   },
   {
     "code": "hi",
     "key": "em_continue",
-    "text": "मदद आने तक दबाते रहें।",
-    "sha256": "1c85943a42b538e6db2e08ebfb63fc5adf949540016c7e6514d1a6a6b7c7675d"
+    "text": "मदद आने तक छाती दबाते रहें।",
+    "sha256": "a88115b4053d4a357f7fe7e1518826d5ed329d01881694742e136a2b62d20755"
+  },
+  {
+    "code": "hi",
+    "key": "shoulders_over_hands",
+    "text": "अपने कंधे हाथों के ठीक ऊपर लाएँ।",
+    "sha256": "c81fe47d72aef975fc0b4bcdc7084a97811f28b0169312e54286a46fe642deb7"
   }
 ]
