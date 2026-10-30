@@ -35,7 +35,7 @@ data class LiveReading(
 class LiveAnalyzer(
     private val rate: RateEstimator = RateEstimator(),
     private val minVisibility: Float = 0.5f,
-    private val lostAfterMs: Long = 700,
+    private val lostAfterMs: Long = 500,
     private val elbowBentBelow: Double = 150.0,
     private val elbowHysteresis: Double = 5.0,
 ) {
@@ -43,6 +43,7 @@ class LiveAnalyzer(
     private val elbowHistory = ArrayDeque<Pair<Long, Double>>()
     private val rateHistory = ArrayDeque<Double>()
     private var elbowsBent = false
+    private var lastRatedFrameMs: Long? = null
 
     /** Call for every camera frame the pose model ran on. Pass null when it found no person. */
     fun addFrame(sample: PoseSample?) {
@@ -74,8 +75,11 @@ class LiveAnalyzer(
                 LiveReading(nowMs, TrackingState.PAUSED, null, elbow, elbowsBent)
             }
             is BeatReading.Beat -> {
-                rateHistory.addLast(beat.perMinute)
-                if (rateHistory.size > RATE_SMOOTHING) rateHistory.removeFirst()
+                if (lastRatedFrameMs != last) {
+                    lastRatedFrameMs = last
+                    rateHistory.addLast(beat.perMinute)
+                    if (rateHistory.size > RATE_SMOOTHING) rateHistory.removeFirst()
+                }
                 val smoothed = medianOf(rateHistory.toList())
                 LiveReading(nowMs, TrackingState.BEATING, Math.round(smoothed).toInt(), elbow, elbowsBent)
             }

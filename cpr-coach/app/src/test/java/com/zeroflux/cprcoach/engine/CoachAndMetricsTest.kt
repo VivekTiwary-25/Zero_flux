@@ -67,6 +67,36 @@ class CoachAndMetricsTest {
     }
 
     @Test
+    fun `coaching carries on after a pause`() {
+        val policy = CoachPolicy()
+        run(policy, 0, 8_000) { beating(it, 110) }
+        run(policy, 8_000, 10_250) { paused(it) }
+        val spoken = run(policy, 10_250, 40_000) { beating(it, 90, bent = true) }
+        assertTrue(spoken.any { it.second == Phrase.PUSH_FASTER })
+        assertTrue(spoken.any { it.second == Phrase.ELBOWS_STRAIGHT })
+    }
+
+    @Test
+    fun `lost tracking does not shorten the wait for a pause`() {
+        val policy = CoachPolicy()
+        run(policy, 0, 4_000) { beating(it, 110) }
+        policy.update(paused(4_000))
+        run(policy, 4_250, 5_750) { lost(it) }
+        assertTrue(run(policy, 6_000, 7_500) { paused(it) }.isEmpty())
+    }
+
+    @Test
+    fun `two hesitations split by lost tracking are not one pause`() {
+        val metrics = SessionMetrics()
+        var t = 0L
+        repeat(4) { metrics.add(beating(t, 110)); t += 250 }
+        repeat(4) { metrics.add(paused(t)); t += 250 }
+        repeat(4) { metrics.add(lost(t)); t += 250 }
+        repeat(4) { metrics.add(paused(t)); t += 250 }
+        assertEquals(0, metrics.scorecard().pauses)
+    }
+
+    @Test
     fun `scorecard counts only measured time`() {
         val metrics = SessionMetrics()
         var t = 0L

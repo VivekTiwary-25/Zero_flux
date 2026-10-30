@@ -24,9 +24,9 @@ sealed interface BeatReading {
 /**
  * Finds the compression rate from the wrist signal.
  *
- * Autocorrelation over a sliding window gives the rate. It can lock onto double the true period,
- * so a separate peak count is used to catch that. Timestamps are real frame times, so an uneven
- * camera frame rate does not shift the result.
+ * Autocorrelation over a sliding window gives the rate. Timestamps are real frame times, so an uneven
+ * camera frame rate does not shift the result. The most recent stretch must also match the beat, because
+ * the window still holds old compressions for a few seconds after the rescuer stops.
  *
  * Thresholds here are starting values, to be tuned from recorded traces (see docs/MEASUREMENTS.md).
  */
@@ -57,6 +57,8 @@ class RateEstimator(
 
     fun read(): BeatReading {
         if (times.size < 2 || times.last() - times.first() < minDataMs) return BeatReading.Warming
+        // Too few frames can alias into a believable but wrong rate.
+        if (times.size * 1000 / (times.last() - times.first()) < MIN_FPS) return BeatReading.Warming
         val samples = detrend(resample())
         if (isStill(samples)) return BeatReading.NoBeat
 
@@ -64,10 +66,9 @@ class RateEstimator(
         val lag = pickLag(correlation) ?: return BeatReading.NoBeat
         val strength = correlation[lag]
         if (strength < minCorrelation) return BeatReading.NoBeat
+        if (recentCorrelation(samples, lag) < MIN_RECENT_CORRELATION) return BeatReading.NoBeat
 
-        val fromCorrelation = 60.0 * SAMPLE_HZ / refineLag(correlation, lag)
-        val fromPeaks = peakCountRate(samples)
-        return BeatReading.Beat(resolveOctave(fromCorrelation, fromPeaks), strength)
+        return BeatReading.Beat(60.0 * SAMPLE_HZ / refineLag(correlation, lag), strength)
     }
 
     private fun resample(): DoubleArray {
@@ -103,6 +104,22 @@ class RateEstimator(
         var sum = 0.0
         for (i in x.size - recent until x.size) sum += x[i] * x[i]
         return sqrt(sum / recent) < minAmplitude
+    }
+
+    /** How well the last stretch matches itself one beat earlier. Noise after a stop scores near zero. */
+    private fun recentCorrelation(x: DoubleArray, lag: Int): Double {
+        val start = x.size - (stillWindowMs * SAMPLE_HZ / 1000).toInt()
+        if (start - lag < 0) return 1.0
+        var cross = 0.0
+        var a = 0.0
+        var b = 0.0
+        for (i in start until x.size) {
+            cross += x[i] * x[i - lag]
+            a += x[i] * x[i]
+            b += x[i - lag] * x[i - lag]
+        }
+        val denominator = sqrt(a * b)
+        return if (denominator > 1e-9) cross / denominator else 0.0
     }
 
     /** Normalised autocorrelation, indexed by lag in samples. Lags outside the search range are 0. */
@@ -141,37 +158,14 @@ class RateEstimator(
         return if (abs(denominator) < 1e-9) lag.toDouble() else lag + 0.5 * (a - c) / denominator
     }
 
-    private fun peakCountRate(x: DoubleArray): Double? {
-        val rms = sqrt(x.sumOf { it * it } / x.size)
-        val threshold = rms * 0.5
-        val minGap = SAMPLE_HZ * 60 / MAX_RATE
-        val peaks = ArrayList<Int>()
-        for (i in 1 until x.size - 1) {
-            if (x[i] > threshold && x[i] > x[i - 1] && x[i] >= x[i + 1]) {
-                if (peaks.isEmpty() || i - peaks.last() >= minGap) {
-                    peaks.add(i)
-                } else if (x[i] > x[peaks.last()]) {
-                    peaks[peaks.size - 1] = i
-                }
-            }
-        }
-        if (peaks.size < 3) return null
-        return (peaks.size - 1) * 60.0 * SAMPLE_HZ / (peaks.last() - peaks.first())
-    }
-
-    /** If the two methods differ by about a factor of two, believe the peak count. */
-    private fun resolveOctave(fromCorrelation: Double, fromPeaks: Double?): Double {
-        if (fromPeaks == null || fromPeaks !in MIN_RATE.toDouble()..MAX_RATE.toDouble()) return fromCorrelation
-        val ratio = fromPeaks / fromCorrelation
-        return if (ratio in 1.75..2.25 || ratio in 0.45..0.57) fromPeaks else fromCorrelation
-    }
-
     private companion object {
         const val SAMPLE_HZ = 30
         const val MIN_RATE = 60
         const val MAX_RATE = 170
         const val MIN_LAG = SAMPLE_HZ * 60 / MAX_RATE
         const val MAX_LAG = SAMPLE_HZ * 60 / MIN_RATE
-        const val OCTAVE_PREFERENCE = 0.8
+        const val OCTAVE_PREFERENCE = 0.6
+        const val MIN_RECENT_CORRELATION = 0.5
+        const val MIN_FPS = 8
     }
 }

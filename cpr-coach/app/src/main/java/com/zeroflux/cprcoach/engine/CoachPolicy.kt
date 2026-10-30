@@ -25,6 +25,7 @@ class CoachPolicy(
     private var lastPhrase: Phrase? = null
     private var pausedSinceMs: Long? = null
     private var pendingRecovery = false
+    private var pauseAcknowledged = false
 
     /** Returns the phrase to play now, or null to stay quiet. */
     fun update(reading: LiveReading): Phrase? {
@@ -40,13 +41,15 @@ class CoachPolicy(
         // Recovering from a pause should be acknowledged quickly, everything else must be steady.
         val requiredMs = if (phrase == Phrase.KEEP_GOING) 0 else steadyMs
         if (now - candidateSinceMs < requiredMs) return null
-        if (phrase == lastPhrase) return null
         lastSpokenMs?.let { if (now - it < cooldownMs) return null }
 
         lastSpokenMs = now
         lastPhrase = phrase
         candidate = null
-        if (phrase == Phrase.KEEP_GOING) pendingRecovery = false
+        if (phrase == Phrase.KEEP_GOING) {
+            pendingRecovery = false
+            pauseAcknowledged = true
+        }
         return phrase
     }
 
@@ -54,27 +57,30 @@ class CoachPolicy(
         when (reading.tracking) {
             TrackingState.PAUSED -> {
                 if (pausedSinceMs == null) pausedSinceMs = reading.timeMs
-                if (reading.timeMs - pausedSinceMs!! >= MIN_PAUSE_MS) pendingRecovery = true
+                if (reading.timeMs - pausedSinceMs!! >= MIN_PAUSE_MS && !pauseAcknowledged) pendingRecovery = true
             }
-            TrackingState.BEATING -> pausedSinceMs = null
-            // Losing sight of the arms says nothing about whether the rescuer paused.
-            TrackingState.LOST, TrackingState.WARMING -> Unit
+            TrackingState.BEATING -> {
+                pausedSinceMs = null
+                pendingRecovery = false
+                pauseAcknowledged = false
+            }
+            // We can't see the arms, so this time can't count as part of a pause.
+            TrackingState.LOST, TrackingState.WARMING -> pausedSinceMs = null
         }
     }
 
     private fun wantedPhrase(reading: LiveReading, now: Long): Phrase? {
         if (reading.tracking == TrackingState.LOST || reading.tracking == TrackingState.WARMING) return null
-        if (pendingRecovery) return Phrase.KEEP_GOING
+        if (pendingRecovery) return Phrase.KEEP_GOING.takeIf { it != lastPhrase }
         if (reading.tracking != TrackingState.BEATING) return null
 
         val rate = reading.ratePerMinute ?: return null
-        return when {
-            rate < LiveReading.TARGET_MIN -> Phrase.PUSH_FASTER
-            rate > LiveReading.TARGET_MAX -> Phrase.SLOW_DOWN
-            reading.elbowsBent == true -> Phrase.ELBOWS_STRAIGHT
-            (lastSpokenMs?.let { now - it >= praiseEveryMs } ?: true) -> Phrase.GOOD
-            else -> null
-        }
+        val wanted = ArrayList<Phrase>(3)
+        if (rate < LiveReading.TARGET_MIN) wanted.add(Phrase.PUSH_FASTER)
+        if (rate > LiveReading.TARGET_MAX) wanted.add(Phrase.SLOW_DOWN)
+        if (reading.elbowsBent == true) wanted.add(Phrase.ELBOWS_STRAIGHT)
+        if (wanted.isEmpty() && (lastSpokenMs?.let { now - it >= praiseEveryMs } ?: true)) wanted.add(Phrase.GOOD)
+        return wanted.firstOrNull { it != lastPhrase }
     }
 
     private companion object {

@@ -55,8 +55,9 @@ class SessionMetrics(private val minPauseMs: Long = 2_000) {
                 pausedMs = 0
                 pauseCounted = false
             }
-            // Lost tracking neither starts nor ends a pause.
-            TrackingState.LOST, TrackingState.WARMING -> Unit
+            // We can't see the arms, so separate hesitations must not add up across this gap.
+            // pauseCounted stays set, so one real pause seen in two parts still counts once.
+            TrackingState.LOST, TrackingState.WARMING -> pausedMs = 0
         }
     }
 

@@ -50,6 +50,7 @@ fun EmergencyScreen(
     onStopConfirmed: () -> Unit,
     onMicTap: () -> Unit,
     modifier: Modifier = Modifier,
+    showHelperCameraButton: Boolean = false,
     helperCamera: @Composable () -> Unit = {},
 ) {
     val strings = LocalStrings.current
@@ -122,11 +123,13 @@ fun EmergencyScreen(
                 }
             }
 
-            SecondaryEmergencyButton(
-                text = strings.get(if (state.helperCameraOn) "em_helper_camera_off" else "em_helper_camera"),
-                onClick = onToggleHelperCamera,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            if (showHelperCameraButton) {
+                SecondaryEmergencyButton(
+                    text = strings.get(if (state.helperCameraOn) "em_helper_camera_off" else "em_helper_camera"),
+                    onClick = onToggleHelperCamera,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 MicButton(state = micState, onTap = onMicTap)
             }
