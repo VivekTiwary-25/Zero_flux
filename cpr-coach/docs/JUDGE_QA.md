@@ -20,6 +20,15 @@ The pipeline refuses to guess by design: rate appears only while a steady beat i
 
 ## Why this design
 
+**Why two modes?**
+Practise teaches CPR motion calmly: measured camera feedback, teal and amber cues, and a scorecard. Emergency talks you through it: one tap, no setup, immediate metronome and spoken steps, with camera-based corrections joining once the arms are visible. CPR never waits for tracking.
+
+**Why one word and no number in Emergency?**
+The emergency screen is designed to be panic-proof: one large instruction in the chosen language keeps attention on the next action instead of asking someone to interpret numbers. Practise is where numerical feedback and a scorecard belong; Emergency never shows a made-up rate.
+
+**What does the "For the ambulance crew" summary show? Why might it show dashes?**
+Total CPR time, average rate and pauses, based only on measured values. A dash means a value was not measured; it is not zero and is never guessed.
+
 **Why not just use a manikin with sensors?**
 Sensor manikins give good feedback but need instructors and expensive equipment most colleges and communities don't have. Our bet: an ordinary phone the team already owns, a cushion, and a second person holding the camera reaches far more practice sessions — with honest "can't see it" states instead of false precision.
 
@@ -30,10 +39,10 @@ A cushion lets the rescuer rehearse the motion — steady rhythm, straight elbow
 A metronome only sets the beat. CPR Coach watches the rescuer: it reports their actual rate, notices bent elbows and pauses, says the one correction that matters most right now, and shows only this run's measured scorecard at the end.
 
 **What happens when tracking fails?**
-The rate number and elbow indicator disappear, "Can't see arms" appears, coaching goes silent, and the metronome keeps playing. The app never shows an old or invented rate. The holder reframes (hints stay on screen, never spoken) and the number returns only after a fresh steady reading. In Emergency mode the metronome and spoken steps continue regardless of the camera.
+In Emergency the camera stays on, but CPR does not wait for it: metronome and spoken steps start immediately and keep going. If tracking fails, the one-word area says "Keep pushing with the beat" and no invented number appears. Once arms are visible, the same camera analysis and coaching as Practise can add spoken corrections alongside emergency steps.
 
-**What happens if the camera, microphone or speaker fails?**
-The app degrades to what still works: Emergency mode needs no camera at all; the scorecard marks unmeasured rows instead of failing; if audio fails the holder reads the screen. Nothing critical depends on any single sensor, and the Call 112 button is a plain dialer shortcut that works without the app's audio or camera.
+**What happens if the camera fails?**
+Emergency's metronome and spoken steps continue; the instruction-word area says "Keep pushing with the beat". Call 112 stays visible and only opens the dialer. Camera tracking failure never blocks CPR or creates a rate.
 
 **Is the 112 button safe? Does it auto-dial?**
 It opens the phone dialer with 112 already filled in and waits — it never places the call itself. On stage we stop at the dialer and press Back; we never call 112 during demos or tests.
@@ -41,7 +50,8 @@ It opens the phone dialer with 112 already filled in and waits — it never plac
 ## Languages, offline, privacy
 
 **Why ten languages?**
-CPR instructions only help if you understand them while panicking. The picker lists English, Hindi, Kannada, Tamil, Telugu, Malayalam, Marathi, Gujarati, Bengali and Odia, each in its own script, with every visible word and every spoken clip in the selected language.
+CPR instructions should be understandable under pressure. The picker lists ten languages in their own script; spoken coaching is verified only for a subset.
+
 
 **Which languages really work yet?**
 The app now runs end to end on two real phones with no known crash in the latest build. An early real-person session found a crash, which was fixed. The speech models were checked on real phones for English and Hindi in an earlier project (iTantra). The other eight voice and text translations are generated drafts: per `docs/CLIP_STATUS.md`, "checked by a person" is NO for every clip — nobody has listened to them yet. The demo runs in English.
@@ -61,4 +71,5 @@ No. It is guided practice for the motion of compressions: rate, elbows, continui
 Colleges, NSS units and community groups that want supervised practice between instructor sessions — always with the safety line: call 112 in a real emergency, follow the dispatcher, start CPR right away.
 
 **What is still unproven?**
-Counted rate-accuracy runs are not done and we quote no accuracy or latency figures. Rate detection on a real person is not yet demonstrated: the one real recording so far gave no usable beat, and work is in progress. Still unproven: connected-call audio behaviour, per-language voice checks by native speakers, and testing across more phones, lighting and camera angles. The honest status of each is tracked in `docs/MEASUREMENTS.md`, `docs/CLIP_STATUS.md` and `docs/PHONE_TEST.md`.
+
+Counted rate-accuracy runs are not done and we quote no accuracy or latency figures. Rate detection on a real person is not yet demonstrated: the one real recording so far gave no usable beat, and work is in progress. The redesigned Emergency screen has not yet been run with a real person. Still unproven: connected-call audio behaviour, per-language voice checks by native speakers, and testing across more phones, lighting and camera angles. The honest status of each is tracked in `docs/MEASUREMENTS.md`, `docs/CLIP_STATUS.md` and `docs/PHONE_TEST.md`.

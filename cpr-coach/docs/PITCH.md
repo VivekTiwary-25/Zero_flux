@@ -4,28 +4,28 @@ Spoken script for hackathon judges. Times are guides. Short sentences. Read it a
 
 ## 0:00–0:20 · The problem
 
-Someone collapses. Nobody nearby knows what to do. Most people have never practised CPR. Classes need a manikin and an instructor. So most people never practise at all. More bystanders who start CPR would help [needs a sourced number]. But there is no easy way to rehearse it at home.
+Someone collapses. Nobody nearby knows what to do. Many people have never practised CPR. Classes need a manikin and an instructor. There is no easy way to rehearse compressions at home without special equipment.
 
 ## 0:20–0:40 · The idea
 
-CPR Coach is a practice tool. It is not a medical device. You kneel over a cushion. A friend holds the phone. The app watches you practise and talks you through it. No manikin. No instructor. No setup.
+CPR Coach is a practice tool, not a medical device. Practise teaches you. Emergency talks you through it. Practise teaches calmly with camera feedback and a scorecard. Emergency is one tap, no setup: the camera opens in landscape while the metronome and spoken steps start at once—call 112, hands on chest, swap every 2 minutes, and an AED reminder once. CPR never waits for tracking.
 
 ## 0:40–1:20 · What is new
 
 Three things.
 
-First, live camera feedback. The phone watches your arms from the side. It measures your rate and your elbows. If you slow down, it says, "Push faster." If your elbows bend, it tells you. Good work gets a teal glow. Bad form gets amber. And if it cannot see your arms, it says so. It never makes up a number.
+In Practise, the phone watches your arms from the side. It estimates rate, elbow angle and pauses from visible movement. It speaks a correction when readings support one. If it cannot see your arms, it shows no number and does not guess.
 
-Second, it speaks your language. The coaching is short spoken phrases in the rescuer's own language. Ten languages. The rescuer never looks at the screen. They just listen and push.
+Second, coaching follows the chosen language; the picker lists ten, while spoken coaching is verified only for a subset. The rescuer listens rather than watching the screen.
 
-Third, it works offline, with no manikin. Everything runs on the phone. The camera, the pose model, the voice. No internet. No special gear. Just a cushion and a phone.
+Third, it works offline, with no manikin. The camera, analysis and coaching run on the phone. No internet. Practise uses teal and amber with measured feedback; Emergency uses a coral-red frame, one localized instruction word, no number, and elapsed time in a corner. The nonblocking setup hint says hold the phone from the side or prop it on the floor facing the rescuer's side. Call 112 opens only the dialer.
 
 ## 1:20–1:40 · The demo
 
-Let me show you. My friend kneels at the cushion. I hold the phone sideways. The app finds the arms. It counts down. The metronome starts. Watch the rate on screen. Now they slow down on purpose. Listen. The app corrects them. That is the whole product.
+Let me show Emergency. One tap: camera on, beat and spoken steps at once. The coral-red frame shows one localized word, no number, and elapsed time in a corner; when arms are visible, camera coaching adds spoken corrections. Hold to stop and show "For the ambulance crew": total CPR time, average rate and pauses, with dashes for anything not measured.
 
 ## 1:40–2:00 · The honest limits
 
-Honestly, here is what it cannot do. One camera cannot measure depth or force. It tracks rate, elbows and pauses only. Our measured rate error is [from MEASUREMENTS.md]. Our time to a first reading is [from MEASUREMENTS.md]. Anything we have not measured, we say we have not measured.
+Honestly, one camera cannot measure depth or force. Rate detection on a real person is not proven, and this redesigned Emergency screen has not yet been run with a real person. Connected-call audio behaviour is unproven. Counted accuracy runs are not done; we quote no accuracy or latency numbers. A dash means not measured, never a guessed value.
 
 CPR Coach is a practice tool. It is not a medical device. In a real emergency, call 112. Thank you.
