@@ -2,7 +2,6 @@ package com.zeroflux.cprcoach.engine
 
 import com.zeroflux.cprcoach.ui.TestAssets
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import java.util.Locale
@@ -23,6 +22,11 @@ class EmergencyWordReplayTest {
     ) {
         fun wordsIn(startS: Double, endS: Double): List<EmergencyWord> =
             entries.filter { it.timeS in startS..endS }.map { it.word }
+
+        fun share(startS: Double, endS: Double, word: EmergencyWord): Double {
+            val words = wordsIn(startS, endS)
+            return if (words.isEmpty()) 0.0 else words.count { it == word }.toDouble() / words.size
+        }
 
         fun formatTimeline(): String =
             spans.joinToString(", ") { span ->
@@ -137,6 +141,12 @@ class EmergencyWordReplayTest {
         val r = replay("real-cph2467-15.csv")
         println("timeline real-cph2467-15.csv: " + r.formatTimeline())
 
+        val straight2 = r.wordsIn(46.5, 53.4)
+        assertTrue(
+            "15 second straight segment has no posture words",
+            straight2.none { it == EmergencyWord.STRAIGHTEN_ARMS || it == EmergencyWord.SHOULDERS_OVER_HANDS },
+        )
+
         val straight = r.wordsIn(3.5, 32.0)
         assertTrue("15 straight segment is non-empty", straight.isNotEmpty())
         assertTrue(
@@ -153,7 +163,6 @@ class EmergencyWordReplayTest {
         )
     }
 
-    @Ignore("posture judge retune pending")
     @Test
     fun `recording 15 shows straighten arms during first bent block 38_2-43_4 s`() {
         val r = replay("real-cph2467-15.csv")
@@ -161,9 +170,9 @@ class EmergencyWordReplayTest {
             "15 shows straighten arms during bent 38.2-43.4 s",
             r.wordsIn(38.2, 43.4).any { it == EmergencyWord.STRAIGHTEN_ARMS },
         )
+        assertTrue("15 straighten arms covers most of the 2nd half of 38.2-43.4 s", r.share(40.8, 43.4, EmergencyWord.STRAIGHTEN_ARMS) > 0.5)
     }
 
-    @Ignore("posture judge retune pending")
     @Test
     fun `recording 15 shows straighten arms during second bent block 54-61_5 s`() {
         val r = replay("real-cph2467-15.csv")
@@ -171,9 +180,9 @@ class EmergencyWordReplayTest {
             "15 shows straighten arms during bent 54.0-61.5 s",
             r.wordsIn(54.0, 61.5).any { it == EmergencyWord.STRAIGHTEN_ARMS },
         )
+        assertTrue("15 straighten arms covers most of the 2nd half of 54-61.5 s", r.share(57.75, 61.5, EmergencyWord.STRAIGHTEN_ARMS) > 0.5)
     }
 
-    @Ignore("posture judge retune pending")
     @Test
     fun `recording 15 shows shoulders over hands during lean block 65-69_5 s`() {
         val r = replay("real-cph2467-15.csv")

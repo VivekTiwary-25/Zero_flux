@@ -93,6 +93,13 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
 
     private fun wordFor(reading: LiveReading): EmergencyWord {
         val rate = reading.ratePerMinute
+        // Bent or leaning pushing often has no locked rate, so posture also counts while PAUSED and moving.
+        // A locked rate that is off target still ranks first, then posture, then good.
+        val beating = reading.tracking == TrackingState.BEATING && rate != null
+        val pushing = beating || (reading.tracking == TrackingState.PAUSED && reading.moving)
+        if (pushing && (rate == null || rate in LiveReading.TARGET_MIN..LiveReading.TARGET_MAX)) {
+            postureWord(reading)?.let { return it }
+        }
         if (reading.tracking != TrackingState.BEATING || rate == null) {
             // Still pushing but the rate has dropped out for a moment: keep the word rather than flash "keep pushing".
             val beatingAt = lastBeatingMs
@@ -100,16 +107,22 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
             // Only a beat that held for a while is kept: a phantom blip must not linger on screen.
             val recently = beatingAt != null && since != null && reading.timeMs - beatingAt in 0..KEEP_WORD_MS &&
                 beatingAt - since >= ESTABLISHED_BEAT_MS
-            return if (reading.moving && reading.tracking != TrackingState.LOST && recently) word else EmergencyWord.KEEP_PUSHING
+            // A held posture word is not kept here: it must end when the judge's verdict does.
+            val keep = word != EmergencyWord.STRAIGHTEN_ARMS && word != EmergencyWord.SHOULDERS_OVER_HANDS && word != EmergencyWord.STRAIGHTEN
+            return if (reading.moving && reading.tracking != TrackingState.LOST && recently && keep) word else EmergencyWord.KEEP_PUSHING
         }
         return when {
             rate < LiveReading.TARGET_MIN -> EmergencyWord.FASTER
             rate > LiveReading.TARGET_MAX -> EmergencyWord.SLOWER
-            reading.posture?.issue == PostureIssue.ELBOWS_BENT -> EmergencyWord.STRAIGHTEN_ARMS
-            reading.posture?.issue == PostureIssue.SHOULDERS_NOT_OVER_HANDS -> EmergencyWord.SHOULDERS_OVER_HANDS
-            reading.posture == null && reading.elbowsBent == true -> EmergencyWord.STRAIGHTEN
             else -> EmergencyWord.GOOD
         }
+    }
+
+    private fun postureWord(reading: LiveReading): EmergencyWord? = when {
+        reading.posture?.issue == PostureIssue.ELBOWS_BENT -> EmergencyWord.STRAIGHTEN_ARMS
+        reading.posture?.issue == PostureIssue.SHOULDERS_NOT_OVER_HANDS -> EmergencyWord.SHOULDERS_OVER_HANDS
+        reading.posture == null && reading.elbowsBent == true -> EmergencyWord.STRAIGHTEN
+        else -> null
     }
 
     private companion object {
