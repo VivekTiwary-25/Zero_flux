@@ -52,6 +52,7 @@ fun WalkthroughScreen(
     modifier: Modifier = Modifier,
 ) {
     var page by remember { mutableIntStateOf(0) }
+    val strings = LocalStrings.current
     val motionEnabled = rememberCoachMotionEnabled()
     Column(
         modifier
@@ -89,6 +90,7 @@ fun WalkthroughScreen(
                                 strings.get("walk_title_1"),
                                 color = CoachColors.TextPrimary,
                                 fontSize = 30.sp,
+                                lineHeight = 39.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.Center,
                             )
@@ -97,6 +99,7 @@ fun WalkthroughScreen(
                                 strings.get("walk_body_1"),
                                 color = CoachColors.TextSecondary,
                                 fontSize = 18.sp,
+                                lineHeight = 26.sp,
                                 textAlign = TextAlign.Center,
                             )
                         }
@@ -105,6 +108,7 @@ fun WalkthroughScreen(
                                 strings.get("walk_title_2"),
                                 color = CoachColors.TextPrimary,
                                 fontSize = 26.sp,
+                                lineHeight = 34.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.Center,
                             )
@@ -132,6 +136,7 @@ fun WalkthroughScreen(
                                 strings.get("walk_title_3"),
                                 color = CoachColors.TextPrimary,
                                 fontSize = 28.sp,
+                                lineHeight = 36.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.Center,
                             )
@@ -156,19 +161,19 @@ fun WalkthroughScreen(
         ) {
             if (page > 0) {
                 TextButton(onClick = { page-- }, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(strings.get("walk_back"), color = CoachColors.TextSecondary)
+                    Text(strings.get("walk_back"), color = CoachColors.TextSecondary, fontSize = 16.sp)
                 }
             } else {
                 Spacer(Modifier.width(48.dp))
             }
 
             TextButton(onClick = onSkip, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(strings.get("walk_skip"), color = CoachColors.TextSecondary)
+                Text(strings.get("walk_skip"), color = CoachColors.TextSecondary, fontSize = 16.sp)
             }
 
             if (page < 2) {
                 TextButton(onClick = { page++ }, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(strings.get("walk_next"), color = CoachColors.Teal)
+                    Text(strings.get("walk_next"), color = CoachColors.Teal, fontSize = 16.sp)
                 }
             } else {
                 ClayButton(
@@ -180,6 +185,7 @@ fun WalkthroughScreen(
                     Text(
                         strings.get("walk_start"),
                         color = CoachColors.Navy,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 }
@@ -205,6 +211,7 @@ private fun RoleCard(
             title,
             color = CoachColors.Teal,
             fontSize = 17.sp,
+            lineHeight = 24.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
         )
@@ -213,6 +220,7 @@ private fun RoleCard(
             body,
             color = CoachColors.TextSecondary,
             fontSize = 14.sp,
+            lineHeight = 21.sp,
             textAlign = TextAlign.Center,
         )
     }
