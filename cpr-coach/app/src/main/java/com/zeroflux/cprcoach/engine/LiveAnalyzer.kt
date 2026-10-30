@@ -48,11 +48,16 @@ class LiveAnalyzer(
     private val minVisibility: Float = 0.5f,
     private val lostAfterMs: Long = 500,
     private val elbows: ElbowGate = ElbowGate(),
-    private val judge: PostureJudge = PostureJudge(),
+    /** The rescuer's learned posture baseline, carried over when the same rescuer resumes after a pause. */
+    initialBaseline: Pair<Double, Double>? = null,
+    private val judge: PostureJudge = PostureJudge(initialBaseline = initialBaseline),
     private val guard: LandmarkGuard = LandmarkGuard(),
     private val movingOnRms: Double = MOVING_ON_RMS,
     private val movingOffRms: Double = MOVING_OFF_RMS,
 ) {
+    /** The posture baseline learned so far, or null. Handed to the next analyzer when the same rescuer resumes. */
+    val baseline: Pair<Double, Double>? get() = judge.baseline
+
     private var lastGoodMs: Long? = null
 
     /** Last implausible-but-visible arm frame: proof the person is in view while accepted frames are held back. */

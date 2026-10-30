@@ -140,6 +140,9 @@ class PractiseSession(
         )
     }
 
+    /** The live analyzer's learned posture baseline. For tests. */
+    internal val postureBaseline: Pair<Double, Double>? get() = analyzer.baseline
+
     fun togglePause() {
         if (phase != Phase.LIVE) return
         isPaused = !isPaused
@@ -149,8 +152,8 @@ class PractiseSession(
             metrics.pause()
             publishPaused()
         } else {
-            // The rescuer has moved, so old readings no longer apply.
-            analyzer = LiveAnalyzer()
+            // The rescuer has moved, so old readings no longer apply. Same rescuer, so keep their baseline.
+            analyzer = LiveAnalyzer(initialBaseline = analyzer.baseline)
             coach = CoachPolicy()
             audio.startMetronome()
         }

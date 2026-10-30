@@ -71,6 +71,19 @@ class PostureJudgeTest {
         assertTrue("not flagged without a baseline", noBase.none { it.second.issue == PostureIssue.ELBOWS_BENT })
     }
 
+    @Test
+    fun `a baseline carried across a pause still flags a mild bend straight after resume`() {
+        val before = PostureJudge()
+        run(8.0, before) { Pose(elbow = 178.0) }
+        assertTrue(before.baseline != null)
+        // The pause-and-resume sequence from the review: the new judge is seeded with the old baseline.
+        val resumed = PostureJudge(initialBaseline = before.baseline)
+        val after = run(8.0, resumed) { Pose(elbow = 147.0) }.filter { it.first > 4_000 }
+        assertTrue("mild bend at 147 flagged after resume", after.any { it.second.issue == PostureIssue.ELBOWS_BENT })
+        // A judge that is not seeded still starts fresh.
+        assertTrue(PostureJudge().baseline == null)
+    }
+
     private val rng = Random(7)
 
     /** Compression: about 1.83 Hz (110/min); the elbow angle swings by [amp] degrees around [base]. */

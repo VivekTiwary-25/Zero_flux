@@ -167,4 +167,30 @@ class PractiseSessionTest {
         run(7_000, 0.0)
         assertEquals(before + 1, audio.played.count { it == "keep_going" })
     }
+
+    @Test
+    fun `the learned posture baseline survives the user's pause and resume`() {
+        startSession()
+        run(10_000, 110.0)
+        val learned = session.postureBaseline
+        assertNotNull("baseline learned from good pushing", learned)
+
+        session.togglePause()
+        clock += 5_000
+        session.togglePause()
+
+        assertEquals(learned, session.postureBaseline)
+    }
+
+    @Test
+    fun `a new session starts without a baseline`() {
+        startSession()
+        run(10_000, 110.0)
+        assertNotNull(session.postureBaseline)
+
+        val next = PractiseSession(FakeAudio(), totalSeconds = 30)
+        next.onFrame(frame(110.0))
+        next.tick(clock)
+        assertNull(next.postureBaseline)
+    }
 }

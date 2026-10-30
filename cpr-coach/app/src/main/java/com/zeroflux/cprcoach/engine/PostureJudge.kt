@@ -14,6 +14,8 @@ import kotlin.math.hypot
 class PostureJudge(
     private val bentDrop: Double = BENT_DROP_DEGREES,
     private val leanDelta: Double = LEAN_DELTA,
+    /** A baseline already learned from this same rescuer (carried across their pause); null starts fresh. */
+    initialBaseline: Pair<Double, Double>? = null,
 ) {
     private class Timed(val t: Long, val v: Double)
 
@@ -27,8 +29,8 @@ class PostureJudge(
     private val lean = Issue()
 
     // The rescuer's own first good pushing; one per session (kept by reset(), a new judge starts fresh).
-    private var baselineElbow: Double? = null
-    private var baselineOffset: Double? = null
+    private var baselineElbow: Double? = initialBaseline?.first
+    private var baselineOffset: Double? = initialBaseline?.second
     private val baseElbows = ArrayList<Double>()
     private val baseOffsets = ArrayList<Double>()
     private var baseMs = 0L
