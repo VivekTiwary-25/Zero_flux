@@ -1,6 +1,6 @@
 # Short phone test (CPH2467, about 4 minutes)
 
-For build **63f3fe4** (APK sha1 `446682c7109c`). Two people run one Practise session: the rescuer pushes a firm cushion, the holder holds the phone and calls the time from a stopwatch. Never push on a person.
+For build **fcb4cc6** (APK sha1 `5f3f5203dc21`). Two people run one Practise session: the rescuer pushes a firm cushion, the holder holds the phone and calls the time from a stopwatch. Never push on a person.
 
 ## Before you start
 - The build is installed and the app was started from the PC with picture capture on. Don't close or restart the app; if it closes, plug the phone in and say so.
