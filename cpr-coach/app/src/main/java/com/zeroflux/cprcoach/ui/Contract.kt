@@ -46,5 +46,6 @@ sealed interface CameraUiState {
         val isPaused: Boolean,
         /** Movement seen but no rate yet: show a live reaction, never a number. */
         val detecting: Boolean = false,
+        val posture: com.zeroflux.cprcoach.engine.PostureReading? = null,
     ) : CameraUiState
 }

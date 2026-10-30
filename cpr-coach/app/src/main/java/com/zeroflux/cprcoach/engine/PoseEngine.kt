@@ -28,6 +28,8 @@ data class PoseFrame(
     val arm: ArmLandmarks?,
     /** Camera frame to result, in milliseconds. Real, for docs/MEASUREMENTS.md. */
     val latencyMs: Long,
+    /** Width over height of the rotated image the landmarks are normalised to. */
+    val aspect: Float = 4f / 3f,
 )
 
 /** Runs MediaPipe on camera frames, on-device. Results arrive on MediaPipe's own thread. */

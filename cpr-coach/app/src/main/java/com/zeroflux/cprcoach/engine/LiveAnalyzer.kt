@@ -25,6 +25,8 @@ data class LiveReading(
     val elbowsBent: Boolean?,
     /** The wrist moved over about the last half second, whether or not there is a rate yet. */
     val moving: Boolean = false,
+    /** Null until the posture judge has something to say. */
+    val posture: PostureReading? = null,
 ) {
     val inRange: Boolean? get() = ratePerMinute?.let { it in TARGET_MIN..TARGET_MAX }
 
