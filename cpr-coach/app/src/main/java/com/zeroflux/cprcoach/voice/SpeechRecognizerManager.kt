@@ -29,82 +29,102 @@ class SpeechRecognizerManager(private val context: Context) {
     }
 
     fun hasModel(language: String): Boolean {
-        if (language == "en") return true
-        if (language !in indicConformerLanguages) return false
-        return listOf(
-            File(indicConformerDir, "$language.onnx"),
-            File(indicConformerDir, "languages/$language/tokens.txt"),
-            File(indicConformerDir, "shared/encoder.weights.bin"),
-        ).all { it.isFile }
+        return try {
+            when {
+                language == "en" -> {
+                    for (asset in listOf(EN_ENCODER, EN_DECODER, EN_TOKENS)) {
+                        context.assets.open(asset).use { }
+                    }
+                    true
+                }
+                language in indicConformerLanguages -> indicFiles(language).all {
+                    it.isFile && it.canRead() && it.length() > 0 && it.inputStream().use { input -> input.read() != -1 }
+                }
+                else -> false
+            }
+        } catch (failure: Exception) {
+            Log.e(PERF_TAG, "Speech model unavailable for language=$language", failure)
+            false
+        }
     }
 
-    /** Load the selected model now. Missing/unsupported models remain a no-op, as in recognition. */
+    private fun indicFiles(language: String) = listOf(
+        File(indicConformerDir, "$language.onnx"),
+        File(indicConformerDir, "languages/$language/tokens.txt"),
+        File(indicConformerDir, INDIC_WEIGHTS),
+    )
+
+    /** Load the selected model now, or fail if it is unavailable or cannot initialize. */
     fun preload(language: String) {
-        getRecognizer(language)
+        checkNotNull(getRecognizer(language)) { "Speech model could not be loaded for language=$language" }
     }
 
     private fun getRecognizer(language: String): OfflineRecognizer? {
-        val modelKey = modelKeyFor(language)
-        if (modelKey.isEmpty()) {
-            Log.e(PERF_TAG, "no speech model for language=$language")
-            return null
-        }
-
-        // Reuse the currently loaded model
-        if (recognizer != null && currentModelKey == modelKey) {
-            return recognizer!!
-        }
-
-        // Release previous model before loading another (two IndicConformer sessions would need ~2x RAM)
-        recognizer?.release()
-        recognizer = null
-        currentModelKey = ""
-
-        // English lives in the APK assets; IndicConformer is read from the app's private files folder
-        // by absolute path (no assetManager), so the 650 MB weights never pass through the APK.
-        var assetManager: android.content.res.AssetManager? = context.assets
-        val modelConfig = if (modelKey == "en") {
-            OfflineModelConfig(
-                whisper = OfflineWhisperModelConfig(
-                    encoder = "tiny.en-encoder.int8.onnx",
-                    decoder = "tiny.en-decoder.int8.onnx",
-                    language = "en",
-                    task = "transcribe"
-                ),
-                tokens = "tiny.en-tokens.txt",
-                modelType = "whisper",
-                numThreads = 2,
-                provider = "cpu"
-            )
-        } else {
-            assetManager = null
-            val model = File(indicConformerDir, "$language.onnx")
-            val tokens = File(indicConformerDir, "languages/$language/tokens.txt")
-            val weights = File(indicConformerDir, "shared/encoder.weights.bin")
-            val missing = listOf(model, tokens, weights).filterNot { it.isFile }
-            if (missing.isNotEmpty()) {
-                Log.e(PERF_TAG, "IndicConformer files missing for language=$language: $missing")
+        try {
+            val modelKey = modelKeyFor(language)
+            if (modelKey.isEmpty() || !hasModel(language)) {
+                Log.e(PERF_TAG, "No available speech model for language=$language")
                 return null
             }
-            OfflineModelConfig(
-                nemo = OfflineNemoEncDecCtcModelConfig(model = model.absolutePath),
-                tokens = tokens.absolutePath,
-                numThreads = 2,
-                provider = "cpu"
+
+            // Reuse the currently loaded model only while its files remain available.
+            if (recognizer != null && currentModelKey == modelKey) {
+                return recognizer
+            }
+
+            // Release before loading another model to avoid two native sessions in memory.
+            val previous = recognizer
+            recognizer = null
+            currentModelKey = ""
+            previous?.release()
+
+            // English is bundled; IndicConformer reads private files by absolute path.
+            var assetManager: android.content.res.AssetManager? = context.assets
+            val modelConfig = if (modelKey == "en") {
+                OfflineModelConfig(
+                    whisper = OfflineWhisperModelConfig(
+                        encoder = EN_ENCODER,
+                        decoder = EN_DECODER,
+                        language = "en",
+                        task = "transcribe"
+                    ),
+                    tokens = EN_TOKENS,
+                    modelType = "whisper",
+                    numThreads = 2,
+                    provider = "cpu"
+                )
+            } else {
+                assetManager = null
+                val (model, tokens) = indicFiles(language)
+                OfflineModelConfig(
+                    nemo = OfflineNemoEncDecCtcModelConfig(model = model.absolutePath),
+                    tokens = tokens.absolutePath,
+                    numThreads = 2,
+                    provider = "cpu"
+                )
+            }
+
+            // Recheck directly before native construction: bad paths can abort native code.
+            if (!hasModel(language)) {
+                Log.e(PERF_TAG, "Speech model disappeared for language=$language")
+                return null
+            }
+            val loadStartMs = SystemClock.elapsedRealtime()
+            val loaded = OfflineRecognizer(
+                assetManager = assetManager,
+                config = OfflineRecognizerConfig(modelConfig = modelConfig)
             )
+            recognizer = loaded
+            currentModelKey = modelKey
+            Log.d(PERF_TAG, "model load key=$modelKey deltaMs=${SystemClock.elapsedRealtime() - loadStartMs}")
+            return loaded
+        } catch (failure: Exception) {
+            Log.e(PERF_TAG, "Speech model initialization failed for language=$language", failure)
+            return null
+        } catch (failure: LinkageError) {
+            Log.e(PERF_TAG, "Speech native library unavailable for language=$language", failure)
+            return null
         }
-
-        // PERF-INSTRUMENTATION (temporary): model construction cost, first load vs reuse.
-        val loadStartMs = SystemClock.elapsedRealtime()
-        recognizer = OfflineRecognizer(
-            assetManager = assetManager,
-            config = OfflineRecognizerConfig(modelConfig = modelConfig)
-        )
-        Log.d(PERF_TAG, "model load key=$modelKey deltaMs=${SystemClock.elapsedRealtime() - loadStartMs}")
-
-        currentModelKey = modelKey
-
-        return recognizer!!
     }
 
     fun recognizeAudio(
@@ -117,8 +137,7 @@ class SpeechRecognizerManager(private val context: Context) {
         // records audio duration so real-time factor can be computed from logcat alone.
         val audioMs = if (sampleRate > 0) samples.size * 1000L / sampleRate else 0L
         val getStartMs = SystemClock.elapsedRealtime()
-        // No model (unsupported language or IndicConformer files not pushed): empty text, the
-        // editor still opens and the user can type.
+        // Missing, unsupported or unloadable models produce no transcript.
         val currentRecognizer = getRecognizer(language) ?: return ""
         val loadMs = SystemClock.elapsedRealtime() - getStartMs
         val stream = currentRecognizer.createStream()
@@ -155,6 +174,10 @@ class SpeechRecognizerManager(private val context: Context) {
     companion object {
         // PERF-INSTRUMENTATION (temporary): remove with the perf-measurement pass.
         private const val PERF_TAG = "CPR_STT"
+        private const val EN_ENCODER = "tiny.en-encoder.int8.onnx"
+        private const val EN_DECODER = "tiny.en-decoder.int8.onnx"
+        private const val EN_TOKENS = "tiny.en-tokens.txt"
+        private const val INDIC_WEIGHTS = "shared/encoder.weights.bin"
 
         // The ONE place that says where the IndicConformer package lives on the phone: a folder in
         // the app's private files dir holding shared/encoder.weights.bin, <lang>.onnx and

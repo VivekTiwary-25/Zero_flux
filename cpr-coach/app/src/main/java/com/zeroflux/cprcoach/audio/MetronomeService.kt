@@ -26,29 +26,47 @@ class MetronomeService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (stopRequested) {
-            stopSelf()
+            stopPlayback()
             return START_NOT_STICKY
         }
         val languageCode = intent?.getStringExtra(EXTRA_LANGUAGE).orEmpty()
-        ensureEngine(languageCode)
-        if (stopRequested) {
-            releaseEngine()
-            stopSelf()
+        if (!enterForeground(languageCode) || stopRequested) {
+            stopPlayback()
             return START_NOT_STICKY
         }
-        enterForeground(languageCode)
+        try {
+            ensureEngine(languageCode)
+        } catch (e: Exception) {
+            Log.e(TAG, "engine start failed", e)
+            stopPlayback()
+            return START_NOT_STICKY
+        }
+        if (stopRequested) {
+            stopPlayback()
+            return START_NOT_STICKY
+        }
         Log.i(TAG, "started language=$languageCode")
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
+        leaveForeground()
+        releaseEngine()
+        super.onDestroy()
+    }
+
+    private fun stopPlayback() {
+        releaseEngine()
+        leaveForeground()
+        stopSelf()
+    }
+
+    private fun leaveForeground() {
         try {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } catch (e: Exception) {
             Log.w(TAG, "stopForeground failed", e)
         }
-        releaseEngine()
-        super.onDestroy()
     }
 
     private fun ensureEngine(languageCode: String) {
@@ -63,8 +81,17 @@ class MetronomeService : Service() {
         }
         // M0 on a real phone: media audio stopped during a call, voice audio kept playing.
         val created = AudioEngine(this, AudioAttributes.USAGE_VOICE_COMMUNICATION)
-        created.setLanguage(languageCode)
-        created.startMetronome(METRONOME_BPM)
+        try {
+            created.setLanguage(languageCode)
+            created.startMetronome(METRONOME_BPM)
+        } catch (e: Exception) {
+            try {
+                created.release()
+            } catch (releaseError: Exception) {
+                Log.w(TAG, "engine release failed", releaseError)
+            }
+            throw e
+        }
         activeLanguage = languageCode
         _engine.value = created
     }
@@ -81,9 +108,9 @@ class MetronomeService : Service() {
         }
     }
 
-    /** Low-importance ongoing shade. Failure here must not stop the metronome. */
-    private fun enterForeground(languageCode: String) {
-        try {
+    /** Notification permission denial does not prevent media foreground promotion. */
+    private fun enterForeground(languageCode: String): Boolean {
+        return try {
             val title = notificationTitle(languageCode)
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(
@@ -99,8 +126,10 @@ class MetronomeService : Service() {
                 notification,
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
             )
+            true
         } catch (e: Exception) {
-            Log.w(TAG, "notification unavailable; metronome still running", e)
+            Log.w(TAG, "foreground promotion failed; stopping service", e)
+            false
         }
     }
 
@@ -132,18 +161,17 @@ class MetronomeService : Service() {
             try {
                 context.startForegroundService(intent)
             } catch (e: Exception) {
-                Log.w(TAG, "startForegroundService failed; starting anyway", e)
-                try {
-                    context.startService(intent)
-                } catch (e2: Exception) {
-                    Log.e(TAG, "service start failed", e2)
-                }
+                Log.e(TAG, "startForegroundService failed", e)
             }
         }
 
         fun stop(context: Context) {
             stopRequested = true
-            context.stopService(Intent(context, MetronomeService::class.java))
+            try {
+                context.stopService(Intent(context, MetronomeService::class.java))
+            } catch (e: Exception) {
+                Log.w(TAG, "stopService failed", e)
+            }
         }
     }
 }

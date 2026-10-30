@@ -1,5 +1,10 @@
 package com.zeroflux.cprcoach.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.util.Log
+import androidx.camera.core.CameraInfo
+import androidx.camera.core.CameraState
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -16,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import java.util.concurrent.Executors
 
 /** Back camera preview that also hands every frame to [onImage], which must close it. */
@@ -28,29 +34,63 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
     DisposableEffect(lifecycleOwner) {
         val executor = Executors.newSingleThreadExecutor()
         var disposed = false
-        val future = ProcessCameraProvider.getInstance(context)
-        future.addListener({
-            if (disposed) return@addListener
-            val provider = future.get()
-            val selector = ResolutionSelector.Builder()
-                .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
-                .build()
-            val preview = Preview.Builder().setResolutionSelector(selector).build().also {
-                it.surfaceProvider = previewView.surfaceProvider
+        var provider: ProcessCameraProvider? = null
+        var cameraInfo: CameraInfo? = null
+        var analysis: ImageAnalysis? = null
+        val cameraObserver = Observer<CameraState> { state ->
+            state.error?.let { error ->
+                Log.e("CPR_CAM", "Camera unavailable: code=${error.code}", error.cause)
             }
-            val analysis = ImageAnalysis.Builder()
-                .setResolutionSelector(selector)
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                .build()
-            analysis.setAnalyzer(executor, onImage)
-            provider.unbindAll()
-            provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
-        }, ContextCompat.getMainExecutor(context))
+        }
+        try {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                Log.w("CPR_CAM", "Camera permission denied")
+            } else {
+                val future = ProcessCameraProvider.getInstance(context)
+                future.addListener({
+                    if (disposed) return@addListener
+                    try {
+                        val resolved = future.get()
+                        provider = resolved
+                        val selector = ResolutionSelector.Builder()
+                            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                            .build()
+                        val preview = Preview.Builder().setResolutionSelector(selector).build().also {
+                            it.surfaceProvider = previewView.surfaceProvider
+                        }
+                        val imageAnalysis = ImageAnalysis.Builder()
+                            .setResolutionSelector(selector)
+                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                            .build()
+                        analysis = imageAnalysis
+                        imageAnalysis.setAnalyzer(executor, onImage)
+                        resolved.unbindAll()
+                        val camera = resolved.bindToLifecycle(
+                            lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageAnalysis,
+                        )
+                        cameraInfo = camera.cameraInfo
+                        camera.cameraInfo.cameraState.observe(lifecycleOwner, cameraObserver)
+                    } catch (failure: Exception) {
+                        Log.e("CPR_CAM", "Could not bind back camera", failure)
+                        analysis?.clearAnalyzer()
+                    }
+                }, ContextCompat.getMainExecutor(context))
+            }
+        } catch (failure: Exception) {
+            Log.e("CPR_CAM", "Could not initialize camera", failure)
+        }
         onDispose {
             disposed = true
-            if (future.isDone) future.get().unbindAll()
-            executor.shutdown()
+            try {
+                cameraInfo?.cameraState?.removeObserver(cameraObserver)
+                analysis?.clearAnalyzer()
+                provider?.unbindAll()
+            } catch (failure: Exception) {
+                Log.e("CPR_CAM", "Could not release camera", failure)
+            } finally {
+                executor.shutdown()
+            }
         }
     }
     AndroidView({ previewView }, modifier)

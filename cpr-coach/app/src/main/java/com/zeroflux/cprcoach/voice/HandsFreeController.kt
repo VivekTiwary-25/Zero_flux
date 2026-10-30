@@ -1,6 +1,8 @@
 package com.zeroflux.cprcoach.voice
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
@@ -8,6 +10,7 @@ import android.media.audiofx.AcousticEchoCanceler
 import android.media.audiofx.AudioEffect
 import android.os.SystemClock
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.k2fsa.sherpa.onnx.SileroVadModelConfig
 import com.k2fsa.sherpa.onnx.Vad
 import com.k2fsa.sherpa.onnx.VadModelConfig
@@ -40,7 +43,8 @@ class HandsFreeController(
     private val scope: CoroutineScope,
     private val silenceTimeoutMs: Long = 6_000,
 ) {
-    private val assets = context.applicationContext.assets
+    private val applicationContext = context.applicationContext
+    private val assets = applicationContext.assets
     private val mutableState = MutableStateFlow(MicState.OFF)
     val state: StateFlow<MicState> = mutableState.asStateFlow()
 
@@ -61,11 +65,17 @@ class HandsFreeController(
                 stopSession()
                 return
             }
+            if (!hasMicrophonePermission()) {
+                Log.w(TAG, "Microphone permission denied")
+                mutableState.value = MicState.OFF
+                return
+            }
             val job = scope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
                 val owner = currentCoroutineContext().job
                 try {
                     speechMutex.withLock {
                         currentCoroutineContext().ensureActive()
+                        check(speech.hasModel(languageCode)) { "Speech model unavailable for language=$languageCode" }
                         speech.preload(languageCode)
                     }
                     currentCoroutineContext().ensureActive()
@@ -125,6 +135,7 @@ class HandsFreeController(
         var watchdog: Job? = null
         try {
             currentCoroutineContext().ensureActive()
+            check(hasMicrophonePermission()) { "Microphone permission denied" }
             val silero = SileroVadModelConfig(model = "silero_vad.onnx")
             // Fail in Kotlin before passing a missing asset to the native model loader.
             assets.open(silero.model).use { }
@@ -137,6 +148,7 @@ class HandsFreeController(
                 SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
             )
             check(minBufferBytes > 0) { "Unsupported microphone buffer: $minBufferBytes" }
+            check(hasMicrophonePermission()) { "Microphone permission revoked" }
             val input = AudioRecord(
                 MediaRecorder.AudioSource.VOICE_COMMUNICATION,
                 SAMPLE_RATE,
@@ -156,6 +168,7 @@ class HandsFreeController(
             synchronized(lock) {
                 owner.ensureActive()
                 check(session === owner) { "Microphone session was replaced" }
+                check(hasMicrophonePermission()) { "Microphone permission revoked" }
                 activeRecorder = input
                 input.startRecording()
                 check(input.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
@@ -184,6 +197,10 @@ class HandsFreeController(
             watchdog = launch(start = CoroutineStart.UNDISPATCHED) {
                 try {
                     while (isActive) {
+                        if (!hasMicrophonePermission()) {
+                            Log.w(TAG, "Microphone permission revoked")
+                            break
+                        }
                         val remaining = silenceTimeoutMs - (SystemClock.elapsedRealtime() - lastSpeechAt.get())
                         if (remaining <= 0) {
                             Log.i(TAG, "Auto-muted after VAD silence")
@@ -200,8 +217,10 @@ class HandsFreeController(
             val window = FloatArray(silero.windowSize)
             var filled = 0
             while (currentCoroutineContext().isActive) {
+                check(hasMicrophonePermission()) { "Microphone permission revoked" }
                 val count = input.read(pcm, filled, pcm.size - filled, AudioRecord.READ_BLOCKING)
                 currentCoroutineContext().ensureActive()
+                check(hasMicrophonePermission()) { "Microphone permission revoked" }
                 check(count > 0) { "Microphone read failed: $count" }
                 filled += count
                 if (filled != pcm.size) continue
@@ -234,6 +253,10 @@ class HandsFreeController(
             vad?.let { detector -> cleanup("release VAD") { detector.release() } }
         }
     }
+
+    private fun hasMicrophonePermission(): Boolean =
+        ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
 
     private inline fun cleanup(operation: String, action: () -> Unit) {
         try {
