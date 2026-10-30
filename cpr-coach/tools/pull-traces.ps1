@@ -249,17 +249,26 @@ function Resolve-TraceFolder {
 }
 
 function Copy-Traces {
-    param([string]$TargetSerial, [string]$OutDir)
+    param([string]$TargetSerial, [string]$OutDir, [int]$Latest)
 
     Write-Head 'Copying the traces from the phone'
     Write-Host '  This only reads from the phone. It does not install, delete or start anything.'
 
-    # adb copies the contents of a remote folder into the destination only when
-    # the destination does not exist yet. Pull into a fresh temporary folder and
-    # copy its contents across, so OutDir holds the CSVs, not another traces folder.
     $stagingDir = Join-Path ([System.IO.Path]::GetTempPath()) ("cpr-coach-traces-" + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
 
-    Invoke-Adb -What "Copying $RemoteTracesDir to $OutDir..." -AdbArguments @('-s', $TargetSerial, 'pull', "$RemoteTracesDir/", $stagingDir)
+    if ($Latest -gt 0) {
+        $remoteItems = @(Invoke-Adb -What "Listing traces in $RemoteTracesDir..." -AdbArguments @('-s', $TargetSerial, 'shell', 'ls', $RemoteTracesDir) -Capture)
+        $sessionIds = @($remoteItems | ForEach-Object {
+            $name = ([string]$_).Trim()
+            if ($name -match '^session-(.+)\.csv$') { $Matches[1] }
+        } | Sort-Object -Unique | Select-Object -Last $Latest)
+        foreach ($sessionId in $sessionIds) {
+            Invoke-Adb -What "Copying session-$sessionId.csv..." -AdbArguments @('-s', $TargetSerial, 'pull', "$RemoteTracesDir/session-$sessionId.csv", $stagingDir)
+        }
+    } else {
+        Invoke-Adb -What "Copying $RemoteTracesDir to $OutDir..." -AdbArguments @('-s', $TargetSerial, 'pull', "$RemoteTracesDir/", $stagingDir)
+    }
 
     $copyFailure = $null
     $copyFinished = $false
@@ -302,37 +311,35 @@ function Copy-Frames {
     param([string]$TargetSerial, [string]$OutDir, [int]$Latest)
 
     Write-Head 'Copying frame pictures from the phone'
-    $remoteFramesDir = "$RemoteTracesDir/frames-*"
-    $stagingDir = Join-Path ([System.IO.Path]::GetTempPath()) ("cpr-coach-frames-" + [guid]::NewGuid().ToString('N'))
-    New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
-
-    # Pass the remote Android path as one PowerShell argument; Git Bash rewrites /sdcard paths.
-    Invoke-Adb -What "Copying frame folders from $RemoteTracesDir..." -AdbArguments @('-s', $TargetSerial, 'pull', $remoteFramesDir, $stagingDir)
-
-    $pulledFolders = @(Get-ChildItem -LiteralPath $stagingDir -Directory -Filter 'frames-*' -ErrorAction SilentlyContinue)
+    $remoteItems = @(Invoke-Adb -What "Listing frame folders in $RemoteTracesDir..." -AdbArguments @('-s', $TargetSerial, 'shell', 'ls', $RemoteTracesDir) -Capture)
+    $remoteFrameNames = @($remoteItems | ForEach-Object { ([string]$_).Trim() } | Where-Object { $_ -match '^frames-.+$' })
     $sessions = @(Get-ChildItem -LiteralPath $OutDir -Filter 'session-*.csv' -File -ErrorAction SilentlyContinue | ForEach-Object { Get-SessionId -Path $_.Name } | Where-Object { $null -ne $_ } | Sort-Object -Unique)
     if ($Latest -gt 0) { $sessions = @($sessions | Select-Object -Last $Latest) }
 
     foreach ($sessionId in $sessions) {
         $frameFolderName = "frames-$sessionId"
-        $sourceFolder = $pulledFolders | Where-Object { $_.Name -ceq $frameFolderName } | Select-Object -First 1
-        if ($null -eq $sourceFolder) { continue }
-
+        if ($remoteFrameNames -cnotcontains $frameFolderName) { continue }
         $destinationFolder = Join-Path $OutDir $frameFolderName
-        $sourceCount = @(Get-ChildItem -LiteralPath $sourceFolder.FullName -File -Recurse -ErrorAction SilentlyContinue).Count
-        $destinationCount = 0
+        $sourceCount = 0
         if (Test-Path -LiteralPath $destinationFolder -PathType Container) {
-            $destinationCount = @(Get-ChildItem -LiteralPath $destinationFolder -File -Recurse -ErrorAction SilentlyContinue).Count
+            $sourceCount = @(Get-ChildItem -LiteralPath $destinationFolder -File -Recurse -ErrorAction SilentlyContinue).Count
         }
-        if ((Test-Path -LiteralPath $destinationFolder -PathType Container) -and $sourceCount -eq $destinationCount) {
-            Write-Ok "Skipping $frameFolderName; it already has $destinationCount files."
-        } else {
-            Copy-Item -LiteralPath $sourceFolder.FullName -Destination $OutDir -Recurse -Force
+        if ($sourceCount -gt 0) {
+            Write-Ok "Skipping $frameFolderName; it already has $sourceCount files."
+            continue
+        }
+
+        $stagingDir = Join-Path ([System.IO.Path]::GetTempPath()) ("cpr-coach-frames-" + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
+        Invoke-Adb -What "Copying $frameFolderName..." -AdbArguments @('-s', $TargetSerial, 'pull', "$RemoteTracesDir/$frameFolderName", $stagingDir)
+        $sourceFolder = Join-Path $stagingDir $frameFolderName
+        if (Test-Path -LiteralPath $sourceFolder -PathType Container) {
+            $sourceCount = @(Get-ChildItem -LiteralPath $sourceFolder -File -Recurse -ErrorAction SilentlyContinue).Count
+            Copy-Item -LiteralPath $sourceFolder -Destination $OutDir -Recurse -Force
             Write-Ok "Pulled $frameFolderName ($sourceCount files)."
         }
+        Remove-Item -LiteralPath $stagingDir -Recurse -Force -ErrorAction SilentlyContinue
     }
-
-    Remove-Item -LiteralPath $stagingDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Write-Host ''
@@ -345,7 +352,7 @@ Find-Python
 Find-Analyzer
 if ($Frames) { Find-FrameSheet }
 $OutDir = Resolve-TraceFolder -RequestedOut $Out
-Copy-Traces -TargetSerial $SelectedSerial -OutDir $OutDir
+Copy-Traces -TargetSerial $SelectedSerial -OutDir $OutDir -Latest $(if ($PSBoundParameters.ContainsKey('Latest')) { $Latest } else { 0 })
 
 $LatestCount = 0
 if ($PSBoundParameters.ContainsKey('Latest')) { $LatestCount = $Latest }
