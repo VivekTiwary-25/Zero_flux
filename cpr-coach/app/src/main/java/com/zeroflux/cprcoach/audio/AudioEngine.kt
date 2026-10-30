@@ -120,6 +120,8 @@ class AudioEngine(
         }
         val token = synchronized(lock) {
             if (released) return@synchronized -1
+            // A replaced clip still reports done, so a chain of clips can never hang.
+            postToMain(clipDone)
             playToken += 1
             clip = null
             clipPos = 0
@@ -170,6 +172,7 @@ class AudioEngine(
 
     fun stopClips() {
         synchronized(lock) {
+            postToMain(clipDone)
             playToken += 1
             clip = null
             clipPos = 0

@@ -29,8 +29,10 @@ data class PoseFrame(
 /** Runs MediaPipe on camera frames, on-device. Results arrive on MediaPipe's own thread. */
 class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private val submitted = ConcurrentHashMap<Long, Float>()
+    private val lifecycleLock = Any()
     private var lastTimestampMs = 0L
     private var trace: PrintWriter? = null
+    private var closed = false
     private val landmarker: PoseLandmarker = try {
         create(context, Delegate.GPU)
     } catch (e: RuntimeException) {
@@ -59,10 +61,23 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
 
     /** Takes ownership of [image] and always closes it. */
     fun submit(image: ImageProxy) {
+        // The lock stops close() running while a frame is on its way into the landmarker.
+        synchronized(lifecycleLock) {
+            if (closed) {
+                image.close()
+                return
+            }
+            detect(image)
+        }
+    }
+
+    private fun detect(image: ImageProxy) {
         image.use { proxy ->
             val now = SystemClock.uptimeMillis()
             if (now <= lastTimestampMs) return // MediaPipe rejects non-increasing timestamps.
             lastTimestampMs = now
+            // MediaPipe drops frames when it is busy, and those never get a result.
+            submitted.keys.removeAll { now - it > STALE_FRAME_MS }
             val rotation = proxy.imageInfo.rotationDegrees
             val rotated = rotation == 90 || rotation == 270
             val width = if (rotated) proxy.height else proxy.width
@@ -125,11 +140,16 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
 
     fun close() {
         stopTrace()
-        landmarker.close()
+        synchronized(lifecycleLock) {
+            if (closed) return
+            closed = true
+            landmarker.close()
+        }
     }
 
     private companion object {
         const val TAG = "CPR_POSE"
+        const val STALE_FRAME_MS = 5_000L
         const val LEFT_SHOULDER = 11
         const val RIGHT_SHOULDER = 12
         const val LEFT_ELBOW = 13

@@ -9,6 +9,7 @@ interface SessionAudio {
     fun play(key: String)
     fun startMetronome()
     fun stopMetronome()
+    fun stopVoice() {}
 }
 
 /**
@@ -87,12 +88,14 @@ class PractiseSession(
     }
 
     private fun tickLive(nowMs: Long) {
-        val reading = analyzer.read(nowMs)
-        if (!isPaused) {
-            liveMsLeft -= nowMs - (lastTickMs ?: nowMs)
-            metrics.add(reading)
-            coach.update(reading)?.let { audio.play(it.key) }
+        if (isPaused) {
+            publishPaused()
+            return
         }
+        val reading = analyzer.read(nowMs)
+        liveMsLeft -= nowMs - (lastTickMs ?: nowMs)
+        metrics.add(reading)
+        coach.update(reading)?.let { audio.play(it.key) }
         if (liveMsLeft <= 0) {
             finish(playDone = true)
             return
@@ -112,11 +115,27 @@ class PractiseSession(
         )
     }
 
+    /** Paused by the user: nothing is being measured, so there is no rate and no tracking state to report. */
+    private fun publishPaused() {
+        _ui.value = CameraUiState.Live(
+            tracking = TrackingState.WARMING,
+            ratePerMinute = null,
+            inRange = null,
+            elbowsBent = null,
+            secondsLeft = ((liveMsLeft + 999) / 1000).toInt().coerceAtLeast(0),
+            totalSeconds = totalSeconds,
+            isPaused = true,
+        )
+    }
+
     fun togglePause() {
         if (phase != Phase.LIVE) return
         isPaused = !isPaused
+        lastTickMs = null
         if (isPaused) {
             audio.stopMetronome()
+            metrics.pause()
+            publishPaused()
         } else {
             // The rescuer has moved, so old readings no longer apply.
             analyzer = LiveAnalyzer()
@@ -127,8 +146,13 @@ class PractiseSession(
     fun stop() {
         when (phase) {
             Phase.LIVE -> finish(playDone = false)
-            Phase.COUNTDOWN, Phase.FRAMING -> phase = Phase.DONE
-            Phase.DONE -> Unit
+            // Nothing was measured yet, so go back to framing rather than show a scorecard.
+            Phase.COUNTDOWN -> {
+                audio.stopVoice()
+                phase = Phase.FRAMING
+                _ui.value = CameraUiState.Framing(latestFraming.ready, latestFraming.hintKey)
+            }
+            Phase.FRAMING, Phase.DONE -> Unit
         }
     }
 

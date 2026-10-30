@@ -15,8 +15,8 @@ data class Scorecard(
 )
 
 class SessionMetrics(private val minPauseMs: Long = 2_000) {
-    private var startMs: Long? = null
     private var lastMs: Long? = null
+    private var elapsedMs = 0L
     private var measuredMs = 0L
     private var inRangeMs = 0L
     private var rateTimeSum = 0.0
@@ -29,10 +29,10 @@ class SessionMetrics(private val minPauseMs: Long = 2_000) {
     fun add(reading: LiveReading) {
         val now = reading.timeMs
         val previous = lastMs
-        if (startMs == null) startMs = now
         lastMs = now
         if (previous == null) return
         val dt = now - previous
+        elapsedMs += dt
 
         reading.ratePerMinute?.let { rate ->
             measuredMs += dt
@@ -61,10 +61,14 @@ class SessionMetrics(private val minPauseMs: Long = 2_000) {
         }
     }
 
+    /** Paused time counts for nothing. The next reading starts a fresh interval. */
+    fun pause() {
+        lastMs = null
+    }
+
     fun scorecard(): Scorecard {
-        val total = (lastMs ?: 0L) - (startMs ?: 0L)
         return Scorecard(
-            sessionSeconds = seconds(total),
+            sessionSeconds = seconds(elapsedMs),
             measuredSeconds = seconds(measuredMs),
             secondsInRange = seconds(inRangeMs),
             averageRate = if (measuredMs > 0) Math.round(rateTimeSum / measuredMs).toInt() else null,

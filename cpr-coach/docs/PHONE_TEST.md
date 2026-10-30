@@ -148,6 +148,7 @@ Do this after the live checks, with the rescuer on the cushion and the holder co
 - [ ] The card shows only the agreed results; no extra score is invented.
 
 ## Emergency
+- [ ] Emergency audio uses voice mode. Check it is loud enough with the volume buttons before a call, and again during a connected call on speaker. (M0 only tested this while dialling, so a connected call is still unproven.)
 
 - [ ] From Home, tap **Emergency**. The Emergency screen opens at once, with no setup.
 - [ ] A large coral **Call 112** clay button is at the top.

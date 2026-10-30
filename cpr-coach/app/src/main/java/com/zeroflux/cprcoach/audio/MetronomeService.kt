@@ -61,7 +61,8 @@ class MetronomeService : Service() {
             if (!existing.metronomeRunning) existing.startMetronome(METRONOME_BPM)
             return
         }
-        val created = AudioEngine(this, AudioAttributes.USAGE_MEDIA)
+        // M0 on a real phone: media audio stopped during a call, voice audio kept playing.
+        val created = AudioEngine(this, AudioAttributes.USAGE_VOICE_COMMUNICATION)
         created.setLanguage(languageCode)
         created.startMetronome(METRONOME_BPM)
         activeLanguage = languageCode

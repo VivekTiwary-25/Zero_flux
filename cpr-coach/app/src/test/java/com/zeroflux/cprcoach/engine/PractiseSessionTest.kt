@@ -114,6 +114,35 @@ class PractiseSessionTest {
     }
 
     @Test
+    fun `paused time does not count, and shows paused rather than cant see arms`() {
+        startSession()
+        run(8_000, 110.0)
+        session.togglePause()
+        val paused = session.ui.value as CameraUiState.Live
+        assertTrue(paused.isPaused)
+        assertNull(paused.ratePerMinute)
+        run(60_000, 110.0)
+        assertEquals(TrackingState.WARMING, (session.ui.value as CameraUiState.Live).tracking)
+        session.togglePause()
+        run(1_000, 110.0)
+        session.stop()
+        assertTrue(session.scorecard.value!!.sessionSeconds < 15)
+    }
+
+    @Test
+    fun `stop during countdown returns to framing and the session still works`() {
+        run(1_500, 110.0)
+        session.start(clock)
+        session.stop()
+        assertTrue(session.ui.value is CameraUiState.Framing)
+        assertNull(session.scorecard.value)
+        run(1_500, 110.0)
+        session.start(clock)
+        run(3_200, 110.0)
+        assertTrue(session.ui.value is CameraUiState.Live)
+    }
+
+    @Test
     fun `stopping early gives a scorecard without the congratulations`() {
         startSession()
         run(5_000, 110.0)

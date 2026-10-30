@@ -27,8 +27,10 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
 
     DisposableEffect(lifecycleOwner) {
         val executor = Executors.newSingleThreadExecutor()
+        var disposed = false
         val future = ProcessCameraProvider.getInstance(context)
         future.addListener({
+            if (disposed) return@addListener
             val provider = future.get()
             val selector = ResolutionSelector.Builder()
                 .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
@@ -46,6 +48,7 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
             provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
         }, ContextCompat.getMainExecutor(context))
         onDispose {
+            disposed = true
             if (future.isDone) future.get().unbindAll()
             executor.shutdown()
         }

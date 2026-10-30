@@ -147,11 +147,10 @@ class HandsFreeController(
             recorder = input
             check(input.state == AudioRecord.STATE_INITIALIZED) { "Microphone did not initialize" }
             if (AcousticEchoCanceler.isAvailable()) {
-                val effect = checkNotNull(AcousticEchoCanceler.create(input.audioSessionId)) {
-                    "Could not create acoustic echo canceler"
-                }
+                val effect = AcousticEchoCanceler.create(input.audioSessionId)
                 echoCanceler = effect
-                check(effect.setEnabled(true) == AudioEffect.SUCCESS) { "Could not enable echo canceler" }
+                // Listening without echo cancelling still works, so this must not end the session.
+                if (effect == null || effect.setEnabled(true) != AudioEffect.SUCCESS) Log.w(TAG, "Could not enable echo canceler")
             }
             val lastSpeechAt = AtomicLong(SystemClock.elapsedRealtime())
             synchronized(lock) {
