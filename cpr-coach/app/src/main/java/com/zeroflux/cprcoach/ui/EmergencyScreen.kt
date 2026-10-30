@@ -177,7 +177,7 @@ fun EmergencyScreen(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                         ),
-                        autoSize = TextAutoSize.StepBased(minFontSize = 14.sp, maxFontSize = 34.sp, stepSize = 1.sp),
+                        autoSize = TextAutoSize.StepBased(minFontSize = 14.sp, maxFontSize = 26.sp, stepSize = 1.sp),
                     )
                 }
                 // The mic sits above the button so the label gets the whole column width.
