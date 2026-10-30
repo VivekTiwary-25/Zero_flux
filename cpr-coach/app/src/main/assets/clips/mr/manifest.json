@@ -14,14 +14,14 @@
   {
     "code": "mr",
     "key": "push_faster",
-    "text": "अजून वेगाने दाबा",
-    "sha256": "f1f60440169086b50a630b1e61efe2e91e7642754455b2efe4a5b9998c8e88c5"
+    "text": "छाती अजून वेगाने दाबा",
+    "sha256": "1151efbfa6279ec7f7466c016b57f723bcfc0932e2ae54082f7d2dad58240f82"
   },
   {
     "code": "mr",
     "key": "slow_down",
-    "text": "वेग थोडा कमी करा",
-    "sha256": "f6b542dcf910ca63e3122e416ffa76e9505856279aa80a78a9e67dee28beaa7f"
+    "text": "छाती दाबण्याचा वेग कमी करा",
+    "sha256": "07ca76a0a8f5ce86e8c5f04f13497b4b9ea15a28572f8f10a6f048a956a7cbd6"
   },
   {
     "code": "mr",
@@ -32,14 +32,14 @@
   {
     "code": "mr",
     "key": "keep_going",
-    "text": "दाबत राहा",
-    "sha256": "dfe8e4f35d3e166c70373b01c0da315e061ced1d11bd3893bd9b3044ffc9e432"
+    "text": "छाती दाबत राहा",
+    "sha256": "da61ec9520ade8f975e8bcd25ae9d6ae4e2676c6c51749d71e9c3b6b26c361dd"
   },
   {
     "code": "mr",
     "key": "good",
-    "text": "छान, दाबत राहा",
-    "sha256": "97886c390c2c89b1b58d79e24dac2cba81e0184cc1e51aad0948fedf2ba17a99"
+    "text": "छान. छाती दाबत राहा.",
+    "sha256": "ebd9b1492efae2ec2cee39dfc24305c76aca6a147403a3f7f5bd5962ad13dff5"
   },
   {
     "code": "mr",
@@ -62,14 +62,14 @@
   {
     "code": "mr",
     "key": "em_push",
-    "text": "तालासोबत जोरात आणि वेगाने दाबा.",
-    "sha256": "20803bf0b3719004f651fecc7ffcbe5377ea9bce9523f67cdb5a11e767fade4c"
+    "text": "तालासोबत छाती जोरात आणि वेगाने दाबा.",
+    "sha256": "c4ee7b9ce5c25ad537bb466d45250cb34d225db22e29d0ce769e74d76748798b"
   },
   {
     "code": "mr",
     "key": "em_swap",
-    "text": "यापुढेही दाबत राहू शकेल अशी व्यक्ती असल्यास, आता जागा बदला.",
-    "sha256": "af88742ad4c5d85f8a04cd674e9c8955ef24754c7d08b7925b1642fe9fe04a9d"
+    "text": "दुसरे कोणी छाती दाबू शकत असेल, तर आता पाळी बदला.",
+    "sha256": "dccae14c901f5022b7f47f9baa382b04720a47f0897499a70fdf3ab0f12db685"
   },
   {
     "code": "mr",
@@ -80,7 +80,7 @@
   {
     "code": "mr",
     "key": "em_continue",
-    "text": "मदत येईपर्यंत दाबत राहा.",
-    "sha256": "133608e0bfa9099ed1fdcd43818b269e453c7081b62507c7d2355878559cf88e"
+    "text": "मदत येईपर्यंत छाती दाबत राहा.",
+    "sha256": "c32f492b57789a80b12ed35075b914782a7a8c7974ae8e25bd64f4f476ef4781"
   }
 ]

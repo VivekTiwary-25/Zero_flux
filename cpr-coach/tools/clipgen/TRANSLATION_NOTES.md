@@ -1,8 +1,8 @@
 # Translation notes: drafts needing native-speaker and first-aid review
 
-All translations in `app/src/main/assets/strings/<code>.json` and `tools/clipgen/phrases_<code>.json` remain drafts until a native speaker listens and a first-aid reviewer checks the instructions. The English, Hindi and Kannada tables below record the exact old and new spoken lines from this revision. Every row, including each unchanged language name, needs a native speaker's ear; no listening approval is claimed.
+All translations in `app/src/main/assets/strings/<code>.json` and `tools/clipgen/phrases_<code>.json` remain drafts until a native speaker listens and a first-aid reviewer checks the instructions. The English, Hindi and Kannada tables below record an earlier spoken-line revision. The two-review revision appended below records this task's exact old and new lines. Every row needs a native speaker's ear; no listening approval is claimed.
 
-Only the three phrase lists and their generated clips are revised here. Screen strings are unchanged. Every compression cue names the chest; `slow_down` targets compression speed, not pressure or depth. Numbers are written as words. `shoulders_over_hands` is the sole new spoken key; `turn_phone` is deliberately absent because it is a silent holder instruction. Existing `lang_name` keys are retained without renaming the languages; no English `lang_name` key existed in the reference.
+The earlier revision covered English, Hindi and Kannada audio; those clips and phrase files are unchanged by this task. This revision updates on-screen compression cues in all ten languages, disambiguates posture instructions that used a word for both arms and hands, and updates Tamil, Telugu, Marathi, Gujarati and Bengali spoken compression cues. Malayalam and Odia coaching audio falls back to matching English clips, except their original `lang_name.wav`. All keys and the short faster/good/slower screen labels are retained. `slow_down` targets compression speed, not pressure or depth. The earlier tables mention `shoulders_over_hands`; this task does not add that key or any other key. `turn_phone` remains a silent holder instruction.
 
 ## English (`en`)
 
@@ -171,3 +171,136 @@ Hindi/Kannada transcription requires `hi.onnx`, `kn.onnx`, `languages/hi/tokens.
 | `slow_down` (`phrases_or.json`) | ଟିକେ ଧୀରେ କରନ୍ତୁ | In Odia, "ଧୀରେ" can mean either slowly or softly/gently. | **Medical risk:** if a rescuer interprets "ଟିକେ ଧୀରେ କରନ୍ତୁ" as "press gently", compression depth will drop below effective levels. Native reviewer should check if "ଗତି ଟିକେ କমান୍ତୁ" (reduce speed slightly) is safer. |
 | `frame_arm_out` (`or.json`) | କଚଟି ଫ୍ରେମ୍ ବାହାରେ ଅଛି | "କଚଟି" (wrist) is standard Odia, though some speakers say "ହାତ ଗଣ୍ଠି". | Framing hint only (for phone holder). |
 | `em_aed` (`phrases_or.json`) | ଯଦି ପାଖରେ ଏ ଇ ଡି ଅଛି, କାହାକୁ ଆଣିବାକୁ କୁହନ୍ତୁ। | Spelled "ଏ ଇ ଡି" in Odia script. | Verify Meta MMS Odia voice pronounces the three letters distinctly. |
+
+## Two-review revision (task t261031-0244-45fd)
+
+All rows below are drafts needing a native speaker's ear; no native-speaker, first-aid, or listening approval is claimed. Missing chest nouns are made explicit, Bengali `slow_down` names compression speed (not soft pressure), and ambiguous arms/hands posture words now name elbows. The short `em_word_faster`, `em_word_good`, and `em_word_slower` labels are unchanged. Unrelated MINOR suggestions (Hindi setup hint, Marathi speaker wording, Tamil rate-label register) are intentionally not applied.
+
+### On-screen lines
+
+| Language / key | Old line | New line | Review status |
+|---|---|---|---|
+| `en/em_step_push` | Push hard and fast, with the beat. | Push the chest hard and fast, with the beat. | Draft: needs a native speaker's ear |
+| `en/em_word_keep_pushing` | Keep pushing with the beat | Keep pushing the chest with the beat | Draft: needs a native speaker's ear |
+| `hi/em_step_push` | ताल के साथ ज़ोर से और तेज़ दबाएँ। | ताल के साथ छाती ज़ोर से और तेज़ दबाएँ। | Draft: needs a native speaker's ear |
+| `hi/em_word_keep_pushing` | ताल के साथ दबाते रहें | ताल के साथ छाती दबाते रहें | Draft: needs a native speaker's ear |
+| `kn/em_step_push` | ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಬಲವಾಗಿ, ವೇಗವಾಗಿ ಒತ್ತಿ. | ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಎದೆಯನ್ನು ಬಲವಾಗಿ, ವೇಗವಾಗಿ ಒತ್ತಿ. | Draft: needs a native speaker's ear |
+| `kn/em_word_keep_pushing` | ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಒತ್ತುತ್ತಿರಿ | ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಎದೆಯನ್ನು ಒತ್ತುತ್ತಿರಿ | Draft: needs a native speaker's ear |
+| `ta/posture_straighten_arms` | கைகளை நேராக்குங்கள் | இரு முழங்கைகளையும் நேராக வையுங்கள் | Draft: needs a native speaker's ear |
+| `ta/em_step_push` | தாளத்தோடு வேகமாகவும் பலமாகவும் அழுத்தவும். | தாளத்தோடு மார்பை வேகமாகவும் பலமாகவும் அழுத்தவும். | Draft: needs a native speaker's ear |
+| `ta/em_word_keep_pushing` | தாளத்தோடு தொடர்ந்து அழுத்துங்கள் | தாளத்தோடு மார்பைத் தொடர்ந்து அழுத்துங்கள் | Draft: needs a native speaker's ear |
+| `te/posture_straighten_arms` | చేతులను నిటారుగా ఉంచండి | మోచేతులను నిటారుగా ఉంచండి | Draft: needs a native speaker's ear |
+| `te/em_step_push` | తాళంతో పాటు గట్టిగా, వేగంగా నొక్కండి. | తాళంతో పాటు ఛాతీని గట్టిగా, వేగంగా నొక్కండి. | Draft: needs a native speaker's ear |
+| `te/em_word_keep_pushing` | తాళంతో నొక్కుతూ ఉండండి | తాళంతో ఛాతీని నొక్కుతూ ఉండండి | Draft: needs a native speaker's ear |
+| `ml/posture_straighten_arms` | കൈകൾ നേരെയാക്കുക | കൈമുട്ടുകൾ നിവർത്തി വെക്കുക | Draft: needs a native speaker's ear |
+| `ml/em_step_push` | താളത്തിനൊത്ത് ശക്തമായും വേഗത്തിലും അമർത്തുക. | താളത്തിനൊത്ത് നെഞ്ച് ശക്തമായും വേഗത്തിലും അമർത്തുക. | Draft: needs a native speaker's ear |
+| `ml/em_word_keep_pushing` | താളത്തിനൊത്ത് അമർത്തിക്കൊണ്ടിരിക്കൂ | താളത്തിനൊത്ത് നെഞ്ച് അമർത്തിക്കൊണ്ടിരിക്കൂ | Draft: needs a native speaker's ear |
+| `mr/posture_straighten_arms` | हात सरळ करा | दोन्ही कोपर सरळ ठेवा | Draft: needs a native speaker's ear |
+| `mr/em_step_push` | तालासोबत जोरात आणि वेगाने दाबा. | तालासोबत छाती जोरात आणि वेगाने दाबा. | Draft: needs a native speaker's ear |
+| `mr/em_word_keep_pushing` | तालासोबत दाबत राहा | तालासोबत छाती दाबत राहा | Draft: needs a native speaker's ear |
+| `gu/posture_straighten_arms` | હાથ સીધા કરો | બંને કોણી સીધી રાખો | Draft: needs a native speaker's ear |
+| `gu/em_step_push` | તાલ સાથે જોરથી અને ઝડપથી દબાવો. | તાલ સાથે છાતી જોરથી અને ઝડપથી દબાવો. | Draft: needs a native speaker's ear |
+| `gu/em_word_keep_pushing` | તાલ સાથે દબાવતા રહો | તાલ સાથે છાતી દબાવતા રહો | Draft: needs a native speaker's ear |
+| `bn/posture_straighten_arms` | হাত সোজা করুন | দুই কনুই সোজা রাখুন | Draft: needs a native speaker's ear |
+| `bn/em_step_push` | তালের সাথে জোরে ও দ্রুত চাপুন। | তালের সাথে বুক জোরে ও দ্রুত চাপুন। | Draft: needs a native speaker's ear |
+| `bn/em_word_keep_pushing` | তালে তালে চাপতে থাকুন | তালে তালে বুক চাপতে থাকুন | Draft: needs a native speaker's ear |
+| `or/posture_straighten_arms` | ହାତ ସିଧା କରନ୍ତୁ | ଦୁଇ କହୁଣୀ ସିଧା ରଖନ୍ତୁ | Draft: needs a native speaker's ear |
+| `or/em_step_push` | ତାଳ ସହିତ ଜୋରରେ ଓ ଶୀଘ୍ର ଦବାନ୍ତୁ। | ତାଳ ସହିତ ଛାତି ଜୋରରେ ଓ ଶୀଘ୍ର ଦବାନ୍ତୁ। | Draft: needs a native speaker's ear |
+| `or/em_word_keep_pushing` | ତାଳ ସହିତ ଦବାଇ ଚାଲନ୍ତୁ | ତାଳ ସହିତ ଛାତି ଦବାଇ ଚାଲନ୍ତୁ | Draft: needs a native speaker's ear |
+
+### Regenerated spoken lines (Tamil, Telugu, Marathi, Gujarati, Bengali)
+
+Every clip in these five language folders is regenerated with the existing tool and read-only local MMS models. The table lists text changes only; other phrase texts and all keys are retained.
+
+| Language / key | Old line | New line | Review status |
+|---|---|---|---|
+| `ta/push_faster` | இன்னும் வேகமாக அழுத்துங்கள் | மார்பை இன்னும் வேகமாக அழுத்துங்கள் | Draft: needs a native speaker's ear |
+| `ta/slow_down` | வேகத்தைக் கொஞ்சம் குறையுங்கள் | மார்பை அழுத்தும் வேகத்தைக் குறையுங்கள் | Draft: needs a native speaker's ear |
+| `ta/keep_going` | தொடர்ந்து அழுத்துங்கள் | மார்பைத் தொடர்ந்து அழுத்துங்கள் | Draft: needs a native speaker's ear |
+| `ta/good` | நன்று, தொடர்ந்து அழுத்துங்கள் | நன்று. மார்பைத் தொடர்ந்து அழுத்துங்கள். | Draft: needs a native speaker's ear |
+| `ta/em_push` | தாளத்தோடு வேகமாகவும் பலமாகவும் அழுத்துங்கள். | தாளத்தோடு மார்பை வேகமாகவும் பலமாகவும் அழுத்துங்கள். | Draft: needs a native speaker's ear |
+| `ta/em_swap` | யாராவது தொடர முடிந்தால், இப்போது மாறிக்கொள்ளுங்கள். | வேறு யாராவது மார்பை அழுத்த முடிந்தால், இப்போது மாறிக்கொள்ளுங்கள். | Draft: needs a native speaker's ear |
+| `ta/em_continue` | உதவி வரும் வரை தொடர்ந்து அழுத்துங்கள். | உதவி வரும் வரை மார்பைத் தொடர்ந்து அழுத்துங்கள். | Draft: needs a native speaker's ear |
+| `te/push_faster` | ఇంకా వేగంగా నొక్కండి | ఛాతీని ఇంకా వేగంగా నొక్కండి | Draft: needs a native speaker's ear |
+| `te/slow_down` | వేగం కొంచెం తగ్గించండి | ఛాతీ నొక్కే వేగాన్ని తగ్గించండి | Draft: needs a native speaker's ear |
+| `te/keep_going` | నొక్కుతూ ఉండండి | ఛాతీని నొక్కుతూ ఉండండి | Draft: needs a native speaker's ear |
+| `te/good` | బాగుంది, నొక్కుతూ ఉండండి | బాగుంది. ఛాతీని నొక్కుతూ ఉండండి. | Draft: needs a native speaker's ear |
+| `te/em_push` | తాళంతో పాటు గట్టిగా, వేగంగా నొక్కండి. | తాళంతో పాటు ఛాతీని గట్టిగా, వేగంగా నొక్కండి. | Draft: needs a native speaker's ear |
+| `te/em_swap` | ఎవరైనా మారగలిగితే, ఇప్పుడే మారండి. | మరొకరు ఛాతీని నొక్కగలిగితే, ఇప్పుడే వంతు మారండి. | Draft: needs a native speaker's ear |
+| `te/em_continue` | సహాయం వచ్చే వరకు నొక్కుతూ ఉండండి. | సహాయం వచ్చే వరకు ఛాతీని నొక్కుతూ ఉండండి. | Draft: needs a native speaker's ear |
+| `mr/push_faster` | अजून वेगाने दाबा | छाती अजून वेगाने दाबा | Draft: needs a native speaker's ear |
+| `mr/slow_down` | वेग थोडा कमी करा | छाती दाबण्याचा वेग कमी करा | Draft: needs a native speaker's ear |
+| `mr/keep_going` | दाबत राहा | छाती दाबत राहा | Draft: needs a native speaker's ear |
+| `mr/good` | छान, दाबत राहा | छान. छाती दाबत राहा. | Draft: needs a native speaker's ear |
+| `mr/em_push` | तालासोबत जोरात आणि वेगाने दाबा. | तालासोबत छाती जोरात आणि वेगाने दाबा. | Draft: needs a native speaker's ear |
+| `mr/em_swap` | यापुढेही दाबत राहू शकेल अशी व्यक्ती असल्यास, आता जागा बदला. | दुसरे कोणी छाती दाबू शकत असेल, तर आता पाळी बदला. | Draft: needs a native speaker's ear |
+| `mr/em_continue` | मदत येईपर्यंत दाबत राहा. | मदत येईपर्यंत छाती दाबत राहा. | Draft: needs a native speaker's ear |
+| `gu/push_faster` | વધુ ઝડપથી દબાવો | છાતી વધુ ઝડપથી દબાવો | Draft: needs a native speaker's ear |
+| `gu/slow_down` | દબાવવાની ઝડપ થોડી ઓછી કરો | છાતી દબાવવાની ઝડપ ઓછી કરો | Draft: needs a native speaker's ear |
+| `gu/keep_going` | દબાવતા રહો | છાતી દબાવતા રહો | Draft: needs a native speaker's ear |
+| `gu/good` | સરસ, દબાવતા રહો | સરસ. છાતી દબાવતા રહો. | Draft: needs a native speaker's ear |
+| `gu/em_push` | તાલ સાથે જોરથી અને ઝડપથી દબાવો. | તાલ સાથે છાતી જોરથી અને ઝડપથી દબાવો. | Draft: needs a native speaker's ear |
+| `gu/em_swap` | જો કોઈ બીજું કરી શકે તેમ હોય, તો અત્યારે બદલાઈ જાઓ. | જો બીજું કોઈ છાતી દબાવી શકે, તો અત્યારે વારો બદલો. | Draft: needs a native speaker's ear |
+| `gu/em_continue` | મદદ આવે ત્યાં સુધી દબાવતા રહો. | મદદ આવે ત્યાં સુધી છાતી દબાવતા રહો. | Draft: needs a native speaker's ear |
+| `bn/push_faster` | আরও দ্রুত চাপুন | বুক আরও দ্রুত চাপুন | Draft: needs a native speaker's ear |
+| `bn/slow_down` | একটু ধীরে করুন | বুক চাপার গতি কমান। | Draft: needs a native speaker's ear |
+| `bn/keep_going` | চাপতে থাকুন | বুক চাপতে থাকুন | Draft: needs a native speaker's ear |
+| `bn/good` | বেশ ভালো, চাপতে থাকুন | বেশ ভালো। বুক চাপতে থাকুন। | Draft: needs a native speaker's ear |
+| `bn/em_push` | তালের সাথে জোরে এবং দ্রুত চাপুন। | তালের সাথে বুক জোরে এবং দ্রুত চাপুন। | Draft: needs a native speaker's ear |
+| `bn/em_swap` | অন্য কেউ থাকলে, এখনই পালা বদল করুন। | অন্য কেউ বুক চাপতে পারলে, এখনই পালা বদল করুন। | Draft: needs a native speaker's ear |
+| `bn/em_continue` | সাহায্য না আসা পর্যন্ত চাপতে থাকুন। | সাহায্য না আসা পর্যন্ত বুক চাপতে থাকুন। | Draft: needs a native speaker's ear |
+
+### Malayalam and Odia: English voice fallback
+
+Every `ml` and `or` WAV except `lang_name.wav` is copied byte-for-byte from the matching `en` WAV. The native language-name recordings and on-screen language remain unchanged except for the screen fixes listed above. Manifests retain the destination language code but record the actual English spoken text and its UTF-8 SHA-256; the native language-name entry is retained. The Malayalam and Odia phrase files are left as historical draft translations and are not the voice source for these fallback clips. English, Hindi and Kannada clips and phrase files are untouched.
+
+| Language / clip key | Old spoken line | New spoken line (English fallback) | Review status |
+|---|---|---|---|
+| `ml/countdown` | മൂന്ന്, രണ്ട്, ഒന്ന്, തുടങ്ങാം | Get ready. Three, two, one. | Draft: needs a native speaker's ear; English fallback |
+| `ml/push_faster` | കൂടുതൽ വേഗത്തിൽ അമർത്തൂ | Push the chest faster. | Draft: needs a native speaker's ear; English fallback |
+| `ml/slow_down` | വേഗം കുറച്ച് കുറയ്ക്കൂ | Reduce the speed of your chest compressions. | Draft: needs a native speaker's ear; English fallback |
+| `ml/elbows_straight` | കൈമുട്ടുകൾ നിവർത്തി വെക്കൂ | Keep both elbows straight. | Draft: needs a native speaker's ear; English fallback |
+| `ml/keep_going` | തുടർന്ന് അമർത്തൂ | Keep pushing the chest. | Draft: needs a native speaker's ear; English fallback |
+| `ml/good` | നല്ലത്, തുടർന്ന് അമർത്തൂ | Good. Keep pushing the chest. | Draft: needs a native speaker's ear; English fallback |
+| `ml/session_done` | വളരെ നല്ലത്, പരിശീലനം പൂർത്തിയായി | Well done. Your practice session is complete. | Draft: needs a native speaker's ear; English fallback |
+| `ml/em_call` | ഒന്ന് ഒന്ന് രണ്ട് നമ്പറിലേക്ക് വിളിക്കൂ. സ്പീക്കറിൽ ഇടൂ. | Call one one two. Turn on the phone's speaker. | Draft: needs a native speaker's ear; English fallback |
+| `ml/em_hands` | നെഞ്ചിന്റെ നടുവിൽ കൈകൾ വെക്കൂ. | Put both hands in the centre of the chest. | Draft: needs a native speaker's ear; English fallback |
+| `ml/em_push` | താളത്തിനൊത്ത് ശക്തമായും വേഗത്തിലും അമർത്തൂ. | Push the chest hard and fast, in time with the beat. | Draft: needs a native speaker's ear; English fallback |
+| `ml/em_swap` | മറ്റൊരാൾക്ക് മാറി ചെയ്യാൻ പറ്റുമെങ്കിൽ, ഇപ്പോൾ മാറൂ. | If someone else can push the chest, swap now. | Draft: needs a native speaker's ear; English fallback |
+| `ml/em_aed` | അടുത്ത് എ ഇ ഡി ഉണ്ടെങ്കിൽ, കൊണ്ടുവരാൻ ആരോടെങ്കിലും പറയൂ. | If an A E D is nearby, ask someone to bring it. | Draft: needs a native speaker's ear; English fallback |
+| `ml/em_continue` | സഹായം എത്തുന്നതുവരെ അമർത്തുന്നത് തുടരൂ. | Keep pushing the chest until help arrives. | Draft: needs a native speaker's ear; English fallback |
+| `or/countdown` | ଆରମ୍ଭ ହେଉଛି ତିନି, ଦୁଇ, ଏକ | Get ready. Three, two, one. | Draft: needs a native speaker's ear; English fallback |
+| `or/push_faster` | ଆହୁରି ଶୀଘ୍ର ଦବାନ୍ତୁ | Push the chest faster. | Draft: needs a native speaker's ear; English fallback |
+| `or/slow_down` | ଗତି ଟିକେ କମାନ୍ତୁ | Reduce the speed of your chest compressions. | Draft: needs a native speaker's ear; English fallback |
+| `or/elbows_straight` | କହୁଣୀ ସିଧା ରଖନ୍ତୁ | Keep both elbows straight. | Draft: needs a native speaker's ear; English fallback |
+| `or/keep_going` | ଦବାଇ ଚାଲନ୍ତୁ | Keep pushing the chest. | Draft: needs a native speaker's ear; English fallback |
+| `or/good` | ବହୁତ ଭଲ, ଦବାଇ ଚାଲନ୍ତୁ | Good. Keep pushing the chest. | Draft: needs a native speaker's ear; English fallback |
+| `or/session_done` | ବହୁତ ବଢ଼ିଆ, ଅଭ୍ୟାସ ଶେଷ ହେଲା | Well done. Your practice session is complete. | Draft: needs a native speaker's ear; English fallback |
+| `or/em_call` | ଏକ ଏକ ଦୁଇ କୁ କଲ୍ କରନ୍ତୁ। ସ୍ପିକରରେ ରଖନ୍ତୁ। | Call one one two. Turn on the phone's speaker. | Draft: needs a native speaker's ear; English fallback |
+| `or/em_hands` | ଛାତି ମଝିରେ ହାତ ରଖନ୍ତୁ। | Put both hands in the centre of the chest. | Draft: needs a native speaker's ear; English fallback |
+| `or/em_push` | ତାଳ ସହିତ ଜୋରରେ ଏବଂ ଶୀଘ୍ର ଦବାନ୍ତୁ। | Push the chest hard and fast, in time with the beat. | Draft: needs a native speaker's ear; English fallback |
+| `or/em_swap` | ଯଦି ଆଉ କେହି ଅଛନ୍ତି, ଏବେ ପାଳି ବଦଳାନ୍ତୁ। | If someone else can push the chest, swap now. | Draft: needs a native speaker's ear; English fallback |
+| `or/em_aed` | ଯଦି ପାଖରେ ଏ ଇ ଡି ଅଛି, କାହାକୁ ଆଣିବାକୁ କୁହନ୍ତୁ। | If an A E D is nearby, ask someone to bring it. | Draft: needs a native speaker's ear; English fallback |
+| `or/em_continue` | ସାହାଯ୍ୟ ଆସିବା ପର୍ଯ୍ୟନ୍ତ ଦବାଇ ଚାଲନ୍ତୁ। | Keep pushing the chest until help arrives. | Draft: needs a native speaker's ear; English fallback |
+
+`ml/lang_name.wav` remains മലയാളം; `or/lang_name.wav` remains ଓଡ଼ିଆ. Both remain drafts needing a native speaker's ear.
+
+The unchanged checker compares per-language phrase JSON, not manifests, and selects IndicConformer for every non-English language. Its Malayalam/Odia transcription and error-rate flags therefore compare English fallback audio against historical native draft text and cannot establish fallback quality. English fallback byte identity and native-name preservation must be checked separately. No new English string keys.
+
+### Verification of this revision
+
+- `generate_clips.py --models D:/projects/sih/iTantra/app/src/main/assets --out cpr-coach/app/src/main/assets/clips --lang ta,te,mr,gu,bn`: 70 clips generated, zero failures. Existing mono 16-bit PCM layout and model-provided sample rates retained; models only read. The MMS frontend reported punctuation filtering and an unsupported `ॉ` in the unchanged Marathi `em_call` text; its pronunciation still needs a native ear.
+- The reference app and unit-test sources compiled using the installed Android SDK at `%LOCALAPPDATA%/Android/Sdk` and Android Studio JBR. `gradlew.bat testDebugUnitTest --tests com.zeroflux.cprcoach.ui.StringAssetsTest --console=plain`: BUILD SUCCESSFUL, two tests, zero failures/errors/skips. No APK installation, adb, or phone interaction.
+- A throwaway asset smoke check verified all retained keys, explicit chest objects in the ten screen cue pairs and five regenerated spoken compression sets, and unchanged short faster/good/slower screen labels. It also verified 26 fallback WAVs byte-for-byte against English and both native language-name WAVs against their originals.
+- The real `check_clips.py` WAV inspector passed all 98 delivered WAVs: mono 16-bit PCM, within its duration bounds, non-silent and unclipped. All seven manifests have exactly the WAV keys and valid UTF-8 text hashes; regenerated manifests match their phrase lists.
+- `check_clips.py` ran across all ten languages, in two checkpointed passes: 140 rows, 40 flagged. The checker returns zero even when rows are flagged; this is not a clean speech-quality pass. Detailed machine transcripts and checkpoint are outside this checkout in `../ref-t261031-0244-45fd/clip-check-t261031-0244-45fd.md` and the matching `.json`.
+- Of those flags, 26 are the intentional Malayalam/Odia English-versus-native comparison mismatch; nine concern language names (English missing from its unchanged phrase list, eight native-name CER flags); one is the unchanged English countdown (`Ready, 3, 2, 1.` versus spelled-out digits); four concern the regenerated cues below. No WAV-format flags.
+
+| Draft clip needing a native speaker's ear | Expected line | Machine transcript | Character error rate |
+|---|---|---|---|
+| `gu/keep_going` | છાતી દબાવતા રહો | ધ્યાતિ દબાવતા રહ | 5/15 (0.3333) |
+| `mr/keep_going` | छाती दाबत राहा | क्षतीि दापत राहा | 5/14 (0.3571) |
+| `mr/good` | छान. छाती दाबत राहा. | झ झछाति द बत्र | 10/18 (0.5556) |
+| `ta/keep_going` | மார்பைத் தொடர்ந்து அழுத்துங்கள் | இவ்மார்பவை தொடர்ந்து அழுத்து | 11/31 (0.3548) |
+
+These ASR flags are unresolved listening-review items, not approval or proof of a translation defect. No native speaker listened, no first-aid review was performed, and on-device UI/playback was not checked. All revised lines remain drafts needing a native speaker's ear.

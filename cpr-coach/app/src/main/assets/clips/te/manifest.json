@@ -14,14 +14,14 @@
   {
     "code": "te",
     "key": "push_faster",
-    "text": "ఇంకా వేగంగా నొక్కండి",
-    "sha256": "6666c09807f100d1ffbf58b4dcc7b7b9adfb08418fcfc1877adc36150dab2ec7"
+    "text": "ఛాతీని ఇంకా వేగంగా నొక్కండి",
+    "sha256": "f6a01aa392816d15cc8ab0cad21ed6c429e4dcf3b915049d97f124bfbfc73e13"
   },
   {
     "code": "te",
     "key": "slow_down",
-    "text": "వేగం కొంచెం తగ్గించండి",
-    "sha256": "4a2fe88311910cc32f1edf68ddf1f279ff65d1e8f37e6c7833f074770a55b28e"
+    "text": "ఛాతీ నొక్కే వేగాన్ని తగ్గించండి",
+    "sha256": "40d42dee217ad119c48bd09f8d20e27f3ded54fefbfd743c3eb4617abe5f1ce1"
   },
   {
     "code": "te",
@@ -32,14 +32,14 @@
   {
     "code": "te",
     "key": "keep_going",
-    "text": "నొక్కుతూ ఉండండి",
-    "sha256": "bd5f8acc00a66b3afdcd90caf78dd4035a404cbfc162220006b44a62a3580290"
+    "text": "ఛాతీని నొక్కుతూ ఉండండి",
+    "sha256": "f8ee59e5c08dc50b9c0aab61ca7396dab0894aaa9df0a803df6a9664b1b5f002"
   },
   {
     "code": "te",
     "key": "good",
-    "text": "బాగుంది, నొక్కుతూ ఉండండి",
-    "sha256": "d7cf59e71b4915c136dae2581ef3c156ab718b283abc0701ed680d6c88eb9088"
+    "text": "బాగుంది. ఛాతీని నొక్కుతూ ఉండండి.",
+    "sha256": "c9d2fc36c6002d27cef2aceebeb7503c0c064068ac2237627c7bd2650e3d0ad6"
   },
   {
     "code": "te",
@@ -62,14 +62,14 @@
   {
     "code": "te",
     "key": "em_push",
-    "text": "తాళంతో పాటు గట్టిగా, వేగంగా నొక్కండి.",
-    "sha256": "b53e8418e581baad78d799fb32cea0f48987ae011a311228e982c73683ba4934"
+    "text": "తాళంతో పాటు ఛాతీని గట్టిగా, వేగంగా నొక్కండి.",
+    "sha256": "2c8c64b35ff0dd84fa4a5526c242dcf4bb03f87b3ce59f02a12105ef44500327"
   },
   {
     "code": "te",
     "key": "em_swap",
-    "text": "ఎవరైనా మారగలిగితే, ఇప్పుడే మారండి.",
-    "sha256": "06b33fe87d6cec07cfcca88e7aa32c80be66cff0a0e4e5d95ac6ad4f2d914bec"
+    "text": "మరొకరు ఛాతీని నొక్కగలిగితే, ఇప్పుడే వంతు మారండి.",
+    "sha256": "5d45cfbe530a07e0e405d9a267cf89d4a16f1f46e8070b18b907250c95466c95"
   },
   {
     "code": "te",
@@ -80,7 +80,7 @@
   {
     "code": "te",
     "key": "em_continue",
-    "text": "సహాయం వచ్చే వరకు నొక్కుతూ ఉండండి.",
-    "sha256": "0639c52b253ae32d5d851a2dc65089c0c54d5d7e1be32423b97ecab7f620f36a"
+    "text": "సహాయం వచ్చే వరకు ఛాతీని నొక్కుతూ ఉండండి.",
+    "sha256": "c66dff7d8545332abc595228bae11a4f79de924e493d1c5a9e10c5e713e82054"
   }
 ]

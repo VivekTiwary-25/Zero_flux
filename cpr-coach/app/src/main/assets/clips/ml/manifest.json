@@ -8,79 +8,79 @@
   {
     "code": "ml",
     "key": "countdown",
-    "text": "മൂന്ന്, രണ്ട്, ഒന്ന്, തുടങ്ങാം",
-    "sha256": "fc9eb73b30e8df6053abf1866737a600295f6d316e30d86a848f4c94d1ced70c"
+    "text": "Get ready. Three, two, one.",
+    "sha256": "7d352d89bf083e79b2e20fb89a1fc58b97b8f96053468b68b595e1456582a921"
   },
   {
     "code": "ml",
     "key": "push_faster",
-    "text": "കൂടുതൽ വേഗത്തിൽ അമർത്തൂ",
-    "sha256": "26321b6f2b2b4d4abe44cd1c687f0853aa64f3ecc4ea5b53944fec64007b91d0"
+    "text": "Push the chest faster.",
+    "sha256": "58866a3a02a7a43c26cd76c21208437f780167f69911f7eae0674497a2daf2af"
   },
   {
     "code": "ml",
     "key": "slow_down",
-    "text": "വേഗം കുറച്ച് കുറയ്ക്കൂ",
-    "sha256": "c8b2f65aacd230aa53d239b295889adafc3bc8889c7bcbfe95d95f5c9723b358"
+    "text": "Reduce the speed of your chest compressions.",
+    "sha256": "1b0ae6a5b5f04e4d7971ac9fcde125f3bfa36df3fb51337714ed53bfc7283036"
   },
   {
     "code": "ml",
     "key": "elbows_straight",
-    "text": "കൈമുട്ടുകൾ നിവർത്തി വെക്കൂ",
-    "sha256": "b663e3b84f784dda774109d27f4c65126ef423d5846051582e86648818295487"
+    "text": "Keep both elbows straight.",
+    "sha256": "087d7f85b1124ed1b2356322a32c01b63575145c38fa42998204b92d6371a194"
   },
   {
     "code": "ml",
     "key": "keep_going",
-    "text": "തുടർന്ന് അമർത്തൂ",
-    "sha256": "6457917b9b754d2d1d55b469bdfce53332120695763ce8ed7d25a1f7c96d13e7"
+    "text": "Keep pushing the chest.",
+    "sha256": "2b76b72a5a62e35e7bdd3fc329a37d24f3e637be2ad93828535f5dd9bc58a086"
   },
   {
     "code": "ml",
     "key": "good",
-    "text": "നല്ലത്, തുടർന്ന് അമർത്തൂ",
-    "sha256": "09496cd6859bf25fbe8536903fe73d15409efdafd0aea028e3df1f9a491504e9"
+    "text": "Good. Keep pushing the chest.",
+    "sha256": "e9904498432822841ffb3c864811848bd73aa438a1275f3ab55ee72cd03ce8a4"
   },
   {
     "code": "ml",
     "key": "session_done",
-    "text": "വളരെ നല്ലത്, പരിശീലനം പൂർത്തിയായി",
-    "sha256": "82793746fb37922357ac13afcec67c7b2f2486b9eb974f6d41ab00b6ce6f8732"
+    "text": "Well done. Your practice session is complete.",
+    "sha256": "7af2c550a312f90e853e9a4fc731e9f0b77169c8e551f19ddee5a52692340a2b"
   },
   {
     "code": "ml",
     "key": "em_call",
-    "text": "ഒന്ന് ഒന്ന് രണ്ട് നമ്പറിലേക്ക് വിളിക്കൂ. സ്പീക്കറിൽ ഇടൂ.",
-    "sha256": "9c2fb1a164eb4cc583f4073a89464da0cb6c3c87359131d8c4f4b47bc3f62ccf"
+    "text": "Call one one two. Turn on the phone's speaker.",
+    "sha256": "963674ac6286902cc51e070bf449732fa534ffc0268a07b7eda189c63fa6d526"
   },
   {
     "code": "ml",
     "key": "em_hands",
-    "text": "നെഞ്ചിന്റെ നടുവിൽ കൈകൾ വെക്കൂ.",
-    "sha256": "19b694c94e9694e4e168e91d1a716f453fbee9790d1c748486329a423283e996"
+    "text": "Put both hands in the centre of the chest.",
+    "sha256": "1211e1702f840190822e11c76f89b631e45412b911cdef5bb2b05dd81bd06beb"
   },
   {
     "code": "ml",
     "key": "em_push",
-    "text": "താളത്തിനൊത്ത് ശക്തമായും വേഗത്തിലും അമർത്തൂ.",
-    "sha256": "068d2831ea26db7ef8202bf821cb25cf1c15fa5c08c6329b96f23fde8d420100"
+    "text": "Push the chest hard and fast, in time with the beat.",
+    "sha256": "a7023696376e3d85da96b64e40a8c4d9b9d0271bfa024aebf438ecd0e3ee029e"
   },
   {
     "code": "ml",
     "key": "em_swap",
-    "text": "മറ്റൊരാൾക്ക് മാറി ചെയ്യാൻ പറ്റുമെങ്കിൽ, ഇപ്പോൾ മാറൂ.",
-    "sha256": "1e7a585d8c108a4b54635ca6ef39e15b65699d47e219664478bfe50e4a8d6713"
+    "text": "If someone else can push the chest, swap now.",
+    "sha256": "2f61eeb2dae05a8eff1dd5adbca539c049946b4a20980faea4937ced167f4443"
   },
   {
     "code": "ml",
     "key": "em_aed",
-    "text": "അടുത്ത് എ ഇ ഡി ഉണ്ടെങ്കിൽ, കൊണ്ടുവരാൻ ആരോടെങ്കിലും പറയൂ.",
-    "sha256": "cfe4d2c0ee8f903ef6aa07fa1ff53e8f608d9c77a752ba992fcef416aa171e08"
+    "text": "If an A E D is nearby, ask someone to bring it.",
+    "sha256": "d7612a2fabf0ea84edd658a7d8ecc7ecbc7186530768c382632eed0fbfb0df1d"
   },
   {
     "code": "ml",
     "key": "em_continue",
-    "text": "സഹായം എത്തുന്നതുവരെ അമർത്തുന്നത് തുടരൂ.",
-    "sha256": "325b7495025ce54aacb1d03ddb256269e9333359cd0d7631d0759e7bac459070"
+    "text": "Keep pushing the chest until help arrives.",
+    "sha256": "9e0628daebeb474e0a7b1eb5fe16390aa9cfc74fb7ffbb2f1d598eb039169ab1"
   }
 ]

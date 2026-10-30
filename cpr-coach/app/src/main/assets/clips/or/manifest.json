@@ -8,79 +8,79 @@
   {
     "code": "or",
     "key": "countdown",
-    "text": "ଆରମ୍ଭ ହେଉଛି ତିନି, ଦୁଇ, ଏକ",
-    "sha256": "4e2a4cc3cba980da5efafcda4493edd8ddfeef1c7722d03dab577aa300263f23"
+    "text": "Get ready. Three, two, one.",
+    "sha256": "7d352d89bf083e79b2e20fb89a1fc58b97b8f96053468b68b595e1456582a921"
   },
   {
     "code": "or",
     "key": "push_faster",
-    "text": "ଆହୁରି ଶୀଘ୍ର ଦବାନ୍ତୁ",
-    "sha256": "49cdc0dd927cc94f0173458c8420c3cf7b9253017bc4825b4760f96ff0cd4fec"
+    "text": "Push the chest faster.",
+    "sha256": "58866a3a02a7a43c26cd76c21208437f780167f69911f7eae0674497a2daf2af"
   },
   {
     "code": "or",
     "key": "slow_down",
-    "text": "ଗତି ଟିକେ କମାନ୍ତୁ",
-    "sha256": "25e0b887e196efbbc2a7aac3e5f63db8219a5d2621684d7f394c8268bbe687bd"
+    "text": "Reduce the speed of your chest compressions.",
+    "sha256": "1b0ae6a5b5f04e4d7971ac9fcde125f3bfa36df3fb51337714ed53bfc7283036"
   },
   {
     "code": "or",
     "key": "elbows_straight",
-    "text": "କହୁଣୀ ସିଧା ରଖନ୍ତୁ",
-    "sha256": "bf1f9b0c618f66a77b466a5a7afe5dea3a4bf7281414661c7d2f09c4e0671da3"
+    "text": "Keep both elbows straight.",
+    "sha256": "087d7f85b1124ed1b2356322a32c01b63575145c38fa42998204b92d6371a194"
   },
   {
     "code": "or",
     "key": "keep_going",
-    "text": "ଦବାଇ ଚାଲନ୍ତୁ",
-    "sha256": "ba44d85ce6892ef9626faa97b64eb959c3deff09153f649578fbcaa255a08369"
+    "text": "Keep pushing the chest.",
+    "sha256": "2b76b72a5a62e35e7bdd3fc329a37d24f3e637be2ad93828535f5dd9bc58a086"
   },
   {
     "code": "or",
     "key": "good",
-    "text": "ବହୁତ ଭଲ, ଦବାଇ ଚାଲନ୍ତୁ",
-    "sha256": "63dba4b41d6265672bcfccf2264f6e40c1f688b10d5c2f46870722766e20b675"
+    "text": "Good. Keep pushing the chest.",
+    "sha256": "e9904498432822841ffb3c864811848bd73aa438a1275f3ab55ee72cd03ce8a4"
   },
   {
     "code": "or",
     "key": "session_done",
-    "text": "ବହୁତ ବଢ଼ିଆ, ଅଭ୍ୟାସ ଶେଷ ହେଲା",
-    "sha256": "e38cf4ec8f33f4d35afdc0eccb756c6627d82d7b6e0782f8b5d76828ea4ddd67"
+    "text": "Well done. Your practice session is complete.",
+    "sha256": "7af2c550a312f90e853e9a4fc731e9f0b77169c8e551f19ddee5a52692340a2b"
   },
   {
     "code": "or",
     "key": "em_call",
-    "text": "ଏକ ଏକ ଦୁଇ କୁ କଲ୍ କରନ୍ତୁ। ସ୍ପିକରରେ ରଖନ୍ତୁ।",
-    "sha256": "dc4cd911c0aa98161c99cafe642d1d997f9e81c44cff883522c1610ad432838b"
+    "text": "Call one one two. Turn on the phone's speaker.",
+    "sha256": "963674ac6286902cc51e070bf449732fa534ffc0268a07b7eda189c63fa6d526"
   },
   {
     "code": "or",
     "key": "em_hands",
-    "text": "ଛାତି ମଝିରେ ହାତ ରଖନ୍ତୁ।",
-    "sha256": "da8359f8ad92fe9320c04294f50d579f7e5abcc1cb69c719cccaea925cd7da52"
+    "text": "Put both hands in the centre of the chest.",
+    "sha256": "1211e1702f840190822e11c76f89b631e45412b911cdef5bb2b05dd81bd06beb"
   },
   {
     "code": "or",
     "key": "em_push",
-    "text": "ତାଳ ସହିତ ଜୋରରେ ଏବଂ ଶୀଘ୍ର ଦବାନ୍ତୁ।",
-    "sha256": "784bf89076ffcc0aad9b03b7482a7e4296b6d89183d090e407d842af2d5953fa"
+    "text": "Push the chest hard and fast, in time with the beat.",
+    "sha256": "a7023696376e3d85da96b64e40a8c4d9b9d0271bfa024aebf438ecd0e3ee029e"
   },
   {
     "code": "or",
     "key": "em_swap",
-    "text": "ଯଦି ଆଉ କେହି ଅଛନ୍ତି, ଏବେ ପାଳି ବଦଳାନ୍ତୁ।",
-    "sha256": "aa0d3c7cd56366c0a39533d4b25d779c19a76534296f29a66e3427793d31834f"
+    "text": "If someone else can push the chest, swap now.",
+    "sha256": "2f61eeb2dae05a8eff1dd5adbca539c049946b4a20980faea4937ced167f4443"
   },
   {
     "code": "or",
     "key": "em_aed",
-    "text": "ଯଦି ପାଖରେ ଏ ଇ ଡି ଅଛି, କାହାକୁ ଆଣିବାକୁ କୁହନ୍ତୁ।",
-    "sha256": "8635a9ebbc82776f84ce6e9639921e6e540a6ae87df37e7173f5c147b3915fcb"
+    "text": "If an A E D is nearby, ask someone to bring it.",
+    "sha256": "d7612a2fabf0ea84edd658a7d8ecc7ecbc7186530768c382632eed0fbfb0df1d"
   },
   {
     "code": "or",
     "key": "em_continue",
-    "text": "ସାହାଯ୍ୟ ଆସିବା ପର୍ଯ୍ୟନ୍ତ ଦବାଇ ଚାଲନ୍ତୁ।",
-    "sha256": "e0dd07859031f2f4d819210a0e790eb8fde12c6faff4b03d1ae97fce06dc4e3a"
+    "text": "Keep pushing the chest until help arrives.",
+    "sha256": "9e0628daebeb474e0a7b1eb5fe16390aa9cfc74fb7ffbb2f1d598eb039169ab1"
   }
 ]

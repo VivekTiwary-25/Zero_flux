@@ -14,14 +14,14 @@
   {
     "code": "bn",
     "key": "push_faster",
-    "text": "আরও দ্রুত চাপুন",
-    "sha256": "3f4bd501cc0224823f36bd040ccb93776147785b3bfbbc32a84cfcce9d06601d"
+    "text": "বুক আরও দ্রুত চাপুন",
+    "sha256": "f409196344927984935362d5e2e6b87986f2fe5ed1fb91c332993f91e2d1a7df"
   },
   {
     "code": "bn",
     "key": "slow_down",
-    "text": "একটু ধীরে করুন",
-    "sha256": "2acc1cf0dfd619c1b20f85f6a6ee888f864e364a512b4ad7fcf639111a134767"
+    "text": "বুক চাপার গতি কমান।",
+    "sha256": "95381d724b74bff9ccdbfd75b8476369a21a4c940421acccb598bd360200a8f7"
   },
   {
     "code": "bn",
@@ -32,14 +32,14 @@
   {
     "code": "bn",
     "key": "keep_going",
-    "text": "চাপতে থাকুন",
-    "sha256": "e1ed843038a849f1cd3c673258a92f1431ea5f4c3349bca4b79facc2b314aeb3"
+    "text": "বুক চাপতে থাকুন",
+    "sha256": "10d35a0bad12ce5ef4411aeb51d491c9961b492fa5a1232237333289714d994b"
   },
   {
     "code": "bn",
     "key": "good",
-    "text": "বেশ ভালো, চাপতে থাকুন",
-    "sha256": "5e71b17b37beca120393b2b8eace399f235e714bd039a03b4361559c767edaa6"
+    "text": "বেশ ভালো। বুক চাপতে থাকুন।",
+    "sha256": "ae5b74ce5e0a32d75c704969268d2de38bb0e51ecce04179bfcd8b487e3f3103"
   },
   {
     "code": "bn",
@@ -62,14 +62,14 @@
   {
     "code": "bn",
     "key": "em_push",
-    "text": "তালের সাথে জোরে এবং দ্রুত চাপুন।",
-    "sha256": "e0b31c7b0b69f93125f9885ffd9d57ff6e0f521a7890bc75f620351543ac89f8"
+    "text": "তালের সাথে বুক জোরে এবং দ্রুত চাপুন।",
+    "sha256": "86b74462601d96bdccf0adc9ad06d25e4747b56abdeb7556b1ecf171f2984000"
   },
   {
     "code": "bn",
     "key": "em_swap",
-    "text": "অন্য কেউ থাকলে, এখনই পালা বদল করুন।",
-    "sha256": "fe6dec8f91ecc2884f94b891cf9481c0f633ebd85fcf1ad3ca8ddfdcd9882e8d"
+    "text": "অন্য কেউ বুক চাপতে পারলে, এখনই পালা বদল করুন।",
+    "sha256": "edca99ed191e2a7856fbd68ca579852d39e6e2a7bdf2376f14391757f47ba33d"
   },
   {
     "code": "bn",
@@ -80,7 +80,7 @@
   {
     "code": "bn",
     "key": "em_continue",
-    "text": "সাহায্য না আসা পর্যন্ত চাপতে থাকুন।",
-    "sha256": "e4b4b39b2bc049d53bc747dde7f7720dd3119129f4297ab18ec2be99eeb892bc"
+    "text": "সাহায্য না আসা পর্যন্ত বুক চাপতে থাকুন।",
+    "sha256": "c027c7483373a24345590b1a8e94b790c421da9a1475e29d197d76358b82a947"
   }
 ]
