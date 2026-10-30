@@ -62,21 +62,21 @@ class VoiceRouter(
             val epoch = languageEpoch
             val sessionEpoch = micEpoch
             handler.post {
-                // Queued transcripts cannot act after navigation, a language change or a mic restart.
+                // During the bounded VAD drain the recorder is OFF but queued transcripts remain valid.
                 if (!released && destination != null && route === destination &&
-                    epoch == languageEpoch && sessionEpoch == micEpoch &&
-                    state.value == MicState.LISTENING
+                    epoch == languageEpoch && sessionEpoch == micEpoch
                 ) {
                     when (val result = matcher.match(
                         transcript, language.code, destination.allowed, destination.allowLanguages,
                     )) {
                         is MatchResult.Command -> {
-                            resetCommandTimeout()
+                            stopListening()
                             destination.onCommand(result.command)
                         }
                         is MatchResult.Language -> AppLanguage.entries
                             .firstOrNull { it.code == result.code }?.let {
-                                resetCommandTimeout()
+                                stopListening()
+                                setLanguage(it)
                                 onLanguage(it)
                             }
                         MatchResult.None -> Unit

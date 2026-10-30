@@ -221,6 +221,8 @@ class HandsFreeController(
                                 if (session !== owner || !owner.isActive) return@launch
                                 transcriptDeadline.set(SystemClock.elapsedRealtime() + TRANSCRIPT_DRAIN_TIMEOUT_MS)
                                 stopMicrophone(input)
+                                // Recording has ended; keep the session alive only to drain VAD output.
+                                mutableState.value = MicState.OFF
                             }
                             Log.i(TAG, "Auto-muted after VAD silence; draining transcripts")
                             delay(TRANSCRIPT_DRAIN_TIMEOUT_MS)
