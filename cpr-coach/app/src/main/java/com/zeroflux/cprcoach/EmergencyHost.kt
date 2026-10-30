@@ -11,6 +11,8 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.camera.core.ImageProxy
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +25,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.zeroflux.cprcoach.audio.AudioEngine
 import com.zeroflux.cprcoach.audio.MetronomeService
 import com.zeroflux.cprcoach.engine.EmergencyCoach
@@ -34,15 +37,18 @@ import com.zeroflux.cprcoach.engine.LiveReading
 import com.zeroflux.cprcoach.engine.PoseEngine
 import com.zeroflux.cprcoach.engine.TrackingState
 import com.zeroflux.cprcoach.ui.AppLanguage
+import com.zeroflux.cprcoach.ui.CoachColors
 import com.zeroflux.cprcoach.ui.EmergencyScreen
 import com.zeroflux.cprcoach.ui.EmergencySummaryScreen
 import com.zeroflux.cprcoach.ui.EmergencyUiState
+import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.ui.PoseCameraView
 import com.zeroflux.cprcoach.voice.VoiceCommand
 import java.io.File
 import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
@@ -82,6 +88,9 @@ fun EmergencyHost(
     var needsSetup by remember { mutableStateOf(true) }
     var elapsedSeconds by remember { mutableIntStateOf(0) }
     val analyzerBox = remember { arrayOf(LiveAnalyzer()) }
+    val replayName = remember(context) {
+        if (BuildConfig.DEBUG) PractiseReplay.requestedFile(context) else null
+    }
 
     val finish: () -> Unit = {
         if (summary == null) {
@@ -120,6 +129,18 @@ fun EmergencyHost(
             }
         }
         onDispose { unbind() }
+    }
+    // Debug only: synthetic input, so the real screen can be checked without a person.
+    if (replayName != null) {
+        LaunchedEffect(replayName) {
+            try {
+                PractiseReplay.play(context, replayName) { analyzerBox[0].addFrame(it.sample) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.e("CPR_REPLAY", "Emergency replay failed", error)
+            }
+        }
     }
     // Straight away, not behind a button: CPR never waits.
     LaunchedEffect(playback) { playback.start(language.code) }
@@ -172,7 +193,16 @@ fun EmergencyHost(
         onStopConfirmed = finish,
         onMicTap = { voice.toggle() },
         camera = {
-            if (cameraPermission) EmergencyCamera(onFrameSample = { analyzerBox[0].addFrame(it) })
+            if (cameraPermission && replayName == null) {
+                EmergencyCamera(onFrameSample = { analyzerBox[0].addFrame(it) })
+            }
+            if (replayName != null) {
+                Text(
+                    LocalStrings.current.get("debug_replay"),
+                    color = CoachColors.Amber,
+                    modifier = Modifier.padding(top = 56.dp, start = 200.dp),
+                )
+            }
         },
     )
 }
