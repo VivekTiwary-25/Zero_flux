@@ -22,7 +22,7 @@ import kotlin.math.sin
  */
 class AudioEngine(
     context: Context,
-    private val usage: Int = AudioAttributes.USAGE_MEDIA,
+    usage: Int = AudioAttributes.USAGE_MEDIA,
 ) {
     private val appContext = context.applicationContext
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -33,6 +33,9 @@ class AudioEngine(
         Thread(runnable, "AudioEngine-load").apply { isDaemon = true }
     }
     private val click = buildClick()
+
+    // Guarded by lock. The audio thread rebuilds its track when this differs from the track's usage.
+    private var currentUsage = usage
 
     private var languageCode: String? = null
     private var languageEpoch = 0
@@ -175,6 +178,19 @@ class AudioEngine(
         }
     }
 
+    /**
+     * Changes the AudioAttributes usage of the running engine. The audio thread rebuilds its single
+     * track at the next block boundary; beat phase, clip position, mute and callbacks are untouched
+     * because they only advance on accepted writes. No-op after release.
+     */
+    fun setUsage(newUsage: Int) {
+        synchronized(lock) {
+            if (released || currentUsage == newUsage) return
+            currentUsage = newUsage
+            lock.notifyAll()
+        }
+    }
+
     fun stopClips() {
         synchronized(lock) {
             postToMain(clipDone)
@@ -274,6 +290,7 @@ class AudioEngine(
 
     private fun runLoop() {
         var track: AudioTrack? = null
+        var trackUsage = 0
         val block = ShortArray(BLOCK_SAMPLES)
         val pending = AudioMixBlock(click)
         val recovery = AudioRecovery(
@@ -292,7 +309,20 @@ class AudioEngine(
                 if (released) break
                 var failure: Exception? = null
                 try {
-                    if (track == null) track = openTrack()
+                    if (track != null && synchronized(lock) { currentUsage != trackUsage }) {
+                        // Usage changed: swap tracks. Nothing was consumed for the unwritten block.
+                        trackRef = null
+                        try {
+                            track.release()
+                        } catch (e: Exception) {
+                            Log.w(TAG, "AudioTrack release failed", e)
+                        }
+                        track = null
+                    }
+                    if (track == null) {
+                        track = openTrack()
+                        if (track != null) trackUsage = openedUsage
+                    }
                     val playbackTrack = track
                     if (playbackTrack != null && !released) {
                         if (playbackTrack.playState != AudioTrack.PLAYSTATE_PLAYING) {
@@ -343,8 +373,11 @@ class AudioEngine(
     }
 
     // Creation/publication and release's flag change share the lock: no post-release open.
+    private var openedUsage = 0
+
     private fun openTrack(): AudioTrack? = synchronized(lock) {
         if (released) return@synchronized null
+        val wantedUsage = currentUsage
         try {
             val blockBytes = BLOCK_SAMPLES * BYTES_PER_SAMPLE
             val min = AudioTrack.getMinBufferSize(
@@ -356,7 +389,7 @@ class AudioEngine(
             val track = AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
-                        .setUsage(usage)
+                        .setUsage(wantedUsage)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build(),
                 )
@@ -374,6 +407,7 @@ class AudioEngine(
                 track.release()
                 null
             } else {
+                openedUsage = wantedUsage
                 track.also { trackRef = it }
             }
         } catch (_: Exception) {

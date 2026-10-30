@@ -22,6 +22,7 @@ class MetronomeService : Service() {
 
     private var activeLanguage: String? = null
     private var ownedEngine: AudioEngine? = null
+    private var routeController: CallRouteController? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -83,12 +84,16 @@ class MetronomeService : Service() {
             if (!existing.metronomeRunning) existing.startMetronome(METRONOME_BPM)
             return
         }
-        // M0 on a real phone: media audio stopped during a call, voice audio kept playing.
-        val created = AudioEngine(this, AudioAttributes.USAGE_VOICE_COMMUNICATION)
+        // Media on the loudspeaker; CallRouteController switches to voice+speaker only during a call
+        // (M0: media audio stopped during a call, voice audio kept playing).
+        val created = AudioEngine(this, AudioAttributes.USAGE_MEDIA)
         try {
             created.setLanguage(languageCode)
             created.startMetronome(METRONOME_BPM)
+            routeController = CallRouteController(this, created).also { it.start() }
         } catch (e: Exception) {
+            routeController?.stop()
+            routeController = null
             try {
                 created.release()
             } catch (releaseError: Exception) {
@@ -102,6 +107,8 @@ class MetronomeService : Service() {
     }
 
     private fun releaseEngine() {
+        routeController?.stop()
+        routeController = null
         val current = ownedEngine ?: return
         ownedEngine = null
         _engine.compareAndSet(current, null)
