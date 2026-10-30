@@ -44,5 +44,7 @@ sealed interface CameraUiState {
         val secondsLeft: Int,
         val totalSeconds: Int,
         val isPaused: Boolean,
+        /** Movement seen but no rate yet: show a live reaction, never a number. */
+        val detecting: Boolean = false,
     ) : CameraUiState
 }

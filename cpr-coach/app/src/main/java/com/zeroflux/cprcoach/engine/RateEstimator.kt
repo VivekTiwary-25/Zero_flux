@@ -9,6 +9,10 @@ data class PoseSample(
     val wristSignal: Double,
     val elbowDegrees: Double,
     val minVisibility: Float,
+    /** How well the elbow itself is seen. Elbow feedback needs more than the arm being in frame. */
+    val elbowVisibility: Float = minVisibility,
+    /** False when the shoulders show the rescuer is not side-on, so a 2D elbow angle can't be trusted. */
+    val sideOn: Boolean = true,
 )
 
 sealed interface BeatReading {

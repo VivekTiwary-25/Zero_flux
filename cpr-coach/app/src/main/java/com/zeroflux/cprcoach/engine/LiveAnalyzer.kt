@@ -21,7 +21,10 @@ data class LiveReading(
     val ratePerMinute: Int?,
     /** Null when the arms can't be seen. */
     val elbowDegrees: Double?,
+    /** Null unless the elbow reading is trustworthy. Stay silent on elbows when this is null. */
     val elbowsBent: Boolean?,
+    /** The wrist moved over about the last half second, whether or not there is a rate yet. */
+    val moving: Boolean = false,
 ) {
     val inRange: Boolean? get() = ratePerMinute?.let { it in TARGET_MIN..TARGET_MAX }
 
