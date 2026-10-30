@@ -39,14 +39,19 @@ class LiveAnalyzer(
     private val rate: RateEstimator = RateEstimator(),
     private val minVisibility: Float = 0.5f,
     private val lostAfterMs: Long = 500,
-    private val elbowBentBelow: Double = 150.0,
-    private val elbowHysteresis: Double = 5.0,
+    private val elbows: ElbowGate = ElbowGate(),
+    private val movingOnRms: Double = MOVING_ON_RMS,
+    private val movingOffRms: Double = MOVING_OFF_RMS,
 ) {
     private var lastGoodMs: Long? = null
     private val elbowHistory = ArrayDeque<Pair<Long, Double>>()
+    private val wristHistory = ArrayDeque<Pair<Long, Double>>()
     private val rateHistory = ArrayDeque<Double>()
-    private var elbowsBent = false
     private var lastRatedFrameMs: Long? = null
+    private var moving = false
+    private var elbowVerdict: Boolean? = null
+    private var heldRate: Int? = null
+    private var heldRateAtMs = 0L
 
     /** Call for every camera frame the pose model ran on. Pass null when it found no person. */
     fun addFrame(sample: PoseSample?) {
@@ -58,8 +63,12 @@ class LiveAnalyzer(
         if (last != null && (sample.timeMs - last > lostAfterMs || sample.timeMs < last)) clearSignals()
         lastGoodMs = sample.timeMs
         rate.add(sample.timeMs, sample.wristSignal)
-        elbowHistory.addLast(sample.timeMs to sample.elbowDegrees.coerceIn(0.0, 180.0))
+        val degrees = sample.elbowDegrees.coerceIn(0.0, 180.0)
+        elbowHistory.addLast(sample.timeMs to degrees)
         while (sample.timeMs - elbowHistory.first().first > ELBOW_WINDOW_MS) elbowHistory.removeFirst()
+        elbowVerdict = elbows.update(sample.timeMs, degrees, sample.elbowVisibility, sample.sideOn)
+        wristHistory.addLast(sample.timeMs to sample.wristSignal)
+        while (sample.timeMs - wristHistory.first().first > MOVING_WINDOW_MS) wristHistory.removeFirst()
     }
 
     fun read(nowMs: Long): LiveReading {
@@ -70,16 +79,19 @@ class LiveAnalyzer(
         }
         if (elbowHistory.isEmpty()) return LiveReading(nowMs, TrackingState.LOST, null, null, null)
         val elbow = medianOf(elbowHistory.map { it.second })
-        elbowsBent = if (elbowsBent) {
-            elbow < elbowBentBelow + elbowHysteresis
-        } else {
-            elbow < elbowBentBelow - elbowHysteresis
-        }
+        val isMoving = updateMoving(nowMs)
         return when (val beat = rate.read()) {
-            BeatReading.Warming -> LiveReading(nowMs, TrackingState.WARMING, null, elbow, elbowsBent)
+            BeatReading.Warming -> LiveReading(nowMs, TrackingState.WARMING, null, elbow, elbowVerdict, isMoving)
             BeatReading.NoBeat -> {
                 rateHistory.clear()
-                LiveReading(nowMs, TrackingState.PAUSED, null, elbow, elbowsBent)
+                val held = heldRate
+                // A dropout in the middle of pushing: the rate was measured a moment ago, so keep it briefly.
+                if (isMoving && held != null && nowMs - heldRateAtMs in 0..HOLD_RATE_MS) {
+                    LiveReading(nowMs, TrackingState.BEATING, held, elbow, elbowVerdict, true)
+                } else {
+                    heldRate = null
+                    LiveReading(nowMs, TrackingState.PAUSED, null, elbow, elbowVerdict, isMoving)
+                }
             }
             is BeatReading.Beat -> {
                 if (lastRatedFrameMs != last) {
@@ -88,16 +100,53 @@ class LiveAnalyzer(
                     if (rateHistory.size > RATE_SMOOTHING) rateHistory.removeFirst()
                 }
                 val smoothed = if (rateHistory.isEmpty()) beat.perMinute else medianOf(rateHistory.toList())
-                LiveReading(nowMs, TrackingState.BEATING, Math.round(smoothed).toInt(), elbow, elbowsBent)
+                val shown = Math.round(smoothed).toInt()
+                heldRate = shown
+                heldRateAtMs = nowMs
+                LiveReading(nowMs, TrackingState.BEATING, shown, elbow, elbowVerdict, isMoving)
             }
         }
     }
 
+    /**
+     * Wrist movement over the last half second: RMS around a straight line (so drift does not count),
+     * with hysteresis so it does not flicker. With too few frames it keeps its last answer.
+     */
+    private fun updateMoving(nowMs: Long): Boolean {
+        val recent = wristHistory.filter { it.first > nowMs - MOVING_WINDOW_MS }
+        if (recent.size < MOVING_MIN_FRAMES) return moving
+        val n = recent.size
+        val t0 = recent.first().first
+        val xs = DoubleArray(n) { (recent[it].first - t0).toDouble() }
+        val ys = DoubleArray(n) { recent[it].second }
+        val mx = xs.average()
+        val my = ys.average()
+        var sxx = 0.0
+        var sxy = 0.0
+        for (i in 0 until n) {
+            sxx += (xs[i] - mx) * (xs[i] - mx)
+            sxy += (xs[i] - mx) * (ys[i] - my)
+        }
+        val slope = if (sxx > 1e-9) sxy / sxx else 0.0
+        var sum = 0.0
+        for (i in 0 until n) {
+            val r = ys[i] - (my + slope * (xs[i] - mx))
+            sum += r * r
+        }
+        val rms = Math.sqrt(sum / n)
+        moving = if (moving) rms > movingOffRms else rms > movingOnRms
+        return moving
+    }
+
     private fun clearSignals() {
         rate.reset()
+        elbows.reset()
         elbowHistory.clear()
+        wristHistory.clear()
         rateHistory.clear()
-        elbowsBent = false
+        elbowVerdict = null
+        moving = false
+        heldRate = null
     }
 
     private fun medianOf(values: List<Double>): Double {
@@ -106,8 +155,17 @@ class LiveAnalyzer(
         return if (sorted.size % 2 == 1) sorted[mid] else (sorted[mid - 1] + sorted[mid]) / 2
     }
 
-    private companion object {
-        const val ELBOW_WINDOW_MS = 1_000L
-        const val RATE_SMOOTHING = 5
+    companion object {
+        private const val ELBOW_WINDOW_MS = 1_000L
+        private const val RATE_SMOOTHING = 5
+
+        /** How long a rate measured a moment ago may keep showing across a dropout, while still moving. */
+        const val HOLD_RATE_MS = 2_000L
+        const val MOVING_WINDOW_MS = 500L
+        const val MOVING_MIN_FRAMES = 3
+
+        /** Wrist RMS, in torso lengths. Set from the recordings: see the tests. */
+        const val MOVING_ON_RMS = 0.04
+        const val MOVING_OFF_RMS = 0.025
     }
 }

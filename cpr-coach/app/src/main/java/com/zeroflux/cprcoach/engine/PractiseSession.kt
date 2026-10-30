@@ -122,6 +122,7 @@ class PractiseSession(
             secondsLeft = ((liveMsLeft + 999) / 1000).toInt().coerceAtLeast(0),
             totalSeconds = totalSeconds,
             isPaused = isPaused,
+            detecting = reading.moving && reading.ratePerMinute == null && !isPaused,
         )
     }
 

@@ -55,7 +55,8 @@ class CoachPolicy(
 
     private fun trackPause(reading: LiveReading) {
         when (reading.tracking) {
-            TrackingState.PAUSED -> {
+            // Moving without a rate yet is not a pause, so it must not prompt "keep going".
+            TrackingState.PAUSED -> if (reading.moving) pausedSinceMs = null else {
                 if (pausedSinceMs == null) pausedSinceMs = reading.timeMs
                 if (reading.timeMs - pausedSinceMs!! >= MIN_PAUSE_MS && !pauseAcknowledged) pendingRecovery = true
             }

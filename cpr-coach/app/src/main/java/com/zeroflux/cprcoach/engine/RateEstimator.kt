@@ -40,6 +40,7 @@ class RateEstimator(
     private val minCorrelation: Double = 0.35,
     private val minAmplitude: Double = 0.015,
     private val stillWindowMs: Long = 1_500,
+    private val minRecentCorrelation: Double = 0.4,
 ) {
     private val times = ArrayDeque<Long>()
     private val values = ArrayDeque<Double>()
@@ -59,18 +60,24 @@ class RateEstimator(
         values.clear()
     }
 
+    /** Why the last read said NoBeat, for diagnostics and tests. */
+    internal var lastReject: String? = null
+
     fun read(): BeatReading {
+        lastReject = null
         if (times.size < 2 || times.last() - times.first() < minDataMs) return BeatReading.Warming
         // Too few frames can alias into a believable but wrong rate.
         if (times.size * 1000 / (times.last() - times.first()) < MIN_FPS) return BeatReading.Warming
         val samples = detrend(resample())
-        if (isStill(samples)) return BeatReading.NoBeat
+        if (isStill(samples)) { lastReject = "still"; return BeatReading.NoBeat }
 
         val correlation = autocorrelation(samples)
-        val lag = pickLag(correlation) ?: return BeatReading.NoBeat
+        val lag = pickLag(correlation) ?: run { lastReject = "nopeak"; return BeatReading.NoBeat }
         val strength = correlation[lag]
-        if (strength < minCorrelation) return BeatReading.NoBeat
-        if (recentCorrelation(samples, lag) < MIN_RECENT_CORRELATION) return BeatReading.NoBeat
+        // A peak at the very edge of the search range is often only the slope of a slower drift.
+        val atEdge = lag <= MIN_LAG + EDGE_LAGS || lag >= MAX_LAG - EDGE_LAGS
+        if (strength < (if (atEdge) EDGE_MIN_CORRELATION else minCorrelation)) { lastReject = "corr"; return BeatReading.NoBeat }
+        if (recentCorrelation(samples, lag) < minRecentCorrelation) { lastReject = "recent"; return BeatReading.NoBeat }
 
         return BeatReading.Beat(60.0 * SAMPLE_HZ / refineLag(correlation, lag), strength)
     }
@@ -180,7 +187,8 @@ class RateEstimator(
         const val MIN_LAG = SAMPLE_HZ * 60 / MAX_RATE
         const val MAX_LAG = SAMPLE_HZ * 60 / MIN_RATE
         const val OCTAVE_PREFERENCE = 0.6
-        const val MIN_RECENT_CORRELATION = 0.5
         const val MIN_FPS = 6
+        const val EDGE_LAGS = 3
+        const val EDGE_MIN_CORRELATION = 0.7
     }
 }

@@ -23,23 +23,44 @@ data class HandoverSummary(
  * Emergency coaching never depends on this: with no readings the word stays on keep pushing.
  * Call [update] about four times a second with one clock. All calls must come from one thread.
  */
-class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 2_000) {
+class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000) {
     private val policy = CoachPolicy()
     private val metrics = SessionMetrics()
     private var armsSeen = false
+    private var lostSinceMs: Long? = null
+    private var lastUpdateMs = startMs
+    private var lastBeatingMs: Long? = null
+    private var beatingSinceMs: Long? = null
     private var candidate = EmergencyWord.KEEP_PUSHING
     private var candidateSinceMs = startMs
 
     var word = EmergencyWord.KEEP_PUSHING
         private set
 
-    /** True until the camera has seen the arms, so the setup hint can stay up. */
-    val needsSetup: Boolean get() = !armsSeen
+    /** True until the camera has seen the arms, and again once they have been lost for over 3 s. */
+    val needsSetup: Boolean
+        get() {
+            if (!armsSeen) return true
+            val lostSince = lostSinceMs ?: return false
+            return lastUpdateMs - lostSince > SETUP_AFTER_LOST_MS
+        }
 
     fun update(reading: LiveReading) {
         metrics.add(reading)
-        if (reading.tracking == TrackingState.PAUSED || reading.tracking == TrackingState.BEATING) armsSeen = true
+        lastUpdateMs = reading.timeMs
+        if (reading.tracking == TrackingState.LOST) {
+            if (lostSinceMs == null) lostSinceMs = reading.timeMs
+        } else {
+            armsSeen = true
+            lostSinceMs = null
+        }
         val wanted = wordFor(reading)
+        if (reading.tracking == TrackingState.BEATING && reading.ratePerMinute != null) {
+            if (beatingSinceMs == null) beatingSinceMs = reading.timeMs
+            lastBeatingMs = reading.timeMs
+        } else if (lastBeatingMs?.let { reading.timeMs - it > KEEP_WORD_MS } != false) {
+            beatingSinceMs = null
+        }
         if (wanted != candidate) {
             candidate = wanted
             candidateSinceMs = reading.timeMs
@@ -65,7 +86,15 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 2_000
 
     private fun wordFor(reading: LiveReading): EmergencyWord {
         val rate = reading.ratePerMinute
-        if (reading.tracking != TrackingState.BEATING || rate == null) return EmergencyWord.KEEP_PUSHING
+        if (reading.tracking != TrackingState.BEATING || rate == null) {
+            // Still pushing but the rate has dropped out for a moment: keep the word rather than flash "keep pushing".
+            val beatingAt = lastBeatingMs
+            val since = beatingSinceMs
+            // Only a beat that held for a while is kept: a phantom blip must not linger on screen.
+            val recently = beatingAt != null && since != null && reading.timeMs - beatingAt in 0..KEEP_WORD_MS &&
+                beatingAt - since >= ESTABLISHED_BEAT_MS
+            return if (reading.moving && reading.tracking != TrackingState.LOST && recently) word else EmergencyWord.KEEP_PUSHING
+        }
         return when {
             rate < LiveReading.TARGET_MIN -> EmergencyWord.FASTER
             rate > LiveReading.TARGET_MAX -> EmergencyWord.SLOWER
@@ -76,5 +105,8 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 2_000
 
     private companion object {
         const val MIN_MEASURED_SECONDS = 10
+        const val KEEP_WORD_MS = 3_000L
+        const val ESTABLISHED_BEAT_MS = 3_000L
+        const val SETUP_AFTER_LOST_MS = 3_000L
     }
 }

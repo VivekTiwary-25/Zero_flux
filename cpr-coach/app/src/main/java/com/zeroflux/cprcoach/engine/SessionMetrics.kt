@@ -45,7 +45,8 @@ class SessionMetrics(private val minPauseMs: Long = 2_000) {
             if (!bent) elbowStraightMs += dt
         }
         when (reading.tracking) {
-            TrackingState.PAUSED -> {
+            // Still moving but no rate yet is not a pause: the rescuer is pushing, we just can't count yet.
+            TrackingState.PAUSED -> if (reading.moving) pausedMs = 0 else {
                 pausedMs += dt
                 if (pausedMs >= minPauseMs && !pauseCounted) {
                     pauses++
