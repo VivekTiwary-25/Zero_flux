@@ -56,6 +56,11 @@ Emergency camera fallback: if tracking fails, the metronome and spoken steps con
 
 ## Fallback procedures during demo
 
+### Fallback if camera loses tracking in Practise
+- **On screen:** the rate number and elbow indicator disappear, "Can't see arms" appears, and the metronome keeps playing.
+- **Holder:** keep the phone level and step back slowly. If tracking does not return within a few seconds, tap Stop.
+- **Presenter:** "The app lost the arms and shows no number rather than guessing."
+
 ### Fallback if camera tracking fails in Emergency
 - **What happens on screen:** The camera remains on; the instruction word says "Keep pushing with the beat". The metronome and spoken emergency steps continue without a guessed number. When arms are visible, camera analysis and coaching can add spoken corrections alongside emergency steps.
 - **What the holder does:** Keep the phone steady and continue CPR; do not pause waiting for tracking.

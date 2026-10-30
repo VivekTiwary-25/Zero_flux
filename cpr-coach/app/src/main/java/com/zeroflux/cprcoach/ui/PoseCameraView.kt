@@ -2,11 +2,13 @@ package com.zeroflux.cprcoach.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CaptureRequest
 import android.util.Log
 import android.util.Range
 import android.util.Size
 import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.CameraInfo
@@ -63,7 +65,13 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
             analysis = null
             val oldUseCases = useCases
             useCases = emptyArray()
-            if (oldUseCases.isNotEmpty()) provider?.unbind(*oldUseCases)
+            if (oldUseCases.isNotEmpty()) {
+                try {
+                    provider?.unbind(*oldUseCases)
+                } catch (failure: Exception) {
+                    Log.w("CPR_CAM", "Could not unbind previous camera use cases; continuing", failure)
+                }
+            }
         }
         try {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -75,6 +83,24 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
                     try {
                         val resolved = future.get()
                         provider = resolved
+                        val preferredFrameRate = try {
+                            val ranges = Camera2CameraInfo.from(
+                                resolved.getCameraInfo(CameraSelector.DEFAULT_BACK_CAMERA),
+                            ).getCameraCharacteristic(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)
+                            var preferred: Range<Int>? = null
+                            for (range in ranges.orEmpty()) {
+                                if (range.upper >= 24 && (preferred == null || range.lower > preferred.lower)) {
+                                    preferred = range
+                                }
+                            }
+                            preferred
+                        } catch (failure: Exception) {
+                            Log.w("CPR_CAM", "Could not read supported frame rates", failure)
+                            null
+                        }
+                        if (preferredFrameRate == null) {
+                            Log.i("CPR_CAM", "No supported frame rate requested; using camera defaults")
+                        }
                         val previewSelector = ResolutionSelector.Builder()
                             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
                             .setResolutionStrategy(
@@ -88,7 +114,7 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
                                 ResolutionStrategy(Size(640, 480), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER),
                             )
                             .build()
-                        fun bindCamera(requestFrameRate: Boolean) {
+                        fun bindCamera(targetFrameRate: Range<Int>?) {
                             if (disposed) return
                             try {
                                 releaseUseCases()
@@ -98,8 +124,7 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
                                     .setResolutionSelector(analysisSelector)
                                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                                if (requestFrameRate) {
-                                    val targetFrameRate = Range(24, 30)
+                                if (targetFrameRate != null) {
                                     previewBuilder.setTargetFrameRate(targetFrameRate)
                                     // CameraX 1.6.2 has no ImageAnalysis.Builder.setTargetFrameRate.
                                     Camera2Interop.Extender(analysisBuilder).setCaptureRequestOption(
@@ -124,14 +149,12 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
                                     if (disposed || generation != bindingGeneration) return@Observer
                                     state.error?.let { error ->
                                         Log.e("CPR_CAM", "Camera unavailable: code=${error.code}", error.cause)
-                                        if (requestFrameRate && !fallbackQueued &&
-                                            error.code == CameraState.ERROR_STREAM_CONFIG
-                                        ) {
+                                        if (targetFrameRate != null && !fallbackQueued) {
                                             fallbackQueued = true
-                                            Log.w("CPR_CAM", "Requested stream configuration refused; using default frame rate")
+                                            Log.w("CPR_CAM", "Camera error with requested frame rate; using defaults")
                                             // observe() may deliver immediately: defer rebinding to avoid reentrancy.
                                             mainExecutor.execute {
-                                                if (!disposed && generation == bindingGeneration) bindCamera(false)
+                                                if (!disposed && generation == bindingGeneration) bindCamera(null)
                                             }
                                         }
                                     }
@@ -139,18 +162,18 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
                                 cameraObserver = observer
                                 camera.cameraInfo.cameraState.observe(lifecycleOwner, observer)
                             } catch (failure: Exception) {
-                                if (requestFrameRate && !disposed) {
+                                if (targetFrameRate != null && !disposed) {
                                     Log.w("CPR_CAM", "Frame rate request failed; rebuilding with defaults", failure)
                                     // Fresh builders omit both FPS settings; release clears the old analyzer
-                                    // and unbinds both old use cases before this single fallback bind.
-                                    bindCamera(false)
+                                    // and attempts to unbind both old use cases before this single fallback bind.
+                                    bindCamera(null)
                                 } else {
                                     Log.e("CPR_CAM", "Could not bind back camera with default frame rate", failure)
                                     releaseUseCases()
                                 }
                             }
                         }
-                        bindCamera(true)
+                        bindCamera(preferredFrameRate)
                     } catch (failure: Exception) {
                         Log.e("CPR_CAM", "Could not bind back camera", failure)
                         releaseUseCases()

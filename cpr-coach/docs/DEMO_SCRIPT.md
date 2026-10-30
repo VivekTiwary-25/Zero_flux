@@ -139,6 +139,7 @@ The selected-language instruction is FASTER, GOOD, SLOWER or STRAIGHTEN ARMS.
 
 **On screen:**
 
+- In Practise: the rate number and elbow indicator disappear, "Can't see arms" appears, and the metronome keeps playing. Keep the phone level and step back slowly. If it does not return in a few seconds, tap Stop; unmeasured scorecard rows say "Not measured".
 - The Emergency screen keeps the camera on; the single instruction-word area says "Keep pushing with the beat".
 - The metronome and spoken emergency steps continue without interruption.
 - No guessed number appears.
