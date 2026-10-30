@@ -23,7 +23,7 @@ data class HandoverSummary(
  * Emergency coaching never depends on this: with no readings the word stays on keep pushing.
  * Call [update] about four times a second with one clock. All calls must come from one thread.
  */
-class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000) {
+class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 2_000) {
     private val policy = CoachPolicy()
     private val metrics = SessionMetrics()
     private var armsSeen = false
@@ -53,11 +53,13 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
 
     fun summary(nowMs: Long): HandoverSummary {
         val card = metrics.scorecard()
+        // A moment of beat can come from a passing shape. A crew must not get a rate from that.
+        val enough = card.measuredSeconds >= MIN_MEASURED_SECONDS
         return HandoverSummary(
             totalSeconds = Math.round((nowMs - startMs).coerceAtLeast(0L) / 1000.0).toInt(),
             measuredSeconds = card.measuredSeconds,
-            averageRate = card.averageRate,
-            pauses = if (armsSeen) card.pauses else null,
+            averageRate = if (enough) card.averageRate else null,
+            pauses = if (enough) card.pauses else null,
         )
     }
 
@@ -70,5 +72,9 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
             reading.elbowsBent == true -> EmergencyWord.STRAIGHTEN
             else -> EmergencyWord.GOOD
         }
+    }
+
+    private companion object {
+        const val MIN_MEASURED_SECONDS = 10
     }
 }

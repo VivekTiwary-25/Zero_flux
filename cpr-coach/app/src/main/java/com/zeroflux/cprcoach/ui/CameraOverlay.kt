@@ -208,32 +208,150 @@ private fun cameraStatusKey(tracking: TrackingState, isPaused: Boolean): String?
 
 @Composable
 private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, onStop: () -> Unit) {
+    val strings = LocalStrings.current
+    // Use the whole window, never the space left by a transient label.
+    val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp
+    val rateFontSize = if (screenHeight < 400) 88.sp else 104.sp
+    val rate = visibleCameraRate(state.tracking, state.ratePerMinute, state.isPaused)
+    val statusKey = cameraStatusKey(state.tracking, state.isPaused)
+    val rateColor = if (rate == null) CoachColors.TextSecondary else when (state.inRange) {
+        true -> CoachColors.Teal
+        false -> CoachColors.Amber
+        null -> CoachColors.TextPrimary
+    }
+
+    // BasicText fits during text measurement, without subcomposition or a
+    // layout/recomposition feedback loop. Even an unbroken translation can shrink.
+    @Composable
+    fun FittingText(
+        text: String,
+        color: Color,
+        fontSize: androidx.compose.ui.unit.TextUnit,
+        modifier: Modifier,
+        maxLines: Int = 2,
+        weight: FontWeight = FontWeight.Normal,
+    ) {
+        val autoSize = remember(fontSize) {
+            androidx.compose.foundation.text.TextAutoSize.StepBased(
+                minFontSize = 1.sp,
+                maxFontSize = fontSize,
+                stepSize = 0.5.sp,
+            )
+        }
+        Box(modifier, contentAlignment = Alignment.Center) {
+            androidx.compose.foundation.text.BasicText(
+                text = text,
+                modifier = Modifier.fillMaxWidth(),
+                style = androidx.compose.ui.text.TextStyle(
+                    color = color,
+                    fontSize = fontSize,
+                    fontWeight = weight,
+                    textAlign = TextAlign.Center,
+                ),
+                maxLines = maxLines,
+                autoSize = autoSize,
+            )
+        }
+    }
+
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
             Modifier.weight(1f).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            RateReadout(
-                visibleCameraRate(state.tracking, state.ratePerMinute, state.isPaused),
-                state.inRange,
-                cameraStatusKey(state.tracking, state.isPaused),
-                Modifier.weight(1f),
-            )
-            TimeLeftRing(state.secondsLeft, state.totalSeconds)
-        }
-        // The elbow label comes and goes, so it gets its own space: Pause and Stop must never move under a finger.
-        Row(
-            Modifier.fillMaxWidth().padding(end = 72.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Box(Modifier.weight(1f)) {
-                if (!state.isPaused && state.tracking == TrackingState.BEATING) {
-                    ElbowIndicator(state.elbowsBent)
+            Column(
+                Modifier.weight(1f).fillMaxHeight()
+                    .background(CoachColors.CameraScrim, RoundedCornerShape(24.dp))
+                    .padding(horizontal = 24.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                FittingText(
+                    text = if (rate == null) strings.get("live_no_rate")
+                        else strings.get("camera_numeric_value").replace("{value}", rate.toString()),
+                    color = rateColor,
+                    fontSize = rateFontSize,
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    maxLines = 1,
+                    weight = FontWeight.Black,
+                )
+                // Always reserve both caption slots, including while warming or
+                // paused, so rate fitting cannot change when a caption appears.
+                Box(Modifier.fillMaxWidth().height(32.dp)) {
+                    if (rate != null) {
+                        FittingText(
+                            strings.get("live_per_minute"), CoachColors.TextPrimary, 22.sp,
+                            Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+                Box(Modifier.fillMaxWidth().height(40.dp)) {
+                    statusKey?.let {
+                        FittingText(
+                            strings.get(it),
+                            if (it == "live_paused") CoachColors.Amber else CoachColors.TextSecondary,
+                            24.sp,
+                            Modifier.fillMaxSize(),
+                        )
+                    }
                 }
             }
-            LiveControls(state.isPaused, onPauseToggle, onStop)
+            TimeLeftRing(state.secondsLeft, state.totalSeconds)
+        }
+        // Fixed band and equal fixed slots: neither text nor tracking/paused
+        // state participates in control geometry. The last 72 dp belong to Mic.
+        Row(
+            Modifier.fillMaxWidth().height(72.dp).padding(end = 72.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
+                val bent = state.elbowsBent
+                if (!state.isPaused && state.tracking == TrackingState.BEATING && bent != null) {
+                    val color = if (bent) CoachColors.Amber else CoachColors.Teal
+                    Row(
+                        Modifier.fillMaxSize()
+                            .background(CoachColors.CameraScrim, RoundedCornerShape(16.dp))
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Canvas(Modifier.size(24.dp)) {
+                            val start = Offset(size.width * 0.25f, size.height * 0.1f)
+                            val elbow = Offset(size.width * (if (bent) 0.7f else 0.4f), size.height * 0.5f)
+                            val end = Offset(size.width * 0.55f, size.height * 0.9f)
+                            drawLine(color, start, elbow, 3.dp.toPx(), StrokeCap.Round)
+                            drawLine(color, elbow, end, 3.dp.toPx(), StrokeCap.Round)
+                        }
+                        FittingText(
+                            strings.get(if (bent) "live_elbows_bent" else "live_elbows_straight"),
+                            color, 18.sp, Modifier.weight(1f).fillMaxHeight(),
+                        )
+                    }
+                }
+            }
+            val colors = ButtonDefaults.textButtonColors(
+                contentColor = CoachColors.TextPrimary,
+                containerColor = CoachColors.CameraScrim,
+            )
+            TextButton(
+                onClick = onPauseToggle,
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                colors = colors,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+            ) {
+                FittingText(
+                    strings.get(if (state.isPaused) "live_resume" else "live_pause"),
+                    CoachColors.TextPrimary, 20.sp, Modifier.fillMaxSize(),
+                )
+            }
+            TextButton(
+                onClick = onStop,
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                colors = colors,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+            ) {
+                FittingText(strings.get("live_stop"), CoachColors.TextPrimary, 20.sp, Modifier.fillMaxSize())
+            }
         }
     }
 }

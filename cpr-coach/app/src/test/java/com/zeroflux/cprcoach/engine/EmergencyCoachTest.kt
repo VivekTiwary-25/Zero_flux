@@ -30,7 +30,7 @@ class EmergencyCoachTest {
     @Test fun `the word follows the measured rate`() {
         for ((rate, word) in listOf(90 to EmergencyWord.FASTER, 110 to EmergencyWord.GOOD, 130 to EmergencyWord.SLOWER)) {
             val coach = EmergencyCoach(0)
-            coach.feed(0, 1_500) { beating(it, rate) }
+            coach.feed(0, 2_500) { beating(it, rate) }
             assertEquals("at $rate", word, coach.word)
         }
     }
@@ -38,32 +38,32 @@ class EmergencyCoachTest {
     @Test fun `range edges count as good`() {
         for (rate in listOf(LiveReading.TARGET_MIN, LiveReading.TARGET_MAX)) {
             val coach = EmergencyCoach(0)
-            coach.feed(0, 1_500) { beating(it, rate) }
+            coach.feed(0, 2_500) { beating(it, rate) }
             assertEquals(EmergencyWord.GOOD, coach.word)
         }
     }
 
     @Test fun `bent arms show only when the rate is fine`() {
         val fine = EmergencyCoach(0)
-        fine.feed(0, 1_500) { beating(it, 110, bent = true) }
+        fine.feed(0, 2_500) { beating(it, 110, bent = true) }
         assertEquals(EmergencyWord.STRAIGHTEN, fine.word)
         val slow = EmergencyCoach(0)
-        slow.feed(0, 1_500) { beating(it, 90, bent = true) }
+        slow.feed(0, 2_500) { beating(it, 90, bent = true) }
         assertEquals(EmergencyWord.FASTER, slow.word)
     }
 
     @Test fun `a word that flickers does not show`() {
         val coach = EmergencyCoach(0)
-        coach.feed(0, 1_500) { beating(it, 110) }
-        coach.update(beating(1_750, 90))
-        coach.update(beating(2_000, 110))
+        coach.feed(0, 2_500) { beating(it, 110) }
+        coach.update(beating(2_750, 90))
+        coach.update(beating(3_000, 110))
         assertEquals(EmergencyWord.GOOD, coach.word)
     }
 
     @Test fun `losing the arms shows keep pushing at once`() {
         val coach = EmergencyCoach(0)
-        coach.feed(0, 1_500) { beating(it, 110) }
-        coach.update(lost(1_750))
+        coach.feed(0, 2_500) { beating(it, 110) }
+        coach.update(lost(2_750))
         assertEquals(EmergencyWord.KEEP_PUSHING, coach.word)
     }
 
@@ -95,6 +95,18 @@ class EmergencyCoachTest {
         assertEquals(110, summary.averageRate)
         assertEquals(1, summary.pauses)
         assertTrue(summary.measuredSeconds in 44..47)
+    }
+
+    @Test fun `a moment of beat gives the crew no rate and no pauses`() {
+        val coach = EmergencyCoach(0)
+        coach.feed(0, 60_000) { lost(it) }
+        coach.feed(60_250, 62_000) { beating(it, 70) }
+        coach.feed(62_250, 66_000) { paused(it) }
+        val summary = coach.summary(66_000)
+        assertEquals(66, summary.totalSeconds)
+        assertTrue(summary.measuredSeconds in 1..3)
+        assertNull(summary.averageRate)
+        assertNull(summary.pauses)
     }
 
     @Test fun `time going backwards cannot make a negative total`() {

@@ -87,6 +87,7 @@ fun EmergencyHost(
     var word by remember { mutableStateOf(EmergencyWord.KEEP_PUSHING) }
     var needsSetup by remember { mutableStateOf(true) }
     var elapsedSeconds by remember { mutableIntStateOf(0) }
+    var audioStarted by remember { mutableStateOf(false) }
     val analyzerBox = remember { arrayOf(LiveAnalyzer()) }
     val replayName = remember(context) {
         if (BuildConfig.DEBUG) PractiseReplay.requestedFile(context) else null
@@ -142,31 +143,40 @@ fun EmergencyHost(
             }
         }
     }
-    // Straight away, not behind a button: CPR never waits.
-    LaunchedEffect(playback) { playback.start(language.code) }
+    // Straight away, not behind a button: CPR never waits. The camera is only composed after this.
+    LaunchedEffect(playback) {
+        playback.start(language.code)
+        audioStarted = true
+    }
     // Deliberately composition-scoped, not lifecycle-scoped: the dialer may cover us.
     LaunchedEffect(playback, coach) {
         var lastSequenceTickMs = 0L
         while (isActive && summary == null) {
             val now = SystemClock.uptimeMillis()
-            if (now - lastSequenceTickMs >= 1_000L) {
-                lastSequenceTickMs = now
-                playback.tick()
-            }
-            val reading = try {
-                analyzerBox[0].read(now)
-            } catch (error: RuntimeException) {
-                // A bad reading must never reach the rescuer, and must never stop the coaching.
-                Log.e("CPR_ENGINE", "emergency analysis failed, showing no instruction", error)
-                analyzerBox[0] = LiveAnalyzer()
-                LiveReading(now, TrackingState.LOST, null, null, null)
-            }
-            coach.update(reading)
-            word = coach.word
-            needsSetup = coach.needsSetup
             elapsedSeconds = ((now - startMs) / 1000L).toInt()
-            if (playback.voiceIdle) {
-                coach.nextCorrection(reading)?.let { playback.speak(it.key) }
+            try {
+                if (now - lastSequenceTickMs >= 1_000L) {
+                    lastSequenceTickMs = now
+                    playback.tick()
+                }
+                val reading = try {
+                    analyzerBox[0].read(now)
+                } catch (error: RuntimeException) {
+                    // A bad reading must never reach the rescuer, and must never stop the coaching.
+                    Log.e("CPR_ENGINE", "emergency analysis failed, showing no instruction", error)
+                    analyzerBox[0] = LiveAnalyzer()
+                    LiveReading(now, TrackingState.LOST, null, null, null)
+                }
+                coach.update(reading)
+                word = coach.word
+                needsSetup = coach.needsSetup
+                if (playback.voiceIdle) {
+                    coach.nextCorrection(reading)?.let { playback.speak(it.key) }
+                }
+            } catch (error: RuntimeException) {
+                if (error is CancellationException) throw error
+                // The app and the beat share a process, so nothing here may escape and kill both.
+                Log.e("CPR_ENGINE", "emergency coaching step failed; carrying on", error)
             }
             delay(250L)
         }
@@ -193,8 +203,15 @@ fun EmergencyHost(
         onStopConfirmed = finish,
         onMicTap = { voice.toggle() },
         camera = {
-            if (cameraPermission && replayName == null) {
-                EmergencyCamera(onFrameSample = { analyzerBox[0].addFrame(it) })
+            if (audioStarted && cameraPermission && replayName == null) {
+                EmergencyCamera(onFrameSample = { sample ->
+                    try {
+                        analyzerBox[0].addFrame(sample)
+                    } catch (error: RuntimeException) {
+                        Log.e("CPR_ENGINE", "emergency frame failed; carrying on", error)
+                        analyzerBox[0] = LiveAnalyzer()
+                    }
+                })
             }
             if (replayName != null) {
                 Text(
@@ -230,7 +247,13 @@ private fun EmergencyCamera(onFrameSample: (com.zeroflux.cprcoach.engine.PoseSam
                         }
                     }
                 }
-                if (BuildConfig.DEBUG) pose.startTrace(traceDirectory)
+                if (BuildConfig.DEBUG) {
+                    try {
+                        pose.startTrace(traceDirectory)
+                    } catch (error: Exception) {
+                        Log.w("CPR_ENGINE", "emergency trace unavailable", error)
+                    }
+                }
                 // Disposed while loading: open then close, so the engine has exactly one owner.
                 capture.open(pose)
                 if (!active.get()) capture.close()

@@ -87,13 +87,10 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
                             val ranges = Camera2CameraInfo.from(
                                 resolved.getCameraInfo(CameraSelector.DEFAULT_BACK_CAMERA),
                             ).getCameraCharacteristic(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)
-                            var preferred: Range<Int>? = null
-                            for (range in ranges.orEmpty()) {
-                                if (range.upper >= 24 && (preferred == null || range.lower > preferred.lower)) {
-                                    preferred = range
-                                }
-                            }
-                            preferred
+                            // Above 30 only adds heat. A range with slack keeps exposure usable in dim rooms.
+                            val usable = ranges.orEmpty().filter { it.upper in 24..30 }
+                            usable.filter { it.lower >= 24 }.minByOrNull { it.lower }
+                                ?: usable.maxByOrNull { it.lower }
                         } catch (failure: Exception) {
                             Log.w("CPR_CAM", "Could not read supported frame rates", failure)
                             null

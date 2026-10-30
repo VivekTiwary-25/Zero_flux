@@ -134,13 +134,18 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             .setResultListener { result, _ ->
                 // Native teardown may wait for this listener; never take its lifecycle lock here.
                 if (closed) return@setResultListener
-                val timestamp = result.timestampMs()
-                val aspect = submitted.remove(timestamp) ?: return@setResultListener
-                val latency = SystemClock.uptimeMillis() - timestamp
-                logStats(SystemClock.uptimeMillis(), latency)
-                adapt(timestamp, latency)
-                val marks = result.landmarks().firstOrNull()
-                onFrame(toFrame(marks, timestamp, aspect, latency))
+                try {
+                    val timestamp = result.timestampMs()
+                    val aspect = submitted.remove(timestamp) ?: return@setResultListener
+                    val latency = SystemClock.uptimeMillis() - timestamp
+                    logStats(SystemClock.uptimeMillis(), latency)
+                    adapt(timestamp, latency)
+                    val marks = result.landmarks().firstOrNull()
+                    onFrame(toFrame(marks, timestamp, aspect, latency))
+                } catch (e: RuntimeException) {
+                    // This runs on MediaPipe's thread, where an escape would kill the process and the beat.
+                    Log.e(TAG, "pose result failed", e)
+                }
             }
             .setErrorListener { e -> Log.e(TAG, "pose error", e) }
             .build()
@@ -170,8 +175,8 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         }
         try {
             detect(image)
-        } catch (e: RuntimeException) {
-            // A bad frame must not kill the camera thread. The session sees tracking lost.
+        } catch (e: Throwable) {
+            // A bad frame must not kill the camera thread, even out of memory. The session sees tracking lost.
             Log.e(TAG, "pose frame failed", e)
         } finally {
             // Only the last submission can own teardown after close() has marked us closed.
