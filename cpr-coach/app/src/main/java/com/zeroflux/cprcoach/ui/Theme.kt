@@ -1,7 +1,7 @@
 package com.zeroflux.cprcoach.ui
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -83,9 +83,18 @@ fun ClayButton(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) pressedScale else 1f, spring(), label = "clayPress")
-    val lift by animateFloatAsState(if (pressed) 0.3f else 1f, spring(), label = "clayLift")
+    val motionEnabled = rememberCoachMotionEnabled()
+    val pressAnimation = if (motionEnabled) spring() else snap()
+    val scale by animateFloatAsState(
+        if (pressed) pressedScale else 1f,
+        pressAnimation,
+        label = "clayPress",
+    )
+    val lift by animateFloatAsState(
+        if (pressed) 0.3f else 1f,
+        pressAnimation,
+        label = "clayLift",
+    )
     Box(
         modifier
             .scale(scale)
