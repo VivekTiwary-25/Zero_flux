@@ -6,6 +6,8 @@ enum class EmergencyWord(val key: String) {
     FASTER("em_word_faster"),
     SLOWER("em_word_slower"),
     STRAIGHTEN("em_word_straighten"),
+    STRAIGHTEN_ARMS("posture_straighten_arms"),
+    SHOULDERS_OVER_HANDS("posture_shoulders_over_hands"),
     GOOD("em_word_good"),
 }
 
@@ -45,7 +47,12 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
             return lastUpdateMs - lostSince > SETUP_AFTER_LOST_MS
         }
 
+    /** True while the phone is clearly not side-on: show the setup hint, not a word. */
+    var turnPhoneHint = false
+        private set
+
     fun update(reading: LiveReading) {
+        turnPhoneHint = reading.posture?.issue == PostureIssue.NOT_SIDE_ON
         metrics.add(reading)
         lastUpdateMs = reading.timeMs
         if (reading.tracking == TrackingState.LOST) {
@@ -98,7 +105,9 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
         return when {
             rate < LiveReading.TARGET_MIN -> EmergencyWord.FASTER
             rate > LiveReading.TARGET_MAX -> EmergencyWord.SLOWER
-            reading.elbowsBent == true -> EmergencyWord.STRAIGHTEN
+            reading.posture?.issue == PostureIssue.ELBOWS_BENT -> EmergencyWord.STRAIGHTEN_ARMS
+            reading.posture?.issue == PostureIssue.SHOULDERS_NOT_OVER_HANDS -> EmergencyWord.SHOULDERS_OVER_HANDS
+            reading.posture == null && reading.elbowsBent == true -> EmergencyWord.STRAIGHTEN
             else -> EmergencyWord.GOOD
         }
     }
