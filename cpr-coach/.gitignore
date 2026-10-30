@@ -9,3 +9,4 @@ __pycache__/
 
 # Copied from iTantra by a script, too big for the repo.
 app/src/main/assets/tiny.en-*
+tools/pose_models/
