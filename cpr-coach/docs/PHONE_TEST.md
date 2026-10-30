@@ -194,3 +194,12 @@ Do this after the live checks, with the rescuer on the cushion and the holder co
 - [ ] In Emergency, say "stop". Emergency ends and you return Home.
 - [ ] In Kannada, say the Kannada words for "start" and "stop". The same actions happen.
 - [ ] Commands work at normal speaking volume from the holder's position near the phone.
+
+## Real person session
+
+- Before starting, make sure the phone battery is above 40%, the phone is not hot to touch, and close other apps.
+- Check tracking follows the arms.
+- Keep the session for the full 2 minutes.
+- If the app or phone dies, note the time and don't uninstall or clear anything, then connect USB.
+- After each session, note what the screen said.
+- Recordings are in the app's external files folder under `traces/`.
