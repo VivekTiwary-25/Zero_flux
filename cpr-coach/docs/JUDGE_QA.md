@@ -7,10 +7,10 @@ Only **English and Hindi are the first-build languages**. Translations and voice
 ## Accuracy and honesty
 
 **How accurate is the compression rate?**
-Measured against a hand count with a stopwatch — the result is [from MEASUREMENTS.md]. That is a prototype test on a cushion, not clinical validation. Counted, timed runs are still pending; the measurement table's run rows are currently empty.
+Not demonstrated yet. Counted accuracy runs are not done, so we quote no accuracy figure. The one real recording so far gave no usable beat, and work is in progress. Tests so far are on a cushion, not clinical validation.
 
 **How fast is the feedback?**
-The measured time from camera frame to on-screen result is [from MEASUREMENTS.md]. Anything we have not measured, we say we have not measured — we never quote a figure we did not record.
+We quote no latency figure. Anything we have not measured, we say we have not measured — we never quote a figure we did not record.
 
 **What exactly does it measure — and what can't it?**
 It estimates compression rate (per minute), elbow angle and pauses from the visible motion of the arms. One camera cannot reliably measure compression depth, force, chest recoil or hand placement, so the app does not try. The scorecard shows "Not measured" for any row it could not really observe.
@@ -44,7 +44,7 @@ It opens the phone dialer with 112 already filled in and waits — it never plac
 CPR instructions only help if you understand them while panicking. The picker lists English, Hindi, Kannada, Tamil, Telugu, Malayalam, Marathi, Gujarati, Bengali and Odia, each in its own script, with every visible word and every spoken clip in the selected language.
 
 **Which languages really work yet?**
-This app has not yet been run end to end on a phone. The speech models were checked on real phones for English and Hindi in an earlier project (iTantra). One Lab test on an RMX3392 showed hand-held pose tracking working outdoors, and voice-mode audio kept playing while dialling. The other eight voice and text translations are generated drafts: per `docs/CLIP_STATUS.md`, "checked by a person" is NO for every clip — nobody has listened to them yet. The demo runs in English.
+The app now runs end to end on two real phones with no known crash in the latest build. An early real-person session found a crash, which was fixed. The speech models were checked on real phones for English and Hindi in an earlier project (iTantra). The other eight voice and text translations are generated drafts: per `docs/CLIP_STATUS.md`, "checked by a person" is NO for every clip — nobody has listened to them yet. The demo runs in English.
 
 **Does it work offline?**
 Yes. The pose model, signal math, feedback logic, pre-recorded coaching clips and speech recognition all run on the phone. The app has no networking at all, so there are no dead zones and no data leaves the device.
@@ -61,4 +61,4 @@ No. It is guided practice for the motion of compressions: rate, elbows, continui
 Colleges, NSS units and community groups that want supervised practice between instructor sessions — always with the safety line: call 112 in a real emergency, follow the dispatcher, start CPR right away.
 
 **What is still unproven?**
-Counted rate-accuracy runs (not done yet), an end-to-end run of this app on a phone, connected-call audio behaviour, per-language voice checks by native speakers, and testing across more phones, lighting and camera angles. The honest status of each is tracked in `docs/MEASUREMENTS.md`, `docs/CLIP_STATUS.md` and `docs/PHONE_TEST.md`.
+Counted rate-accuracy runs are not done and we quote no accuracy or latency figures. Rate detection on a real person is not yet demonstrated: the one real recording so far gave no usable beat, and work is in progress. Still unproven: connected-call audio behaviour, per-language voice checks by native speakers, and testing across more phones, lighting and camera angles. The honest status of each is tracked in `docs/MEASUREMENTS.md`, `docs/CLIP_STATUS.md` and `docs/PHONE_TEST.md`.
