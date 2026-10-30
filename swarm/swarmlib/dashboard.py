@@ -35,14 +35,21 @@ def _age(ts, now):
     return util.fmt_age(now - ts) if ts else "-"
 
 
+def _review_line(view, color):
+    waiting = max([hb.get("waiting_review") or 0 for hb in (view.get("hb") or {}).values()] or [0])
+    if not waiting:
+        return []
+    return [_paint("%d finished task(s) waiting for the boss to review (swarm tasks)" % waiting, YELLOW, color)]
+
+
 def _alerts_block(view, color):
     found = view.get("alerts") or []
     if not found:
-        return [_paint("No alerts", GREEN, color)]
+        return [_paint("No alerts", GREEN, color)] + _review_line(view, color)
     lines = [_paint("ALERTS (%d)" % len(found), RED + BOLD, color)]
     for a in found:
         lines.append(_paint("! %s → %s" % (a.get("text"), a.get("action")), RED, color))
-    return lines
+    return lines + _review_line(view, color)
 
 
 def _machines_block(view, now, color):

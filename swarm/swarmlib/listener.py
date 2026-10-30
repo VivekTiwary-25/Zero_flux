@@ -228,7 +228,8 @@ def _move_dead_machines(me, workers, heartbeats, settings, now, net):
         if not mover or age <= dead:
             continue
         queue_dir = config.repo_dir() / "swarm" / "queue" / machine
-        if not list(queue_dir.glob("*/*.md")):
+        finished = gitops.remote_task_branches()
+        if not [p for p in queue_dir.glob("*/*.md") if p.stem not in finished]:
             continue
         key = "machine:" + machine
         if now - CTX["move_at"].get(key, 0) < MOVE_RETRY_SEC:
@@ -375,12 +376,16 @@ def _worker_entry(w, me):
 
 def _build_hb(me, workers, now, own_alerts, net):
     done = util.load_json(util.state_dir() / "done.json", []) or []
+    # Finished tasks keep their queue file until the boss closes them, so they are not queued work.
+    finished = gitops.remote_task_branches()
     return {"machine": me, "os": config.machine_cfg(me).get("os"), "ts": now, "version": CTX.get("version"),
             "pid": os.getpid(), "started": START, "net_ok": net,
             "git": util.load_json(util.state_dir() / "git_status.json", {}) or {},
             "workers": [_worker_entry(w, me) for w in workers],
             "alerts": own_alerts, "events": util.recent_events(10), "done": done[-20:],
-            "queued": {w["name"]: len(_queued(me, w["name"])) for w in workers}}
+            "queued": {w["name"]: len([p for p in _queued(me, w["name"]) if p.stem not in finished])
+                       for w in workers},
+            "waiting_review": len([p for p in tasks.all_queue_files() if p.stem in finished])}
 
 
 def _publish(me, workers, heartbeats, settings, net, now):

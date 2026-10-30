@@ -150,6 +150,8 @@ def pick_worker(kind, heartbeats, exclude=frozenset()):
 def move_tasks(src_machine, src_worker, heartbeats, reason):
     moved = []
     src_root = queue_root() / src_machine
+    # A task with a branch is finished and waiting for review: there is nothing to move.
+    finished = gitops.remote_task_branches()
 
     def apply_fn(repo):
         del moved[:]
@@ -164,6 +166,8 @@ def move_tasks(src_machine, src_worker, heartbeats, reason):
             exclude |= {"%s/%s" % (src_machine, d.name) for d in dirs}
         for d in dirs:
             for path in sorted(d.glob("*.md")):
+                if path.stem in finished:
+                    continue
                 task = parse(path.read_text(encoding="utf-8"))
                 target = pick_worker(task.get("kind") or "routine", heartbeats, exclude)
                 if not target:
