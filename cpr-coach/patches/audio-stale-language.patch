@@ -1,0 +1,69 @@
+diff --git a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/audio/AudioEngine.kt b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/audio/AudioEngine.kt
+index 5480bfd..c84187a 100644
+--- a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/audio/AudioEngine.kt
++++ b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/audio/AudioEngine.kt
+@@ -186,18 +186,22 @@ class AudioEngine(
+                 }
+             }
+             val samples = loaded?.samples
+-            val outcome = synchronized(lock) {
+-                if (token != playToken) LoadOutcome.SUPERSEDED
+-                else if (released || samples == null) {
+-                    postToMain(clipDone)
+-                    clipDone = null
+-                    LoadOutcome.DONE
+-                }
+-                else {
+-                    clip = samples
+-                    clipPos = 0
+-                    lock.notifyAll()
+-                    LoadOutcome.STARTED
++            // Serialize the freshness check and installation with setLanguage().
++            val outcome = synchronized(cacheLock) {
++                synchronized(lock) {
++                    if (token != playToken) LoadOutcome.SUPERSEDED
++                    else if (released || samples == null ||
++                        !isCurrentAudioLanguage(code, epoch, languageCode, languageEpoch)
++                    ) {
++                        postToMain(clipDone)
++                        clipDone = null
++                        LoadOutcome.DONE
++                    } else {
++                        clip = samples
++                        clipPos = 0
++                        lock.notifyAll()
++                        LoadOutcome.STARTED
++                    }
+                 }
+             }
+             if (outcome == LoadOutcome.DONE) {
+@@ -649,3 +653,10 @@ internal class AudioMixBlock(private val click: ShortArray) {
+         accepted += count
+     }
+ }
++
++internal fun isCurrentAudioLanguage(
++    requestedCode: String,
++    requestedEpoch: Int,
++    currentCode: String?,
++    currentEpoch: Int,
++): Boolean = requestedCode == currentCode && requestedEpoch == currentEpoch
+
+diff --git a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/audio/AudioEngineRecoveryTest.kt b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/audio/AudioEngineRecoveryTest.kt
+index 901718f..794d82c 100644
+--- a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/audio/AudioEngineRecoveryTest.kt
++++ b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/audio/AudioEngineRecoveryTest.kt
+@@ -7,6 +7,13 @@ import org.junit.Assert.assertTrue
+ import org.junit.Test
+ 
+ class AudioEngineRecoveryTest {
++    @Test
++    fun staleLanguageLoadIsRejectedByCodeOrEpoch() {
++        assertTrue(isCurrentAudioLanguage("en", 4, "en", 4))
++        assertFalse(isCurrentAudioLanguage("en", 4, "es", 5))
++        assertFalse(isCurrentAudioLanguage("en", 4, "en", 5))
++    }
++
+     @Test
+     fun longOutageKeepsCalmRetriesAndReportsOnlyOnce() {
+         val recovery = AudioRecovery(300, 6_000, 600)
