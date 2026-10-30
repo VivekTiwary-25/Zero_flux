@@ -7,3 +7,15 @@
 # Recordings real-cph2467-1..9 and the others have no labels at all and are not listed.
 file,start_s,end_s,label,source
 real-cph2467-12.csv,18,29,bent,team_unconfirmed
+# Recordings 13-15: CPH2467, 31 Oct 2026 ~02:55-03:00, side-on, frames saved every 0.5 s. Labels below with
+# source=pictures were read from those saved frames (by the coding assistant, not checked by a person).
+# 15 is the labelled straight/bent/lean run. Its lean block is the team's account only (frames show diagonal arms).
+real-cph2467-15.csv,3.5,32,straight,pictures
+real-cph2467-15.csv,32.3,34,unknown,none
+real-cph2467-15.csv,34.5,37.3,straight,pictures
+real-cph2467-15.csv,37.4,38,unknown,none
+real-cph2467-15.csv,38.2,43.4,bent,pictures
+real-cph2467-15.csv,44,53.4,straight,pictures
+real-cph2467-15.csv,54,61.5,bent,pictures
+real-cph2467-15.csv,65,69.5,leaning,team_unconfirmed
+real-cph2467-14.csv,3,24,straight,pictures

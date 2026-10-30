@@ -10,3 +10,6 @@ __pycache__/
 # Copied from iTantra by a script, too big for the repo.
 app/src/main/assets/tiny.en-*
 tools/pose_models/
+
+# Pulled phone traces and frame pictures of people: never commit.
+tools/traces/
