@@ -29,59 +29,51 @@
   <!-- ===== Camera view ===== -->
   <rect x="24" y="24" width="500" height="392" rx="18" fill="#0e1628" stroke="#24324d"/>
   <g clip-path="url(#cam)">
-    <!-- floor, seen from a slightly raised phone: the rescuer is on the far side of the patient -->
-    <rect x="24" y="306" width="500" height="110" fill="#131d33"/>
-    <line x1="24" y1="306" x2="524" y2="306" stroke="#24324d" stroke-width="2"/>
+    <!-- floor seen from a slightly raised phone: the rescuer kneels on the far side of the patient -->
+    <rect x="24" y="250" width="500" height="168" fill="#1a2744"/>
+    <line x1="24" y1="250" x2="524" y2="250" stroke="#2f4063" stroke-width="2"/>
+    <ellipse cx="330" cy="310" rx="62" ry="6" fill="#0d1527"/>
 
-    <!-- rescuer's legs, kneeling beside the patient's chest and shoulder, behind the patient -->
-    <g fill="none" stroke-linecap="round">
-      <path d="M440 262 L424 330 L478 326" stroke="#2a3a58" stroke-width="20" stroke-linejoin="round"/>
-      <path d="M440 262 L424 330 L478 326" stroke="#5eead4" stroke-width="4" stroke-linejoin="round" opacity="0.9"/>
+    <!-- rescuer's legs on the floor behind the patient, with floor showing between them -->
+    <g fill="none" stroke="#31436a" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="305" y1="236" x2="285" y2="296" stroke-width="34"/>
+      <line x1="285" y1="296" x2="370" y2="296" stroke-width="24"/>
     </g>
 
-    <!-- patient, flat on their back: head on the right, feet on the left -->
-    <g fill="#3a465e">
-      <path d="M66 346 C66 334 80 332 86 342 L100 354 L230 352 Q290 348 330 345 L424 344 Q444 344 446 362 Q446 380 424 380 L84 380 Q66 380 66 362 Z"/>
-      <rect x="440" y="354" width="18" height="18" rx="4"/>
-      <circle cx="474" cy="358" r="22" fill="#4a5874"/>
+    <!-- patient, flat on their back: head on the left, legs run out of frame on the right -->
+    <g fill="#56647f">
+      <circle cx="94" cy="352" r="27" fill="#6b7a97"/>
+      <rect x="114" y="340" width="28" height="24" rx="6"/>
+      <path d="M136 326 Q146 320 172 320 L340 322 Q390 326 420 336 L540 340 L540 382 L150 382 Q134 382 132 362 Z"/>
     </g>
 
     <!-- where the hands go: centre of the chest, in line with the armpits -->
-    <ellipse cx="392" cy="352" rx="30" ry="7" fill="none" stroke="#5eead4" stroke-width="2"/>
+    <ellipse cx="225" cy="328" rx="30" ry="7" fill="none" stroke="#5eead4" stroke-width="2"/>
 
     <!-- rescuer's upper body: moves with each compression -->
     <g class="press">
-      <g fill="none" stroke="#2a3a58" stroke-linecap="round">
-        <line x1="440" y1="262" x2="392" y2="176" stroke-width="30"/>
-        <line x1="392" y1="176" x2="392" y2="314" stroke-width="16"/>
-      </g>
-      <circle cx="375" cy="130" r="22" fill="#2a3a58"/>
-      <rect x="374" y="320" width="36" height="11" rx="5.5" fill="#7c8da8"/>
-      <rect x="374" y="331" width="36" height="11" rx="5.5" fill="#a3b1c6"/>
+      <path d="M214 160 Q226 150 250 158 L336 220 Q342 240 330 262 L290 262 Q258 230 212 192 Q208 176 214 160 Z" fill="#3f5580"/>
+      <line x1="214" y1="152" x2="222" y2="170" stroke="#5a7099" stroke-width="24" stroke-linecap="round"/>
+      <circle cx="203" cy="116" r="26" fill="#5a7099"/>
+      <path d="M225 176 L229 238 L225 298" fill="none" stroke="#5a7099" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="205" y="300" width="42" height="11" rx="5.5" fill="#b9c6d8"/>
+      <rect x="205" y="310" width="42" height="11" rx="5.5" fill="#d3dce8"/>
       <g stroke="#5eead4" stroke-width="4" stroke-linecap="round" fill="none">
-        <line x1="440" y1="262" x2="392" y2="176"/>   <!-- torso -->
-        <line x1="392" y1="176" x2="396" y2="244"/>   <!-- upper arm -->
-        <line x1="396" y1="244" x2="392" y2="312"/>   <!-- forearm -->
-        <line x1="392" y1="176" x2="382" y2="150"/>   <!-- neck -->
+        <line x1="225" y1="176" x2="229" y2="238"/>
+        <line x1="229" y1="238" x2="225" y2="298"/>
+        <line x1="225" y1="176" x2="305" y2="236" opacity="0.55"/>
+        <line x1="225" y1="176" x2="213" y2="140"/>
       </g>
-      <circle cx="375" cy="130" r="22" fill="none" stroke="#5eead4" stroke-width="3" opacity="0.8"/>
-      <!-- elbow angle arc, on the inside of the arm -->
-      <path d="M394.7 222 A22 22 0 0 0 394.7 266" fill="none" stroke="#facc15" stroke-width="2.5"/>
-      <text x="366" y="262" text-anchor="end" class="mono" font-size="15" fill="#facc15">172°</text>
-      <!-- landmarks -->
-      <g fill="#0e1628" stroke="#fff" stroke-width="2.5">
-        <circle cx="392" cy="176" r="6"/>
-        <circle cx="396" cy="244" r="6"/>
-        <circle cx="392" cy="312" r="6"/>
-        <circle cx="440" cy="262" r="6"/>
-      </g>
+      <circle cx="203" cy="116" r="26" fill="none" stroke="#5eead4" stroke-width="3" opacity="0.8"/>
+      <path d="M227.5 216 A22 22 0 0 0 227.5 260" fill="none" stroke="#facc15" stroke-width="2.5"/>
+      <text x="196" y="250" text-anchor="end" class="mono" font-size="15" fill="#facc15">172°</text>
+      <g fill="#0e1628" stroke="#fff" stroke-width="2.5"><circle cx="225" cy="176" r="6"/><circle cx="229" cy="238" r="6"/><circle cx="225" cy="298" r="6"/></g>
       <g class="mono" font-size="11" fill="#8fb3c9" text-anchor="end">
-        <text x="378" y="180">SHOULDER</text>
-        <text x="366" y="240">ELBOW</text>
-        <text x="378" y="316">WRIST</text>
+        <text x="201" y="180">SHOULDER</text>
+        <text x="196" y="228">ELBOW</text>
+        <text x="205" y="294">WRIST</text>
       </g>
     </g>
-    <g fill="#0e1628" stroke="#fff" stroke-width="2.5"><circle cx="424" cy="330" r="6"/></g>
 
     <!-- scan line -->
     <rect class="scan" x="24" y="24" width="500" height="60" fill="url(#scan)"/>
@@ -90,7 +82,7 @@
   <!-- viewfinder corners -->
   <g stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7">
     <path d="M44 70 V44 H70"/><path d="M478 44 H504 V70"/>
-    <path d="M44 370 V396 H70"/><path d="M478 396 H504 V370"/>
+    <path d="M44 386 V408 H66"/><path d="M482 408 H504 V386"/>
   </g>
   <circle class="rec" cx="62" cy="62" r="6" fill="#ff2d55"/>
   <text x="76" y="67" class="mono" font-size="13" fill="#cbd5e1">LIVE · ON-DEVICE</text>
