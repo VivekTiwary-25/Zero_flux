@@ -90,7 +90,7 @@ def run_agent(worker, cwd, prompt_text, timeout_s, env_extra=None, holder=None):
     try:
         cmd = agent_cmd(worker, prompt_text, cwd, timeout_s)
     except ValueError as e:
-        return util.Result(127, "", str(e))
+        return util.Result(127, "", "cannot start agent: %s" % e)
     kw = {}
     if util.is_windows():
         kw["creationflags"] = subprocess.CREATE_NO_WINDOW
@@ -120,7 +120,7 @@ def run_agent(worker, cwd, prompt_text, timeout_s, env_extra=None, holder=None):
 def classify(result):
     if result.code == 0:
         return None
-    if result.code == 127:
+    if result.code == 127 and "cannot start agent" in (result.err or ""):
         return "no_agent"
     text = (result.out or "") + "\n" + (result.err or "")
     for name, pattern in PATTERNS:
