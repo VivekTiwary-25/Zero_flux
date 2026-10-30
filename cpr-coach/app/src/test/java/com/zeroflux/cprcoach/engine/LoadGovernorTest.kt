@@ -13,21 +13,21 @@ class LoadGovernorTest {
 
     @Test fun emptyWindowDoesNotCrashOrMove() {
         val g = LoadGovernor()
-        assertEquals(66L, g.update(0, null, 0))
-        assertEquals(66L, g.update(10_000, null, 1))
+        assertEquals(60L, g.update(0, null, 0))
+        assertEquals(60L, g.update(10_000, null, 1))
     }
 
     @Test fun highLatencyStepsDownThenStops() {
         val g = LoadGovernor()
         feed(g, 0, 60, 300)
         assertEquals(2, g.step)
-        assertEquals(100L, g.gapMs)
+        assertEquals(90L, g.gapMs)
     }
 
     @Test fun thermalModerateStepsDownImmediately() {
         val g = LoadGovernor()
-        assertEquals(83L, g.update(0, null, 2))
-        assertEquals(100L, g.update(1, null, 3))
+        assertEquals(75L, g.update(0, null, 2))
+        assertEquals(90L, g.update(1, null, 3))
     }
 
     @Test fun stepsUpSlowlyAfterCoolingNotEverySecond() {
@@ -54,5 +54,15 @@ class LoadGovernorTest {
         val g = LoadGovernor(1)
         feed(g, 0, 120, 120)
         assertEquals(1, g.step)
+    }
+
+    @Test
+    fun `every step stays above the rate estimator's minimum on a 30 fps camera`() {
+        val cameraFrameMs = 1000.0 / 30
+        for (gap in LoadGovernor.GAPS_MS) {
+            val framesWaited = kotlin.math.ceil(gap / cameraFrameMs)
+            val perSecond = 1000.0 / (framesWaited * cameraFrameMs)
+            assertTrue("gap $gap gives $perSecond a second", perSecond >= 10.0)
+        }
     }
 }

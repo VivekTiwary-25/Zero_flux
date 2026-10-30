@@ -57,7 +57,7 @@ internal object PractiseReplay {
     }
 
     internal fun readRows(file: File): List<ReplayRow> = file.bufferedReader().use { reader ->
-        require(reader.readLine()?.removePrefix("\uFEFF") == "t_ms,wrist_signal,elbow_deg,min_vis,latency_ms") {
+        require(reader.readLine()?.removePrefix("\uFEFF")?.startsWith("t_ms,wrist_signal,elbow_deg,min_vis,latency_ms") == true) {
             "Expected a session CSV header"
         }
         val rows = ArrayList<ReplayRow>()
