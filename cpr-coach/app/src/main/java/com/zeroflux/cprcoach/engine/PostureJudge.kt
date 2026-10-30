@@ -8,7 +8,7 @@ import kotlin.math.hypot
  * Order: (1) joints seen well enough, else null; (2) view side-on, else NOT_SIDE_ON or null;
  * (3) only then elbow angle and shoulder-over-wrist, each a median over about one second,
  * needing about a second sustained to fire and about a second of good to clear.
- * Pure Kotlin, one thread. Thresholds marked GUESS were not measured on any labelled data.
+ * Pure Kotlin, one thread. Frames should come through [LandmarkGuard] first. Thresholds marked GUESS were not measured.
  */
 class PostureJudge {
     private class Timed(val t: Long, val v: Double)
@@ -163,14 +163,24 @@ class PostureJudge {
         const val SUSTAIN_MS = 1_000L
 
         /**
-         * Recordings 10-12 (controlled test, side_on ~100%): straight pushing reads 161-178 in 3 s medians,
-         * the deliberately bent block (team-unconfirmed, -12 at 18-29 s) 127-153. The gap between is null.
+         * Measured on the LandmarkGuard-filtered frames of recordings 10-15; 14 and 15 are labelled from saved
+         * camera pictures (not a person's labels). Straight pushing reads 1 s medians 165-178 (14, 15, 10, 11),
+         * the first bent block of 15 124-144, the second only 144-166 (median 151): a mild bend. Recording 12 before
+         * 15 s (team: straight, must stay quiet) dips to 144-150 in 5% of its windows, so BENT_BELOW cannot sit
+         * above 145 without flagging it; the second bent block of 15 is therefore mostly not flagged. A lower
+         * percentile or a 2-3 s window did not separate the two (12 early p25 145 vs 15 bent-2 p25 148).
+         * Between the two thresholds the answer is null.
          */
-        const val BENT_BELOW_DEGREES = 140.0
-        const val STRAIGHT_FROM_DEGREES = 150.0
+        const val BENT_BELOW_DEGREES = 145.0
+        const val STRAIGHT_FROM_DEGREES = 153.0
 
-        /** UNMEASURED GUESS: no lean was ever labelled. Recordings sit at |offset| 0.0-0.25 of arm length. Left wide. */
-        const val LEAN_ENTER = 0.45
-        const val LEAN_EXIT = 0.35
+        /**
+         * Measured on the same frames, 1 s median of |offset|: straight 15 0.01-0.25, 14 0.12-0.30 (99%), 10 0.14-0.24;
+         * lean block of 15 (team's account, arms diagonal in the pictures) 0.29-0.35. 11 (0.06-0.39) and 12 before
+         * 15 s (0.31-0.46) overlap the lean block: no threshold fires on 15 and stays quiet on them. Chosen to
+         * stay quiet on the picture-labelled straights of 14 and 15; 12's early part will read as leaning.
+         */
+        const val LEAN_ENTER = 0.28
+        const val LEAN_EXIT = 0.24
     }
 }

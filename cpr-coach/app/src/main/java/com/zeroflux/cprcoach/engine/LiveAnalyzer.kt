@@ -43,6 +43,7 @@ class LiveAnalyzer(
     private val lostAfterMs: Long = 500,
     private val elbows: ElbowGate = ElbowGate(),
     private val judge: PostureJudge = PostureJudge(),
+    private val guard: LandmarkGuard = LandmarkGuard(),
     private val movingOnRms: Double = MOVING_ON_RMS,
     private val movingOffRms: Double = MOVING_OFF_RMS,
 ) {
@@ -61,6 +62,8 @@ class LiveAnalyzer(
 
     /** Call for every pose result. With arm landmarks the posture judge decides on elbows; without, the old gate does. */
     fun addFrame(frame: PoseFrame) {
+        // An implausible arm (MediaPipe's wrist flip) is dropped entirely: neither rate nor posture sees it.
+        if (!guard.check(frame).accepted) return
         val sample = frame.sample
         val arm = frame.arm
         addFrame(sample, arm != null)
@@ -172,6 +175,7 @@ class LiveAnalyzer(
         rate.reset()
         elbows.reset()
         judge.reset()
+        guard.reset()
         posture = null
         postureActive = false
         elbowHistory.clear()

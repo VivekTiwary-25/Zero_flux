@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.zeroflux.cprcoach.audio.AudioEngine
+import com.zeroflux.cprcoach.engine.LandmarkGuard
 import com.zeroflux.cprcoach.engine.PoseEngine
 import com.zeroflux.cprcoach.engine.PoseFrame
 import com.zeroflux.cprcoach.engine.PractiseSession
@@ -185,6 +186,8 @@ private fun PractiseCamera(
     val session = remember { PractiseSession(audio) }
     val capture = remember { PractiseCapture() }
     val overlayPose = remember { OverlayPose() }
+    // The skeleton keeps the last plausible arm instead of flickering onto a wrong wrist.
+    val overlayGuard = remember { LandmarkGuard() }
     val pushLog = remember { PushLog() }
     val beat = remember { BeatSource.of { audio.engine } }
     // Real and replayed frames both pass here, so the dots always come from detected pushes.
@@ -247,7 +250,7 @@ private fun PractiseCamera(
         val active = AtomicBoolean(true)
         if (!replaying && cameraPermission) {
             capture.open(PoseEngine(context) { frame ->
-                overlayPose.push(frame, SystemClock.uptimeMillis())
+                overlayPose.push(overlayGuard.overlayFrame(frame), SystemClock.uptimeMillis())
                 handler.post {
                     if (active.get()) feedFrame(frame)
                 }
@@ -265,7 +268,7 @@ private fun PractiseCamera(
         if (replaying) {
             try {
                 PractiseReplay.play(context, requireNotNull(replayName)) { frame ->
-                    overlayPose.push(frame, SystemClock.uptimeMillis())
+                    overlayPose.push(overlayGuard.overlayFrame(frame), SystemClock.uptimeMillis())
                     feedFrame(frame)
                 }
             } catch (cancelled: CancellationException) {

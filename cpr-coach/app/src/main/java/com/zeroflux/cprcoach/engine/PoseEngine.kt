@@ -36,6 +36,8 @@ data class PoseFrame(
     val latencyMs: Long,
     /** Width over height of the rotated image the landmarks are normalised to. */
     val aspect: Float = 4f / 3f,
+    /** True when [arm] is the right arm, null when unknown (old recordings, no person). */
+    val nearRight: Boolean? = null,
 )
 
 /** Runs MediaPipe on camera frames, on-device. Results arrive on MediaPipe's own thread. */
@@ -314,7 +316,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             sideOn = sideOn,
             worldElbowDegrees = worldElbow?.first,
         )
-        return PoseFrame(timeMs, sample, arm, latency, aspect).also { writeTrace(it, if (right) "R" else "L", sideOn, worldElbow) }
+        return PoseFrame(timeMs, sample, arm, latency, aspect, right).also { writeTrace(it, if (right) "R" else "L", sideOn, worldElbow) }
     }
 
     /** World elbow angle and shoulder-over-wrist metres for the chosen arm, or null if unavailable. */

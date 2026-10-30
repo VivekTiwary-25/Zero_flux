@@ -5,7 +5,8 @@ Run the unit tests first (they replay the judge and write app/build/posture_repl
     python tools/posture_report.py [--replay DIR] [--labels FILE]
 
 Agreement is counted on labelled segments only. 'unknown' rows are ignored. Rows with
-source=team_unconfirmed are reported separately because they are provisional.
+source=pictures (read from saved camera frames by the coding assistant) and source=team_unconfirmed
+(the recorder's account) are reported as their own groups, apart from human labels.
 A frame agrees when: straight -> good is true; bent -> ELBOWS_BENT; leaning -> SHOULDERS_NOT_OVER_HANDS.
 Null frames count as "silent" (neither agree nor disagree) and are reported on their own.
 """
@@ -72,8 +73,13 @@ def main():
     if not labels:
         print("\nNo labelled segments: no agreement can be reported (expected until a labelled capture exists).")
         return
-    for provisional, title in ((False, "HUMAN-LABELLED"), (True, "TEAM-UNCONFIRMED (provisional)")):
-        group = [l for l in labels if (l["source"] == "team_unconfirmed") == provisional]
+    groups = (
+        ("human", "HUMAN-LABELLED"),
+        ("pictures", "PICTURE-LABELLED (assistant, from saved frames)"),
+        ("team_unconfirmed", "TEAM-UNCONFIRMED (provisional)"),
+    )
+    for src, title in groups:
+        group = [l for l in labels if l["source"] == src]
         if not group:
             continue
         print("\n%s segments" % title)
