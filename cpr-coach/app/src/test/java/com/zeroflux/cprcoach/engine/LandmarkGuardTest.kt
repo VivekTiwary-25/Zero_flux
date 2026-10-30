@@ -309,4 +309,64 @@ class LandmarkGuardTest {
         assertTrue("real arm back in use, accepted $realAccepted of 240", realAccepted > 150)
         assertTrue(lastRealAccepted > t - 400)
     }
+
+    // Reviewer reproductions (docs/REVIEW_SEEN_HOLD.md): exact arm geometry, real PoseMath signals.
+    private fun realFrame(t: Long, x: Float = .30f, y: Float = (.75 + .03 * sin(2 * PI * 1.8 * t / 1000.0)).toFloat()): PoseFrame {
+        val arm = ArmLandmarks(.40f, .30f, .95f, .40f, .52f, .95f, x, y, .95f, .60f, .50f, .95f)
+        return PoseFrame(t, PoseSample(t, PoseMath.wristSignal(arm, 1f), PoseMath.elbowDegrees(arm, 1f), .95f, .95f, true), arm, 0L, 1f, false)
+    }
+
+    private fun warmedReal(analyzer: LiveAnalyzer = LiveAnalyzer()): Long {
+        for (t in 0L..9900L step 33L) {
+            analyzer.addFrame(realFrame(t))
+            analyzer.read(t)
+        }
+        val r = analyzer.read(9900)
+        assertEquals(TrackingState.BEATING, r.tracking)
+        assertNotNull(r.ratePerMinute)
+        assertNotNull(r.elbowsBent)
+        return 9900L
+    }
+
+    private fun phantomBurst(analyzer: LiveAnalyzer, t: Long) {
+        for (d in listOf(100L, 200L, 300L)) analyzer.addFrame(realFrame(t + d, .40f, .78f))
+    }
+
+    @Test
+    fun `rejected frames only keep the person seen but give no stale rate, elbows or posture`() {
+        val a = LiveAnalyzer()
+        val t = warmedReal(a)
+        phantomBurst(a, t)
+        val r = a.read(t + 750)
+        assertEquals(TrackingState.WARMING, r.tracking)
+        assertTrue(r.stale)
+        assertEquals(null, r.ratePerMinute)
+        assertEquals(null, r.elbowsBent)
+        assertEquals(null, r.elbowDegrees)
+        assertEquals(null, r.posture)
+        assertFalse(r.moving)
+        // Still within the normal timeout the reading is the fresh one.
+        val fresh = a.read(t + 400)
+        assertFalse(fresh.stale)
+        assertNotNull(fresh.ratePerMinute)
+    }
+
+    @Test
+    fun `held rate is not carried across a rejected-only gap`() {
+        val rate = RateEstimator()
+        val a = LiveAnalyzer(rate = rate)
+        val rnd = java.util.Random(7)
+        var t = 0L
+        while (t <= 9900) { a.addFrame(realFrame(t)); a.read(t); t += 33 }
+        while (t <= 14000) {
+            a.addFrame(realFrame(t, y = (.75 + .06 * (rnd.nextDouble() - .5)).toFloat()))
+            val r = a.read(t)
+            if (r.tracking == TrackingState.BEATING && r.ratePerMinute != null && !r.stale) break
+            t += 33
+        }
+        phantomBurst(a, t)
+        val r = a.read(t + 750)
+        assertEquals(null, r.ratePerMinute)
+        assertTrue(r.stale)
+    }
 }

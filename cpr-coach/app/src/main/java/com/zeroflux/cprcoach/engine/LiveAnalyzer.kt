@@ -27,6 +27,12 @@ data class LiveReading(
     val moving: Boolean = false,
     /** Null until the posture judge has something to say. */
     val posture: PostureReading? = null,
+    /**
+     * The person is in view but nothing usable has arrived for longer than the lost timeout (every frame was
+     * rejected by the plausibility guard). Tracking is WARMING with no rate, elbows or posture: not LOST, and not
+     * a pause the rescuer made.
+     */
+    val stale: Boolean = false,
 ) {
     val inRange: Boolean? get() = ratePerMinute?.let { it in TARGET_MIN..TARGET_MAX }
 
@@ -116,7 +122,14 @@ class LiveAnalyzer(
             return LiveReading(nowMs, TrackingState.LOST, null, null, null)
         }
         if (elbowHistory.isEmpty()) return LiveReading(nowMs, TrackingState.LOST, null, null, null)
+        // Person present (only rejected frames arriving) but the last usable measurement is too old to show:
+        // no number, no elbow verdict, no posture. Never a made-up current value.
+        if (nowMs - last > lostAfterMs) {
+            return LiveReading(nowMs, TrackingState.WARMING, null, null, null, false, null, stale = true)
+        }
         val elbow = medianOf(elbowHistory.map { it.second })
+        // A judge-owned elbow verdict expires with its posture, so the old badge/audio fallback cannot outlive it.
+        val elbowVerdict = if (postureActive && currentPosture(nowMs) == null) null else elbowVerdict
         val isMoving = updateMoving(nowMs)
         return when (val beat = rate.read()) {
             BeatReading.Warming -> LiveReading(nowMs, TrackingState.WARMING, null, elbow, elbowVerdict, isMoving, currentPosture(nowMs))
@@ -140,7 +153,7 @@ class LiveAnalyzer(
                 val smoothed = if (rateHistory.isEmpty()) beat.perMinute else medianOf(rateHistory.toList())
                 val shown = Math.round(smoothed).toInt()
                 heldRate = shown
-                heldRateAtMs = nowMs
+                heldRateAtMs = last
                 LiveReading(nowMs, TrackingState.BEATING, shown, elbow, elbowVerdict, isMoving, currentPosture(nowMs))
             }
         }
