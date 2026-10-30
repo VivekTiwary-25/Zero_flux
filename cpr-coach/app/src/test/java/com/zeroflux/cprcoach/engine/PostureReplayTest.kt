@@ -104,11 +104,8 @@ class PostureReplayTest {
                 file.name, good * 100, issue * 100, bent * 100, lean * 100, (1 - good - issue) * 100))
             if (file.name == "real-cph2467-12.csv") {
                 // The team-unconfirmed bent block is at about 18-29 s; normal pushing before it must not read as bent.
-                // It does read as leaning (|offset| 0.31-0.46, above the lean block of 15 at 0.29-0.35): see LEAN_ENTER.
                 val early = rows.filter { it.tS < 15.0 }
-                assertTrue("12: not bent while pushing normally before 15 s", early.none { it.reading?.issue == PostureIssue.ELBOWS_BENT })
-                println(String.format(Locale.ROOT, "posture 12 before 15 s flagged leaning: %.0f%%",
-                    100.0 * early.count { it.reading?.issue == PostureIssue.SHOULDERS_NOT_OVER_HANDS } / early.size))
+                assertTrue("12: quiet while pushing normally before 15 s", early.none { it.reading?.issue != null })
                 val bentBlock = rows.filter { it.tS in 21.0..30.0 }
                 val bentShare = bentBlock.count { it.reading?.issue == PostureIssue.ELBOWS_BENT } / bentBlock.size.toDouble()
                 println(String.format(Locale.ROOT, "posture 12 bent block 21-30 s flagged bent: %.0f%%", bentShare * 100))
@@ -136,8 +133,8 @@ class PostureReplayTest {
                 println(String.format(Locale.ROOT, "posture 15: bent block 38.2-43.4 s bent %.0f%%, bent block 54-61.5 s bent %.0f%% (called good %.0f%%), lean block 65-69.5 s lean %.0f%% first at %s s",
                     bent1 * 100, bent2 * 100, bent2Good * 100, lean * 100, leanFirst?.let { String.format(Locale.ROOT, "%.1f", it) } ?: "never"))
                 assertTrue("15: first bent block flagged bent for most of it", bent1 > 0.5)
-                // The second bend is mild (elbow 144-166, median 151). Flagging it would also flag 12 before 15 s, so
-                // BENT_BELOW stays under it. What must hold: it is not called good.
+                // The second bend is mild (elbow 144-166, median 151): only the personal baseline (178) lifts the threshold to it.
+                assertTrue("15: second bent block flagged bent for at least half of it", bent2 >= 0.5)
                 assertTrue("15: second bent block is not called good", bent2Good < 0.1)
                 assertTrue("15: lean block flagged for a clear share", lean > 0.25)
                 assertTrue("15: lean fires within 3.5 s of the lean block (measured 2.8 s: 1 s median plus 1 s sustain)", leanFirst != null && leanFirst - 65.0 <= 3.5)

@@ -56,6 +56,21 @@ class PostureJudgeTest {
         return out
     }
 
+    @Test
+    fun `a personal baseline makes a mild bend count that the fixed threshold ignores`() {
+        // 8 s of straight arms at 178, then a mild bend at 147 that is above the fixed 145.
+        val scenario = { t: Double -> Pose(elbow = if (t < 8.0) 178.0 else 147.0) }
+        val withBaseline = PostureJudge()
+        val after = run(14.0, withBaseline, scenario).filter { it.first > 11_000 }
+        assertTrue(withBaseline.baseline != null)
+        assertTrue("flagged bent with a baseline", after.all { it.second.issue == PostureIssue.ELBOWS_BENT })
+        // The same bend with no straight start has no baseline and stays unflagged.
+        val fresh = PostureJudge()
+        val noBase = run(8.0, fresh) { Pose(elbow = 147.0) }
+        assertTrue(fresh.baseline == null)
+        assertTrue("not flagged without a baseline", noBase.none { it.second.issue == PostureIssue.ELBOWS_BENT })
+    }
+
     private val rng = Random(7)
 
     /** Compression: about 1.83 Hz (110/min); the elbow angle swings by [amp] degrees around [base]. */
