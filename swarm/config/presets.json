@@ -128,5 +128,17 @@
     "usage_match": "",
     "kinds": [],
     "enabled": true
+  },
+  "muse": {
+    "name": "muse",
+    "harness": "omp",
+    "model": "opencode-go/muse-spark-1.3-contributor",
+    "profile": null,
+    "usage_provider": "opencode-go",
+    "usage_match": "",
+    "kinds": [
+      "routine"
+    ],
+    "enabled": true
   }
 }

@@ -3,18 +3,6 @@
   "os": "linux",
   "workers": [
     {
-      "name": "argon",
-      "harness": "omp",
-      "model": "opencode-go/gemini-4-argon",
-      "profile": null,
-      "usage_provider": "opencode-go",
-      "usage_match": "",
-      "kinds": [
-        "hard"
-      ],
-      "enabled": false
-    },
-    {
       "name": "flash",
       "harness": "omp",
       "model": "opencode-go/deepseek-v4.1-flash",
@@ -27,28 +15,40 @@
       "enabled": true
     },
     {
-      "name": "haiku",
+      "name": "muse",
       "harness": "omp",
-      "model": "opencode-go/claude-haiku-5-5",
+      "model": "opencode-go/muse-spark-1.3-contributor",
       "profile": null,
       "usage_provider": "opencode-go",
       "usage_match": "",
       "kinds": [
         "routine"
       ],
-      "enabled": false
+      "enabled": true
     },
     {
-      "name": "dspro",
+      "name": "codex-luna",
       "harness": "omp",
-      "model": "opencode-go/deepseek-v4-pro",
+      "model": "openai-codex/gpt-6-luna",
       "profile": null,
-      "usage_provider": "opencode-go",
+      "usage_provider": "openai-codex",
+      "usage_match": "",
+      "kinds": [
+        "routine"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "codex-sol",
+      "harness": "omp",
+      "model": "openai-codex/gpt-6.1-sol",
+      "profile": null,
+      "usage_provider": "openai-codex",
       "usage_match": "",
       "kinds": [
         "hard"
       ],
-      "enabled": false
+      "enabled": true
     }
   ]
 }
