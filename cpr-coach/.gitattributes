@@ -1,0 +1,7 @@
+# sherpa-onnx can abort the process on a tokens.txt with CRLF, so git must never touch assets.
+app/src/main/assets/** -text
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.task binary
+*.aar binary
