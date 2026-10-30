@@ -12,8 +12,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +25,9 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
@@ -98,15 +103,23 @@ private fun FramingOverlay(ready: Boolean, hintKey: String?, showStart: Boolean,
     ) {
         KneelingGuide(ready, Modifier.weight(1f).fillMaxSize())
         Column(
-            Modifier.weight(1f).background(CoachColors.CameraScrim, RoundedCornerShape(24.dp)).padding(24.dp),
+            Modifier.weight(1f).fillMaxHeight()
+                .background(CoachColors.CameraScrim, RoundedCornerShape(24.dp)).padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         ) {
-            hintKey?.let {
-                Text(strings.get(it), color = CoachColors.TextPrimary, fontSize = 24.sp, textAlign = TextAlign.Center)
-            }
-            if (ready) {
-                Text(strings.get("frame_ready"), color = CoachColors.Teal, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            // Measure Start first; only the hints yield space and scroll on short screens.
+            Column(
+                Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                hintKey?.let {
+                    Text(strings.get(it), color = CoachColors.TextPrimary, fontSize = 24.sp, textAlign = TextAlign.Center)
+                }
+                if (ready) {
+                    Text(strings.get("frame_ready"), color = CoachColors.Teal, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                }
             }
             if (showStart) {
                 // ClayButton has no enabled parameter. A disabled, non-clickable counterpart
@@ -195,6 +208,7 @@ private fun cameraStatusKey(tracking: TrackingState, isPaused: Boolean): String?
     TrackingState.WARMING, TrackingState.BEATING -> if (isPaused) "live_paused" else null
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, onStop: () -> Unit) {
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -211,15 +225,14 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
             )
             TimeLeftRing(state.secondsLeft, state.totalSeconds)
         }
-        Row(
+        FlowRow(
             Modifier.fillMaxWidth().padding(end = 72.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            itemVerticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Box(Modifier.weight(1f)) {
-                if (!state.isPaused && state.tracking == TrackingState.BEATING) {
-                    ElbowIndicator(state.elbowsBent)
-                }
+            if (!state.isPaused && state.tracking == TrackingState.BEATING) {
+                ElbowIndicator(state.elbowsBent)
             }
             LiveControls(state.isPaused, onPauseToggle, onStop)
         }
