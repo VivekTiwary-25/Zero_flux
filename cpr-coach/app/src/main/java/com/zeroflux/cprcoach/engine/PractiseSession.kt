@@ -52,7 +52,7 @@ class PractiseSession(
                 latestFraming = framing.update(frame.arm, frame.timeMs)
                 _ui.value = CameraUiState.Framing(latestFraming.ready, latestFraming.hintKey)
             }
-            Phase.LIVE -> if (!isPaused) analyzer.addFrame(frame.sample)
+            Phase.LIVE -> if (!isPaused) analyzer.addFrame(frame)
             Phase.COUNTDOWN, Phase.DONE -> Unit
         }
     }
@@ -123,6 +123,7 @@ class PractiseSession(
             totalSeconds = totalSeconds,
             isPaused = isPaused,
             detecting = reading.moving && reading.ratePerMinute == null && !isPaused,
+            posture = reading.posture,
         )
     }
 

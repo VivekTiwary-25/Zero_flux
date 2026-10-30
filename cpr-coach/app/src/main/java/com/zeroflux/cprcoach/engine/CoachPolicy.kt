@@ -79,7 +79,9 @@ class CoachPolicy(
         val wanted = ArrayList<Phrase>(3)
         if (rate < LiveReading.TARGET_MIN) wanted.add(Phrase.PUSH_FASTER)
         if (rate > LiveReading.TARGET_MAX) wanted.add(Phrase.SLOW_DOWN)
-        if (reading.elbowsBent == true) wanted.add(Phrase.ELBOWS_STRAIGHT)
+        // Posture names the issue; SHOULDERS_NOT_OVER_HANDS and NOT_SIDE_ON stay silent in voice until clips exist.
+        val elbowsBent = reading.posture?.let { it.issue == PostureIssue.ELBOWS_BENT } ?: (reading.elbowsBent == true)
+        if (elbowsBent) wanted.add(Phrase.ELBOWS_STRAIGHT)
         if (wanted.isEmpty() && (lastSpokenMs?.let { now - it >= praiseEveryMs } ?: true)) wanted.add(Phrase.GOOD)
         return wanted.firstOrNull { it != lastPhrase }
     }

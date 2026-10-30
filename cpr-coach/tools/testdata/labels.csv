@@ -1,0 +1,9 @@
+# Human labels for tools/posture_report.py. Only add a row from something known independently of the
+# elbow numbers (a labelled capture, a video, the person who recorded it said so). NEVER derive a
+# label from elbow_deg / the judge's own output: that is circular and makes the agreement figure meaningless.
+# t is seconds from the first row of the recording. label: straight | bent | leaning | unknown.
+# source: human (real label) | team_unconfirmed (recorder's account, not checked against video; provisional,
+# reported separately) | none (nobody knows).
+# Recordings real-cph2467-1..9 and the others have no labels at all and are not listed.
+file,start_s,end_s,label,source
+real-cph2467-12.csv,18,29,bent,team_unconfirmed

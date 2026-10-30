@@ -42,6 +42,7 @@ class LiveAnalyzer(
     private val minVisibility: Float = 0.5f,
     private val lostAfterMs: Long = 500,
     private val elbows: ElbowGate = ElbowGate(),
+    private val judge: PostureJudge = PostureJudge(),
     private val movingOnRms: Double = MOVING_ON_RMS,
     private val movingOffRms: Double = MOVING_OFF_RMS,
 ) {
@@ -52,11 +53,34 @@ class LiveAnalyzer(
     private var lastRatedFrameMs: Long? = null
     private var moving = false
     private var elbowVerdict: Boolean? = null
+    private var posture: PostureReading? = null
+    private var postureAtMs = 0L
+    private var postureActive = false
     private var heldRate: Int? = null
     private var heldRateAtMs = 0L
 
+    /** Call for every pose result. With arm landmarks the posture judge decides on elbows; without, the old gate does. */
+    fun addFrame(frame: PoseFrame) {
+        val sample = frame.sample
+        val arm = frame.arm
+        addFrame(sample, arm != null)
+        if (sample == null || arm == null) return
+        if (lastGoodMs != sample.timeMs) return // sample was rejected as unseen or non-finite
+        val reading = judge.update(sample, arm, frame.aspect)
+        posture = reading
+        postureAtMs = sample.timeMs
+        postureActive = true
+        elbowVerdict = when {
+            reading.issue == PostureIssue.ELBOWS_BENT -> true
+            reading.good == true -> false
+            else -> null
+        }
+    }
+
     /** Call for every camera frame the pose model ran on. Pass null when it found no person. */
-    fun addFrame(sample: PoseSample?) {
+    fun addFrame(sample: PoseSample?) = addFrame(sample, false)
+
+    private fun addFrame(sample: PoseSample?, judged: Boolean) {
         if (sample == null || !(sample.minVisibility >= minVisibility)) return
         // A NaN or infinite reading counts as not visible, so it can't poison the windows.
         if (!sample.wristSignal.isFinite() || !sample.elbowDegrees.isFinite()) return
@@ -68,7 +92,7 @@ class LiveAnalyzer(
         val degrees = sample.elbowDegrees.coerceIn(0.0, 180.0)
         elbowHistory.addLast(sample.timeMs to degrees)
         while (sample.timeMs - elbowHistory.first().first > ELBOW_WINDOW_MS) elbowHistory.removeFirst()
-        elbowVerdict = elbows.update(sample.timeMs, degrees, sample.elbowVisibility, sample.sideOn)
+        if (!judged) elbowVerdict = elbows.update(sample.timeMs, degrees, sample.elbowVisibility, sample.sideOn)
         wristHistory.addLast(sample.timeMs to sample.wristSignal)
         while (sample.timeMs - wristHistory.first().first > MOVING_WINDOW_MS) wristHistory.removeFirst()
     }
@@ -83,16 +107,16 @@ class LiveAnalyzer(
         val elbow = medianOf(elbowHistory.map { it.second })
         val isMoving = updateMoving(nowMs)
         return when (val beat = rate.read()) {
-            BeatReading.Warming -> LiveReading(nowMs, TrackingState.WARMING, null, elbow, elbowVerdict, isMoving)
+            BeatReading.Warming -> LiveReading(nowMs, TrackingState.WARMING, null, elbow, elbowVerdict, isMoving, currentPosture(nowMs))
             BeatReading.NoBeat -> {
                 rateHistory.clear()
                 val held = heldRate
                 // A dropout in the middle of pushing: the rate was measured a moment ago, so keep it briefly.
                 if (isMoving && held != null && nowMs - heldRateAtMs in 0..HOLD_RATE_MS) {
-                    LiveReading(nowMs, TrackingState.BEATING, held, elbow, elbowVerdict, true)
+                    LiveReading(nowMs, TrackingState.BEATING, held, elbow, elbowVerdict, true, currentPosture(nowMs))
                 } else {
                     heldRate = null
-                    LiveReading(nowMs, TrackingState.PAUSED, null, elbow, elbowVerdict, isMoving)
+                    LiveReading(nowMs, TrackingState.PAUSED, null, elbow, elbowVerdict, isMoving, currentPosture(nowMs))
                 }
             }
             is BeatReading.Beat -> {
@@ -105,7 +129,7 @@ class LiveAnalyzer(
                 val shown = Math.round(smoothed).toInt()
                 heldRate = shown
                 heldRateAtMs = nowMs
-                LiveReading(nowMs, TrackingState.BEATING, shown, elbow, elbowVerdict, isMoving)
+                LiveReading(nowMs, TrackingState.BEATING, shown, elbow, elbowVerdict, isMoving, currentPosture(nowMs))
             }
         }
     }
@@ -140,9 +164,16 @@ class LiveAnalyzer(
         return moving
     }
 
+    /** Posture is dropped when the judge has not been fed for a moment, so a stale verdict never lingers. */
+    private fun currentPosture(nowMs: Long): PostureReading? =
+        if (postureActive && nowMs - postureAtMs in 0..POSTURE_STALE_MS) posture else null
+
     private fun clearSignals() {
         rate.reset()
         elbows.reset()
+        judge.reset()
+        posture = null
+        postureActive = false
         elbowHistory.clear()
         wristHistory.clear()
         rateHistory.clear()
@@ -162,6 +193,8 @@ class LiveAnalyzer(
         private const val RATE_SMOOTHING = 5
 
         /** How long a rate measured a moment ago may keep showing across a dropout, while still moving. */
+        /** Posture older than this is not shown (the judge is only fed frames with the arm well seen). */
+        const val POSTURE_STALE_MS = 500L
         const val HOLD_RATE_MS = 2_000L
         const val MOVING_WINDOW_MS = 500L
         const val MOVING_MIN_FRAMES = 3
