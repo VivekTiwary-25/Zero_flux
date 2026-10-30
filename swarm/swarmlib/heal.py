@@ -1,4 +1,5 @@
 """Self-healing ladder, run before any alert is raised."""
+# Auto-update check, 30 Oct.
 import os
 import shutil
 import socket
