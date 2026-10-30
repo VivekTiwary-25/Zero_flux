@@ -21,19 +21,23 @@ import kotlinx.coroutines.flow.StateFlow
 class MetronomeService : Service() {
 
     private var activeLanguage: String? = null
+    private var ownedEngine: AudioEngine? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val languageCode = intent?.getStringExtra(EXTRA_LANGUAGE)?.takeIf { it.isNotBlank() } ?: "en"
+        // Even a queued stop must acknowledge startForegroundService before stopping.
+        if (!enterForeground(languageCode)) {
+            stopPlayback()
+            return START_NOT_STICKY
+        }
         if (stopRequested) {
             stopPlayback()
             return START_NOT_STICKY
         }
-        val languageCode = intent?.getStringExtra(EXTRA_LANGUAGE).orEmpty()
-        if (!enterForeground(languageCode) || stopRequested) {
-            stopPlayback()
-            return START_NOT_STICKY
-        }
+        // A newer start supersedes a stop command that was still queued.
+        if (intent?.action == ACTION_STOP) return START_NOT_STICKY
         try {
             ensureEngine(languageCode)
         } catch (e: Exception) {
@@ -70,7 +74,7 @@ class MetronomeService : Service() {
     }
 
     private fun ensureEngine(languageCode: String) {
-        val existing = _engine.value
+        val existing = ownedEngine
         if (existing != null) {
             if (languageCode != activeLanguage) {
                 existing.setLanguage(languageCode)
@@ -93,14 +97,15 @@ class MetronomeService : Service() {
             throw e
         }
         activeLanguage = languageCode
+        ownedEngine = created
         _engine.value = created
     }
 
     private fun releaseEngine() {
-        val current = _engine.value
-        _engine.value = null
+        val current = ownedEngine ?: return
+        ownedEngine = null
+        _engine.compareAndSet(current, null)
         activeLanguage = null
-        if (current == null) return
         try {
             current.release()
         } catch (e: Exception) {
@@ -142,6 +147,7 @@ class MetronomeService : Service() {
     companion object {
         private const val TAG = "MetronomeService"
         private const val EXTRA_LANGUAGE = "language"
+        private const val ACTION_STOP = "com.zeroflux.cprcoach.audio.STOP_METRONOME"
         private const val CHANNEL_ID = "cpr_metronome"
         private const val NOTIFICATION_ID = 1
         private const val METRONOME_BPM = 110
@@ -168,9 +174,11 @@ class MetronomeService : Service() {
         fun stop(context: Context) {
             stopRequested = true
             try {
-                context.stopService(Intent(context, MetronomeService::class.java))
+                // Queue the stop behind any pending foreground start, rather than destroying
+                // the service before it has had a chance to promote itself.
+                context.startService(Intent(context, MetronomeService::class.java).setAction(ACTION_STOP))
             } catch (e: Exception) {
-                Log.w(TAG, "stopService failed", e)
+                Log.w(TAG, "stop command failed", e)
             }
         }
     }

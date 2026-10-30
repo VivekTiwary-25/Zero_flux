@@ -117,12 +117,17 @@ class HandsFreeController(
             session?.cancel()
             session = null
             mutableState.value = MicState.OFF
-            // Cancellation alone cannot interrupt AudioRecord's blocking native read.
-            val recorder = activeRecorder
+            stopMicrophone()
+        }
+    }
+
+    private fun stopMicrophone(expected: AudioRecord? = null) {
+        synchronized(lock) {
+            val input = activeRecorder ?: return
+            if (expected != null && input !== expected) return
             activeRecorder = null
-            if (recorder != null) {
-                cleanup("stop microphone") { recorder.stop() }
-            }
+            // Cancellation alone cannot interrupt AudioRecord's blocking native read.
+            cleanup("stop microphone") { input.stop() }
         }
     }
 
@@ -133,6 +138,7 @@ class HandsFreeController(
         val segments = Channel<FloatArray>(Channel.UNLIMITED)
         var recognition: Job? = null
         var watchdog: Job? = null
+        val transcriptDeadline = AtomicLong(Long.MAX_VALUE)
         try {
             currentCoroutineContext().ensureActive()
             check(hasMicrophonePermission()) { "Microphone permission denied" }
@@ -187,7 +193,9 @@ class HandsFreeController(
                     if (text.isNotBlank()) {
                         withContext(Dispatchers.Main.immediate) {
                             synchronized(lock) {
-                                if (session === owner && owner.isActive) onTranscript?.invoke(text)
+                                if (session === owner && owner.isActive &&
+                                    SystemClock.elapsedRealtime() < transcriptDeadline.get()
+                                ) onTranscript?.invoke(text)
                             }
                         }
                     }
@@ -199,28 +207,37 @@ class HandsFreeController(
                     while (isActive) {
                         if (!hasMicrophonePermission()) {
                             Log.w(TAG, "Microphone permission revoked")
-                            break
+                            stopSession(owner)
+                            return@launch
                         }
                         val remaining = silenceTimeoutMs - (SystemClock.elapsedRealtime() - lastSpeechAt.get())
                         if (remaining <= 0) {
-                            Log.i(TAG, "Auto-muted after VAD silence")
-                            break
+                            synchronized(lock) {
+                                if (session !== owner || !owner.isActive) return@launch
+                                transcriptDeadline.set(SystemClock.elapsedRealtime() + TRANSCRIPT_DRAIN_TIMEOUT_MS)
+                                stopMicrophone(input)
+                            }
+                            Log.i(TAG, "Auto-muted after VAD silence; draining transcripts")
+                            delay(TRANSCRIPT_DRAIN_TIMEOUT_MS)
+                            stopSession(owner)
+                            return@launch
                         }
                         delay(remaining)
                     }
                 } finally {
-                    // Also unblocks the reader if decoding fails or the caller cancels scope.
-                    stopSession(owner)
+                    // Cancellation/errors must unblock read, without cancelling a graceful drain.
+                    stopMicrophone(input)
                 }
             }
             val pcm = ShortArray(silero.windowSize)
             val window = FloatArray(silero.windowSize)
             var filled = 0
-            while (currentCoroutineContext().isActive) {
+            while (currentCoroutineContext().isActive && transcriptDeadline.get() == Long.MAX_VALUE) {
                 check(hasMicrophonePermission()) { "Microphone permission revoked" }
                 val count = input.read(pcm, filled, pcm.size - filled, AudioRecord.READ_BLOCKING)
                 currentCoroutineContext().ensureActive()
                 check(hasMicrophonePermission()) { "Microphone permission revoked" }
+                if (count <= 0 && transcriptDeadline.get() != Long.MAX_VALUE) break
                 check(count > 0) { "Microphone read failed: $count" }
                 filled += count
                 if (filled != pcm.size) continue
@@ -236,6 +253,16 @@ class HandsFreeController(
                 }
                 filled = 0
             }
+            currentCoroutineContext().ensureActive()
+            // The bundled sherpa VAD can emit speech not yet ended by a silence window.
+            detector.flush()
+            while (!detector.empty()) {
+                val samples = detector.front().samples
+                detector.pop()
+                check(segments.trySend(samples).isSuccess) { "Transcription worker stopped" }
+            }
+            segments.close()
+            recognition.join()
         } finally {
             watchdog?.cancel()
             recognition?.cancel()
@@ -270,5 +297,6 @@ class HandsFreeController(
         const val TAG = "CPR_MIC"
         // Required input format for the bundled Silero model and speech recognizers.
         const val SAMPLE_RATE = 16_000
+        const val TRANSCRIPT_DRAIN_TIMEOUT_MS = 3_000L
     }
 }
