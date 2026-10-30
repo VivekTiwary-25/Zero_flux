@@ -82,5 +82,11 @@
     "key": "em_continue",
     "text": "मदद आने तक छाती दबाते रहें।",
     "sha256": "a88115b4053d4a357f7fe7e1518826d5ed329d01881694742e136a2b62d20755"
+  },
+  {
+    "code": "hi",
+    "key": "shoulders_over_hands",
+    "text": "अपने कंधे हाथों के ठीक ऊपर लाएँ।",
+    "sha256": "c81fe47d72aef975fc0b4bcdc7084a97811f28b0169312e54286a46fe642deb7"
   }
 ]

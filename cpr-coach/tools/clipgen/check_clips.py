@@ -41,6 +41,7 @@ KEY_ORDER = (
     "em_swap",
     "em_aed",
     "em_continue",
+    "shoulders_over_hands",
 )
 
 # Flag when character error rate is above this value (3/10). Equal is not a flag.

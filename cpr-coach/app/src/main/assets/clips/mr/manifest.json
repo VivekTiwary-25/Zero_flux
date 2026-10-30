@@ -82,5 +82,11 @@
     "key": "em_continue",
     "text": "मदत येईपर्यंत छाती दाबत राहा.",
     "sha256": "c32f492b57789a80b12ed35075b914782a7a8c7974ae8e25bd64f4f476ef4781"
+  },
+  {
+    "code": "mr",
+    "key": "shoulders_over_hands",
+    "text": "खांदे हातांच्या अगदी वर ठेवा",
+    "sha256": "1663ae38d6e987d51372a7094fe7f160c31de7dd8f2884d692ec27223c537784"
   }
 ]

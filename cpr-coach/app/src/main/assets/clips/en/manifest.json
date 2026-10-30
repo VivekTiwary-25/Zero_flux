@@ -76,5 +76,11 @@
     "key": "em_continue",
     "text": "Keep pushing the chest until help arrives.",
     "sha256": "9e0628daebeb474e0a7b1eb5fe16390aa9cfc74fb7ffbb2f1d598eb039169ab1"
+  },
+  {
+    "code": "en",
+    "key": "shoulders_over_hands",
+    "text": "Shoulders straight over your hands.",
+    "sha256": "9e01dac73a9c2bc90948d65a75c1f9299b638041f86fbf769257616d82b68eb7"
   }
 ]

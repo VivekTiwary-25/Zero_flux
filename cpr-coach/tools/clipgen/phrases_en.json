@@ -11,5 +11,6 @@
   "em_push": "Push the chest hard and fast, in time with the beat.",
   "em_swap": "If someone else can push the chest, swap now.",
   "em_aed": "If an A E D is nearby, ask someone to bring it.",
-  "em_continue": "Keep pushing the chest until help arrives."
+  "em_continue": "Keep pushing the chest until help arrives.",
+  "shoulders_over_hands": "Shoulders straight over your hands."
 }

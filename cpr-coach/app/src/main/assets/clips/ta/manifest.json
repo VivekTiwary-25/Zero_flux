@@ -82,5 +82,11 @@
     "key": "em_continue",
     "text": "உதவி வரும் வரை மார்பைத் தொடர்ந்து அழுத்துங்கள்.",
     "sha256": "96b9de8f27ce23708b33ddc231b74e53cbb994bef9816d004ee083f0b0b238e7"
+  },
+  {
+    "code": "ta",
+    "key": "shoulders_over_hands",
+    "text": "தோள்களை கைகளுக்கு நேர் மேலே வையுங்கள்",
+    "sha256": "20d90c696cc37ec388b71f3a81a55b84a90ddc525048232d75233c7a8d7a8fd8"
   }
 ]

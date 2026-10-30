@@ -82,5 +82,11 @@
     "key": "em_continue",
     "text": "সাহায্য না আসা পর্যন্ত বুক চাপতে থাকুন।",
     "sha256": "c027c7483373a24345590b1a8e94b790c421da9a1475e29d197d76358b82a947"
+  },
+  {
+    "code": "bn",
+    "key": "shoulders_over_hands",
+    "text": "কাঁধ হাতের ঠিক উপরে রাখুন",
+    "sha256": "d7e1564a3f89dd6f5fb0709ea16b93b57b63eff58263013140fa1e2f82f263ea"
   }
 ]

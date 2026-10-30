@@ -82,5 +82,11 @@
     "key": "em_continue",
     "text": "મદદ આવે ત્યાં સુધી છાતી દબાવતા રહો.",
     "sha256": "43ce66b831bae5cfdd5b8d33f1e60b9b87f319098d15b16332e98bafbed39928"
+  },
+  {
+    "code": "gu",
+    "key": "shoulders_over_hands",
+    "text": "ખભા હાથની બરાબર ઉપર રાખો",
+    "sha256": "d86519b7ce0c8e8cab7b254d8ffe2b5342d7b2d4095aa4b7f9c88130a896b13d"
   }
 ]

@@ -82,5 +82,11 @@
     "key": "em_continue",
     "text": "ಸಹಾಯ ಬರುವವರೆಗೂ ಎದೆಯನ್ನು ಒತ್ತುತ್ತಿರಿ.",
     "sha256": "e19aef843afb64d0abd326e66533cd62b89aa044cf4481c37a1ee6e1f80f3f45"
+  },
+  {
+    "code": "kn",
+    "key": "shoulders_over_hands",
+    "text": "ಭುಜಗಳನ್ನು ಕೈಗಳ ಮೇಲೆ ಇಡಿ.",
+    "sha256": "af288dfc9229dfcdb4b8a2206611bf0abd46538b05ce3a280bb9076e5cf721ea"
   }
 ]
