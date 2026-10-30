@@ -49,8 +49,8 @@ def download(name: str) -> Path:
     with urllib.request.urlopen(URLS[name], timeout=60) as response, open(partial, "wb") as out:
         while chunk := response.read(1 << 20):
             out.write(chunk)
-    head = partial.read_bytes()[:2]
-    if partial.stat().st_size < 1_000_000 or head != b"PK":  # .task files are zip archives
+    head = partial.read_bytes()[:8]
+    if partial.stat().st_size < 1_000_000 or b"PK" not in head:  # .task files are zip archives, sometimes with padding first
         partial.unlink()
         raise SystemExit(f"{name}: download is not a model file (size or format wrong)")
     partial.replace(target)
