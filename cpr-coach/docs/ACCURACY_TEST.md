@@ -29,3 +29,13 @@ python cpr-coach/tools/analyze_trace.py <csv> --count N --seconds S
 Replace `<csv>`, `N`, and `S` with the trace path, compression count, and actual elapsed seconds; do not use the target pace as the count or time. The analyzer reports the human rate and the difference between the app rate and human rate when a usable beat is present. If there is no usable beat, retain that outcome rather than substituting an app rate.
 
 Enter the measurements in `docs/MEASUREMENTS.md`, using one row per run in its table: date, app phone, run/target label (include the surface used), human count, actual seconds, human rate, app rate, difference, FPS, and latency. Copy the analyzer's reported values; leave unavailable values unavailable. Do not record a target pace as a measured result, and do not claim an accuracy result before the three runs are measured.
+
+## Tools for reading a recording
+
+Pull the traces as above. The recording now has extra columns: beside the time, wrist signal, elbow angle, minimum visibility and latency, it carries the frame gap, thermal status and battery temperature, the tracked side, and each joint's coordinates and visibility. Give the comparison tool one session's CSV, that run's hand count and its measured stopwatch seconds:
+
+```sh
+python cpr-coach/tools/compare_signals.py <csv> --count N --seconds S
+```
+
+It needs NumPy. It reports each signal the file can supply, names any it cannot build, and compares the confident windows with the hand count; leave an unavailable signal unavailable rather than substituting another. Apply the rule in `docs/RATE_NEXT_STEPS.md` to judge a confident beat and to choose between signals; do not choose by eye or from one window. Set up and film the run as `docs/FILMING.md` describes, so the video and the hand count cover the same interval as the trace.
