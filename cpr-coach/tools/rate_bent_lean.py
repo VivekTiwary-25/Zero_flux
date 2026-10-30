@@ -8,6 +8,8 @@ Coordinates/visibility are rounded to Kotlin Float before guard calculations.
 Stored elbow_deg is used only for the finite-value gate; posture is not replayed.
 Guard.reset deliberately retains nearRight and counters, and LiveAnalyzer clears
 signals without clearing lastGood/lastSeen/lastRatedFrame, as the source does.
+The baseline follows reference adf940947fbca2fe083615955ac1a70111551624,
+including stale accepted-frame suppression and accepted-frame-dated rate holds.
 NumPy reductions may differ from Kotlin's sequential sums at floating-point eps.
 """
 from __future__ import annotations
@@ -35,6 +37,7 @@ class Config:
     still_window_ms: int = 1500
     recent_cycles: int = 4
     detrend_half: int = 15
+    global_clip: float = 0.0
     signed_sqrt: bool = False
     diagnostic_all_gates: bool = False
 
@@ -252,14 +255,29 @@ def estimate(times, values, config=Config(), *, scalar=False):
     if c.signed_sqrt:
         # Experimental only: preserve the amplitude gate's original units.
         x = [math.copysign(math.sqrt(abs(v)), v) for v in x] if scalar else np.sign(x) * np.sqrt(abs(x))
+    global_x = x
+    if c.global_clip > 0:
+        # Limit transition residuals only in period selection. Stop detection
+        # still sees the original amplitudes and recent waveform.
+        if scalar:
+            magnitudes = sorted(abs(v) for v in x)
+            mid = len(magnitudes) // 2
+            median_abs = (magnitudes[mid] if len(magnitudes) % 2 else
+                          (magnitudes[mid - 1] + magnitudes[mid]) / 2)
+            bound = c.global_clip * median_abs
+            global_x = [max(-bound, min(bound, v)) for v in x]
+        else:
+            bound = c.global_clip * float(np.median(np.abs(x)))
+            global_x = np.clip(x, -bound, bound)
+        d['global_clip_bound'] = bound
     r = [0.] * (min(31, n - 1) + 1)
     for lag in range(9, len(r)):
         if scalar:
-            cross = sum(x[i] * x[i + lag] for i in range(n - lag))
-            a = sum(x[i] * x[i] for i in range(n - lag))
-            b = sum(x[i + lag] * x[i + lag] for i in range(n - lag))
+            cross = sum(global_x[i] * global_x[i + lag] for i in range(n - lag))
+            a = sum(global_x[i] * global_x[i] for i in range(n - lag))
+            b = sum(global_x[i + lag] * global_x[i + lag] for i in range(n - lag))
         else:
-            aa, bb = x[:-lag], x[lag:]
+            aa, bb = global_x[:-lag], global_x[lag:]
             cross, a, b = float(aa @ bb), float(aa @ aa), float(bb @ bb)
         den = math.sqrt(a * b)
         r[lag] = cross / den if den > 1e-9 else 0.
@@ -375,6 +393,9 @@ class Analyzer:
             return base
         if not self.wrists:
             return base
+        if now - last > 500:
+            base['tracking'] = 'WARMING'
+            return base
         recent = [r for r in self.wrists if r[0] > now - 500]
         rms = None
         if len(recent) >= 3:
@@ -404,7 +425,7 @@ class Analyzer:
                 self.history.append(d['raw_rate'])
             smoothed = float(np.median(self.history)) if self.history else d['raw_rate']
             self.held = math.floor(smoothed + .5)
-            self.held_at = now
+            self.held_at = last
             base.update(tracking='BEATING', shown_rate=self.held)
         return base
 
@@ -463,7 +484,7 @@ def main():
     parser.add_argument('--data-dir', type=Path, required=True)
     for name in ('window_ms', 'min_data_ms', 'still_window_ms', 'recent_cycles', 'detrend_half'):
         parser.add_argument('--' + name.replace('_', '-'), type=int, default=getattr(Config(), name))
-    for name in ('min_amplitude', 'min_correlation', 'min_recent_correlation', 'edge_min_correlation', 'octave_preference'):
+    for name in ('min_amplitude', 'min_correlation', 'min_recent_correlation', 'edge_min_correlation', 'octave_preference', 'global_clip'):
         parser.add_argument('--' + name.replace('_', '-'), type=float, default=getattr(Config(), name))
     parser.add_argument('--diagnostic-all-gates', action='store_true', help='Evaluate later gates despite stillness; first rejection remains authoritative')
     parser.add_argument('--signed-sqrt', action='store_true',
@@ -473,12 +494,13 @@ def main():
                         help='Apply the offline diagnostic wrist mask to alternate only')
     args = parser.parse_args()
     alternate = Config(**{key: getattr(args, key) for key in asdict(Config())})
-    report = dict(assumptions=__doc__, baseline_config=asdict(Config()), alternate_config=asdict(alternate), recordings={})
+    baseline = Config(diagnostic_all_gates=args.diagnostic_all_gates)
+    report = dict(assumptions=__doc__, baseline_config=asdict(baseline), alternate_config=asdict(alternate), recordings={})
     names = [f'real-cph2467-{i}.csv' for i in range(1, 16)] + ['negative-cph2467-nobody.csv']
     for name in names:
         frames = load(args.data_dir / name)
         result = {}
-        for variant, config in (('baseline', Config()), ('alternate', alternate)):
+        for variant, config in (('baseline', baseline), ('alternate', alternate)):
             source = phantom_sensitivity(frames) if variant == 'alternate' and args.phantom_sensitivity else frames
             records = replay(source, config)
             entry = dict(summary=summarize(records),

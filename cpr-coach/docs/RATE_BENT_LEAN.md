@@ -1,315 +1,365 @@
 # Rate loss with bent arms and leaning
 
-## Finding
+## Result
 
 This is mainly a periodicity failure, not weak wrist motion.
-Bent and lean verdicts do not veto rate estimation.
-`moving=true` only means that the wrist moved around a fitted line over 500 ms.
-It does not mean that the movement repeated at a stable compression period.
-`LiveAnalyzer` maps `RateEstimator.NoBeat` to `PAUSED` after its two-second moving-only rate hold expires.
+Bent-arm and lean verdicts do not veto rate estimation.
+`moving=true` measures motion over 500 ms. It does not establish a repeating beat.
 
-Reference: `cpr-coach` revision `e50a11a985738d4c6aa90849b13b6b0f9dac63a2`.
-No app code was changed.
+The proposal below shows a rate at every replay tick in the three reported outages.
+These are 39.5–43.5, 57.5–59 and 64–69.5 seconds in recording 15.
+Shown ticks rise from 7/47 to 47/47. Fresh estimator rates rise from 3/47 to 44/47.
+Nobody stays at zero. Recording 14's pause goes from one false rate to zero.
+This is replay evidence, not verified rate accuracy or a shipping recommendation.
+The full second bent label still has five blank ticks at 55–56 seconds.
+The unknown future phantom-frame filter is not validated by this proposal.
 
-## Replay method
+Reference: `cpr-coach` revision `adf940947fbca2fe083615955ac1a70111551624`.
+App code was not changed. The Kotlin diff below is unapplied.
+This report replaces the earlier partial 3.5-second-history proposal.
 
-Run the supplied NumPy tool against the extracted reference data:
+## Replay and verification
+
+Run from the task checkout. Python 3 and NumPy are required.
 
 ```sh
 python3 cpr-coach/tools/rate_bent_lean.py \
-  --data-dir ../ref-t261031-0410-6138/cpr-coach/tools/testdata \
-  --window-ms 3500 --diagnostic-all-gates
+  --data-dir ../ref-t261031-0346-9d11/cpr-coach/tools/testdata \
+  --detrend-half 7 --still-window-ms 750 --recent-cycles 2 \
+  --min-recent-correlation 0.25 --global-clip 0.75 \
+  --diagnostic-all-gates --records
 ```
 
-The replay feeds every original frame before each 250 ms read.
-Ticks start at the first CSV timestamp and end at the last available tick.
-All times below are seconds from the first row.
-Window endpoints are inclusive.
-Thus 57.5–59.0 contains seven read ticks, not seven compressions.
+The command emits baseline and proposal JSON for recordings 1–15 and nobody.
+Add `--phantom-sensitivity` to apply the diagnostic mask to the proposal only.
+Both CLI commands were run across all 16 files.
+Assertions checked the three outage counts and both negative controls.
 
-The port includes the current `LandmarkGuard`, visibility and finite-value checks, accepted-frame gap resets, interpolation, detrending, lag selection, recent correlation, movement hysteresis, five-value rate median, and display hold.
-Coordinates, aspect and visibility are rounded to Kotlin Float first.
-The aspect is 4:3, as in the existing coordinate replay tests.
-The CSV does not store aspect, so this cannot verify the live camera aspect.
-The stored double `wrist_signal` is retained.
-The stored elbow angle is only used for the finite-value gate.
-Posture verdicts are not replayed because they cannot change rate or movement.
-Recorded side changes reset the guard reference.
+Every source frame is fed before each 250 ms read.
+Ticks run from the first CSV timestamp through the last available tick.
+Times in this report are seconds from the first row. Endpoints are inclusive.
+Thus 57.5–59 contains seven reads, not seven compressions.
+The replay includes the guard, visibility, finite checks, accepted-frame gap resets,
+interpolation, detrending, lag choice, recent correlation, movement hysteresis,
+five-value median, stale suppression and display hold.
 
-An independently written scalar estimator agreed with the vector replay on all 2,802 tracked baseline reads across recordings 1–15 and nobody.
-There were zero first-rejection mismatches.
-The largest candidate-rate difference was 1.14e-13/min.
-This checks estimator numerics, not independent correctness of every guard decision.
-An independent source review found no baseline guard or analyzer state-machine mismatch.
-The actual CLI was also run across all 16 CSVs.
-Kotlin, Gradle, Android and the phone UI were not run.
+The previous port omitted stale accepted-frame suppression and dated holds from the
+read tick instead of the last accepted frame. Both are corrected here.
+This lowers some baseline all-recording display counts from the earlier report.
+It does not change recording 15's baseline window counts.
+Coordinates, visibility and aspect are rounded to Kotlin Float first.
+The recorded double `wrist_signal` is retained. Recorded side changes reach the guard.
+Aspect is assumed to be 4:3, as in existing coordinate replay tests.
+The CSV does not store aspect, so actual camera geometry cannot be verified.
+Posture is omitted because it cannot change rate or movement.
 
-## Current gates
+A separate source review found no remaining baseline rate-path mismatch.
+Scalar DSP loops and vector DSP agreed on all 2,793 evaluated reads for each variant.
+State, first rejection and chosen integer lag all agreed.
+Maximum candidate-rate differences were 1.14e-13/min before and 1.56e-13/min after.
+This checks numerical agreement, not an independent implementation of every gate.
+The proposed diff passed `patch --dry-run -p2` in the reference app directory.
+Kotlin compilation, Gradle, Android and phone UI were not run.
 
-`PoseMath.wristSignal` stores `(hipY - wristY) / torsoLength`.
-Torso length uses aspect-scaled X and image Y.
-The estimator retains six seconds of accepted frames.
-It needs at least three seconds and integer density of at least six frames/s.
-It interpolates at 30 Hz and subtracts a centered 31-sample mean.
-Its last-1.5-second detrended RMS must be at least 0.015 torso lengths.
+## Why it pauses
 
-The lag search is 10–30 samples.
-It picks the shortest local peak reaching 60% of the strongest positive peak.
-The chosen peak needs global correlation 0.35, or 0.7 near a search edge.
-Recent correlation must reach 0.4.
-That test pools matches at one, two, three and four periods when history permits.
-Older mismatched cycles can therefore reject a currently moving wrist.
+[`RateEstimator.kt`](../app/src/main/java/com/zeroflux/cprcoach/engine/RateEstimator.kt)
+retains six seconds of accepted samples.
+It requires three seconds of history and integer density of at least six frames/s.
+It interpolates at 30 Hz and removes a centered 31-sample mean.
+Recent 1.5-second RMS must reach 0.015 torso lengths.
+It selects a local autocorrelation peak at lags 10–30 samples.
+The shortest peak reaching 60% of the strongest positive peak wins.
+Global correlation must reach .35, or .7 at lags <=13 or >=27.
+Recent correlation must reach .4. It pools up to four preceding cycles.
 
-The historical `RATE_*.md` files do not all describe this revision.
-Some quote eight frames/s or recent correlation 0.5.
-`compare_signals.py` is a signal diagnostic, not this app replay.
-The earlier four-second-window and one-cycle-recent proposals are rechecked below.
+[`LiveAnalyzer.kt`](../app/src/main/java/com/zeroflux/cprcoach/engine/LiveAnalyzer.kt)
+uses a separate 500 ms line-detrended RMS for movement.
+Its movement thresholds are .03 on and .02 off.
+On `NoBeat`, it can hold the last measured rate for two seconds while moving.
+When that hold fails or expires, the state becomes `PAUSED` even if moving is true.
+A visible but stale accepted sample is `WARMING`, with no number.
 
-## Measured windows
+Older `RATE_*.md` studies use different thresholds or estimator-only replay.
+In particular, `compare_signals.py` is not a faithful analyzer replay.
+The four-second-window and adjacent-cycle proposals are not established fixes here.
 
-These are baseline medians over read ticks after the existing guard.
-RMS is recent detrended RMS in torso lengths.
-ACF is the selected global peak.
-Recent is the pooled recent-cycle correlation.
-C and R count first rejections at the global and recent correlation gates.
+## Measured baseline windows
+
+RMS, ACF and Recent are medians over read ticks after the current guard.
+RMS is in torso lengths. ACF is the selected global peak.
+Recent is the pooled recent-cycle correlation at that lag.
+C / R counts first rejection at the global / recent correlation gate.
+Guard counts are rejected frames delivered during the window's read ticks.
 No listed window has an amplitude or density first rejection.
-Shown includes held values; raw means an estimator-accepted rate.
 
-| Recording 15 window | Ticks | RMS | ACF | Recent | C / R | Raw / shown / held |
-|---|---:|---:|---:|---:|---:|---:|
-| Straight 3.5–32 | 115 | .0646 | .9058 | .8842 | 1 / 4 | 110 / 112 / 2 |
-| Straight 44–53.4 | 38 | .0640 | .8470 | .8246 | 0 / 0 | 38 / 38 / 0 |
-| Bent 38.2–43.4 | 21 | .0632 | .2564 | .0796 | 19 / 2 | 0 / 7 / 7 |
-| Bent 54–61.5 | 31 | .0723 | .4478 | .2609 | 7 / 11 | 13 / 13 / 0 |
-| Lean 65–69.5 | 19 | .0801 | .1827 | .1246 | 18 / 1 | 0 / 0 / 0 |
-| Reported outage 39.5–43.5 | 17 | .0627 | .2541 | .0796 | 16 / 0 | 1 / 3 / 2 |
-| Reported outage 57.5–59 | 7 | .0806 | .2709 | .1846 | 5 / 2 | 0 / 0 / 0 |
-| Reported outage 64–69.5 | 23 | .0806 | .1917 | .1462 | 18 / 3 | 2 / 4 / 2 |
+| Recording 15 window | Ticks | RMS | ACF | Recent | C / R | Guard rejects |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Straight 3.5–32 | 115 | 0.0646 | 0.9058 | 0.8842 | 1 / 4 | 0 |
+| Straight 44–53.4 | 38 | 0.0640 | 0.8470 | 0.8246 | 0 / 0 | 4 |
+| Bent 38.2–43.4 | 21 | 0.0632 | 0.2564 | 0.0796 | 19 / 2 | 0 |
+| Bent 54–61.5 | 31 | 0.0723 | 0.4478 | 0.2609 | 7 / 11 | 52 |
+| Lean 65–69.5 | 19 | 0.0801 | 0.1827 | 0.1246 | 18 / 1 | 12 |
+| Outage 39.5–43.5 | 17 | 0.0627 | 0.2541 | 0.0796 | 16 / 0 | 0 |
+| Outage 57.5–59 | 7 | 0.0806 | 0.2709 | 0.1846 | 5 / 2 | 8 |
+| Outage 64–69.5 | 23 | 0.0806 | 0.1917 | 0.1462 | 18 / 3 | 21 |
 
-The replay need not reproduce the exact original display boundaries.
-The current guard, 250 ms polling and existing holds explain the few rated boundary ticks inside the reported outages.
-They do not invalidate the reported missing-rate problem.
+### Motion and transition history
 
-### First bent block
+| Raw frame window | Signal SD | Signal range | Consecutive-difference SD | Wrist jumps >.035 |
+|---|---:|---:|---:|---:|
+| Straight 3.5–32 | .06368 | .25620 | .03503 | 2 |
+| Straight 44–53.4 | .06822 | .33940 | .03776 | 5 |
+| Bent 38.2–43.4 | .06377 | .25322 | .03661 | 0 |
+| Bent 54–61.5 | .08811 | .36728 | .07796 | 57 |
+| Lean 65–69.5 | .10496 | .46861 | .06835 | 15 |
 
-Raw `wrist_signal` SD is .06377, versus .06368 and .06822 in the straight blocks.
-Its raw range is .25322, versus .25620 and .33940.
-Recent RMS during the outage never drops below .05236, well above .015.
-No frames are guard-rejected inside 38.2–43.4.
+These raw statistics use only frames inside each window.
+Jumps are unscaled image-plane wrist distances between consecutive in-window frames.
+They are not compression counts or confirmed phantom counts.
 
-The transition at 37–38 s is different.
-Raw signal spans -1.21546 to +.47982 there.
-Some disturbed samples survive the current guard and remain in the six-second window.
-They distort detrending and correlation long after the wrist settles.
-At 41 s the guarded RMS is .05236 but global ACF is only .222.
-This is not a reason to lower the amplitude floor.
+The first bent block has normal amplitude and no guard rejects.
+The preceding 37–38-second transition spans -1.21546 to +.47982 in raw wrist signal.
+Fourteen accepted transition samples span -.66437 to -.26326.
+Disturbed accepted history stays in the six-second correlation window.
+At 41 seconds RMS is .05236, but ACF is only .222 and Recent is .080.
+Lowering the amplitude floor cannot fix that rejection.
 
-### Second bent block and phantom wrists
+Lean has more raw motion than either straight block.
+At 66 seconds RMS is .08418, ACF is .150 and Recent is -.064.
+At 68 seconds Recent recovers to .442, but ACF remains .182.
+Both old transition influence and local waveform changes matter.
 
-Raw signal SD rises to .08811.
-Consecutive-sample difference SD rises to .07796, versus .03503 and .03776 in the straight blocks.
-There are 57 consecutive wrist relocations exceeding .035 image-height units, versus 2 and 6 in the straight blocks.
-These counts use unscaled image-plane Euclidean distance.
+### Phantom wrists
 
-The phantom is mainly a horizontal relocation under the elbow.
-It is not an elbow/wrist vertical inversion.
-Throughout 54–61.5, wrist Y remains below elbow Y by .0710–.1589 image heights.
-At 57.956–58.017, the wrist moves .0564 while the elbow moves only .0090 in 61 ms.
-Wrist visibility remains high in both clusters, with medians about .985.
-Visibility cannot identify the correct wrist.
+The second bent block has rapid horizontal wrist relocations.
+The wrist remains below the elbow by .0710–.1589 image heights.
+This is not simply an inverted elbow/wrist Y order.
+Let A be shoulder-to-elbow length, F elbow-to-wrist length, and H be horizontal
+wrist-to-elbow distance divided by A. Use unscaled image coordinates here.
+The H<.20 cluster has 61 frames and median F/A=.704.
+The H>=.30 cluster has 80 frames and median F/A=.671.
+Median wrist visibility is .9849 and .9856 respectively.
+Visibility and a short-forearm cutoff cannot reliably separate the clusters.
 
-Let A be image-plane shoulder-to-elbow length, F elbow-to-wrist length, and H horizontal wrist-to-elbow distance divided by A.
-The under-elbow cluster H<.20 has 61 frames and median F/A=.704.
-The separated cluster H>=.30 has 80 frames and median F/A=.671.
-A short-forearm threshold alone would not isolate the phantom.
-A near-straight elbow angle alone would also remove real straight-arm frames.
+The current guard rejects 52 frames in the second bent block and eight in its outage.
+The remaining signal still fails periodicity.
+Phantom removal is needed for landmark integrity. It is not, by itself, a rate fix.
 
-The existing guard rejects 52 frames during 54–61.5.
-It rejects eight in 57.5–59.
-Rate rejection still occurs on the remaining signal.
-Dropping bad frames is necessary for landmark integrity, but is not by itself evidence that rate will lock.
+## Smallest successful candidate found
 
-### Lean block
+Keep the six-second history, three-second warm-up, density gate, signal,
+.015 amplitude floor, global .35/.7 gates, lag selection and display policy.
+Change five estimator choices:
 
-Raw signal SD is .10496 and range is .46861.
-This exceeds both straight blocks.
-The existing guard rejects 12 frames in 65–69.5.
-The remaining recent RMS stays at least .07009.
-At 66 s global ACF is .150 and recent correlation is -.064 despite RMS .084.
-At 68 s recent correlation has recovered to .442, but global ACF is still only .183.
-Both the transition history and local waveform irregularity matter.
+1. Use a 15-sample trend mean instead of 31 samples. It removes faster posture drift.
+2. Limit residual magnitude only for global autocorrelation.
+   The bound is `.75 * median(abs(detrended samples))`.
+   Clip symmetrically around zero. This limits large transition residuals.
+   This is median-absolute-amplitude clipping, not median absolute deviation.
+3. Check the last 750 ms instead of 1,500 ms for amplitude and recent correlation.
+   Integer sampling gives 22 samples, about 733 ms.
+4. Pool two recent cycle offsets instead of four.
+5. Set the recent-correlation floor to .25 instead of .4.
 
-## Smallest conservative candidate
+The recent test still uses the unclipped detrended waveform.
+Clipping it too would change stop detection and fails early lean in the tested variant.
+The shorter recent check reduces old-cycle influence after a stop or posture change.
+The .25 threshold is empirical. It is not a proven universal threshold.
+At 65 seconds movement is false, so a fresh accepted rate is required there.
+The proposal supplies one; it does not bypass movement or extend the hold.
 
-Shorten only the retained history to 3.5 seconds.
-Keep the wrist signal, amplitude floor, minimum history, density, all correlation gates and display policy unchanged.
-This is a one-line candidate, not a claim of uninterrupted rate throughout every target block.
-It recovers real estimator rates in all three blocks, but it does not solve the early lean dropout.
+This is the smallest successful combination found, not proof of an absolute minimum.
+Restoring any one of these five choices fails a target or control below.
+The scratch array in the diff is sorted for the median and reused for clipped samples.
+The original samples remain available for the amplitude and recent gates.
 
 ```diff
-diff --git a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/RateEstimator.kt b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/RateEstimator.kt
 --- a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/RateEstimator.kt
 +++ b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/RateEstimator.kt
-@@ -39,3 +39,3 @@
- class RateEstimator(
--    private val windowMs: Long = 6_000,
-+    private val windowMs: Long = 3_500,
+@@ -41,8 +41,8 @@
      private val minDataMs: Long = 3_000,
+     private val minCorrelation: Double = 0.35,
+     private val minAmplitude: Double = 0.015,
+-    private val stillWindowMs: Long = 1_500,
+-    private val minRecentCorrelation: Double = 0.4,
++    private val stillWindowMs: Long = 750,
++    private val minRecentCorrelation: Double = 0.25,
+ ) {
+     private val times = ArrayDeque<Long>()
+     private val values = ArrayDeque<Double>()
+@@ -100,9 +100,9 @@
+         return out
+     }
+ 
+-    /** Removes slow drift (the holder's hand, the rescuer shifting) with a one-second moving average. */
++    /** Removes slow drift (the holder's hand, the rescuer shifting) with a half-second moving average. */
+     private fun detrend(x: DoubleArray): DoubleArray {
+-        val half = SAMPLE_HZ / 2
++        val half = SAMPLE_HZ / 4
+         val prefix = DoubleArray(x.size + 1)
+         for (i in x.indices) prefix[i + 1] = prefix[i] + x[i]
+         return DoubleArray(x.size) { i ->
+@@ -132,8 +132,8 @@
+         var a = 0.0
+         var b = 0.0
+         for (i in start until x.size) a += x[i] * x[i]
+-        // Bound the reference to four cycles to limit accumulated whole-sample lag error.
+-        val maxOffset = minOf(start, 4 * lag)
++        // Use two nearby cycles so posture transitions do not dominate the recent check.
++        val maxOffset = minOf(start, 2 * lag)
+         for (offset in lag..maxOffset step lag) {
+             for (i in start until x.size) {
+                 cross += x[i] * x[i - offset]
+@@ -145,7 +145,15 @@
+     }
+ 
+     /** Normalised autocorrelation, indexed by lag in samples. Lags outside the search range are 0. */
+-    private fun autocorrelation(x: DoubleArray): DoubleArray {
++    private fun autocorrelation(input: DoubleArray): DoubleArray {
++        // Bound large transition residuals only for global period selection.
++        // Reuse the median scratch buffer; amplitude and recent checks keep input.
++        val x = DoubleArray(input.size) { abs(input[it]) }
++        x.sort()
++        val mid = x.size / 2
++        val median = if (x.size % 2 == 1) x[mid] else (x[mid - 1] + x[mid]) / 2
++        val bound = 0.75 * median
++        for (i in x.indices) x[i] = input[i].coerceIn(-bound, bound)
+         val maxLag = minOf(MAX_LAG + 1, x.size - 1)
+         val r = DoubleArray(maxLag + 1)
+         for (lag in (MIN_LAG - 1)..maxLag) {
 ```
 
-The diff is a proposal only.
-It was not applied to app code.
+## Before and after
 
-| Recording 15 window | Raw before → after | Shown before → after | Held before → after | Median shown/min before → after |
-|---|---:|---:|---:|---:|
-| Straight 3.5–32 | 110 → 113 | 112 → 113 | 2 → 0 | 106 → 106 |
-| Straight 44–53.4 | 38 → 38 | 38 → 38 | 0 → 0 | 110 → 107.5 |
-| Bent 38.2–43.4 | 0 → 10 | 7 → 15 | 7 → 5 | 91 → 107 |
-| Bent 54–61.5 | 13 → 17 | 13 → 23 | 0 → 6 | 111 → 113 |
-| Lean 65–69.5 | 0 → 4 | 0 → 5 | 0 → 1 | none → 117 |
-| Outage 39.5–43.5 | 1 → 9 | 3 → 11 | 2 → 2 | 91 → 108 |
-| Outage 57.5–59 | 0 → 5 | 0 → 7 | 0 → 2 | none → 112 |
-| Outage 64–69.5 | 2 → 6 | 4 → 9 | 2 → 3 | 113.5 → 115 |
+Raw means a fresh estimator acceptance. Shown includes the existing display hold.
+Median shown rates are per minute. Availability is not accuracy.
 
-The first outage gets fresh rates from 41.5 through 43.5, instead of only at 43.5.
-The second gets fresh rates from 58.0 through 59.0.
-Its 57.5 and 57.75 values are held at 82/min, not fresh measurements.
-The lean block gets fresh rates at 68.5, 68.75, 69.0 and 69.5.
-It is still `PAUSED` from 65.0 through 68.25.
-A moving-only hold extension would hide that failure, not measure a rate.
+| Recording 15 window | Ticks | Raw before → after | Shown before → after | Held before → after | Median shown before → after |
+|---|---:|---:|---:|---:|---:|
+| Straight 3.5–32 | 115 | 110 → 112 | 112 → 114 | 2 → 2 | 106 → 107 |
+| Straight 44–53.4 | 38 | 38 → 38 | 38 → 38 | 0 → 0 | 110 → 111 |
+| Bent 38.2–43.4 | 21 | 0 → 16 | 7 → 21 | 7 → 5 | 91 → 104 |
+| Bent 54–61.5 | 31 | 13 → 24 | 13 → 26 | 0 → 2 | 111 → 111 |
+| Lean 65–69.5 | 19 | 0 → 18 | 0 → 19 | 0 → 1 | none → 114 |
+| Outage 39.5–43.5 | 17 | 1 → 15 | 3 → 17 | 2 → 2 | 91 → 107 |
+| Outage 57.5–59 | 7 | 0 → 7 | 0 → 7 | 0 → 0 | none → 110 |
+| Outage 64–69.5 | 23 | 2 → 22 | 4 → 23 | 2 → 1 | 113.5 → 114 |
 
-## All recordings and controls
+The first outage holds 93/min at 39.5 and 39.75 seconds.
+It has fresh rates at every read from 40 through 43.5 seconds.
+Those fresh estimates range from 102.95 to 113.05/min.
+The second outage has seven fresh rates, ranging from 106.97 to 115.25/min.
+The lean outage holds 116/min only at 65.25 seconds.
+Its other 22 reads are fresh rates, ranging from 111.70 to 119.41/min.
+The full second bent label still has no rate at 55, 55.25, 55.5, 55.75 and 56 seconds.
+Do not describe the result as uninterrupted lock throughout every labelled segment.
 
-Counts are rate-display ticks and fresh estimator-rate ticks.
-They are availability, not compression counts or accuracy.
-No independent compression-count labels exist.
+## All recordings and negative controls
 
-| Recording | All ticks | Shown 6 s → 3.5 s | Raw 6 s → 3.5 s |
+All rows use the same configuration. No recording-specific signal rules are used.
+
+| Recording | Ticks | Shown before → after | Raw before → after |
 |---|---:|---:|---:|
 | 1 | 75 | 0 → 0 | 0 → 0 |
-| 2 | 159 | 11 → 15 | 11 → 13 |
-| 3 | 437 | 72 → 156 | 39 → 72 |
-| 4 | 176 | 43 → 52 | 34 → 46 |
-| 5 | 274 | 168 → 172 | 161 → 164 |
-| 6 | 177 | 100 → 125 | 71 → 105 |
-| 7 | 216 | 113 → 148 | 76 → 105 |
-| 8 | 55 | 20 → 24 | 20 → 22 |
-| 9 | 221 | 111 → 133 | 84 → 117 |
-| 10 | 198 | 87 → 99 | 80 → 90 |
-| 11 | 130 | 73 → 83 | 57 → 63 |
-| 12 | 210 | 87 → 99 | 58 → 67 |
-| 13 | 178 | 110 → 120 | 75 → 95 |
-| 14 | 253 | 81 → 80 | 81 → 80 |
-| 15 | 286 | 197 → 225 | 182 → 210 |
+| 2 | 159 | 11 → 42 | 11 → 34 |
+| 3 | 437 | 69 → 204 | 39 → 138 |
+| 4 | 176 | 43 → 71 | 34 → 63 |
+| 5 | 274 | 168 → 182 | 161 → 177 |
+| 6 | 177 | 99 → 131 | 71 → 122 |
+| 7 | 216 | 109 → 146 | 76 → 120 |
+| 8 | 55 | 20 → 27 | 20 → 27 |
+| 9 | 221 | 110 → 155 | 84 → 138 |
+| 10 | 198 | 87 → 94 | 80 → 91 |
+| 11 | 130 | 72 → 93 | 57 → 86 |
+| 12 | 210 | 85 → 116 | 58 → 94 |
+| 13 | 178 | 108 → 114 | 75 → 87 |
+| 14 | 253 | 81 → 84 | 81 → 82 |
+| 15 | 286 | 197 → 259 | 182 → 247 |
 | Nobody | 288 | 0 → 0 | 0 → 0 |
 
-Recordings 1–15 total 1,273 → 1,531 displayed ticks and 1,029 → 1,249 fresh-rate ticks.
-Held ticks total 244 → 282.
-Recording 14's pause at 24.7–33.5 has 36 ticks.
-The baseline already reports one fresh rate, 108/min at 25.0 s.
-The 3.5-second candidate reports none, including no held rate.
-Its maximum selected recent correlation in that pause is .38154, below .4.
-Nobody remains zero across all 288 ticks.
-Only eight nobody ticks reach past warming, so this is limited negative evidence.
+Recordings 1–15 total 1,259 → 1,718 shown ticks and 1,029 → 1,506 fresh-rate ticks.
+Held ticks fall from 230 to 212.
+Recording 14's pause has 36 ticks. Baseline reports 108/min at 25 seconds.
+The proposal reports zero fresh and zero held rates throughout 24.7–33.5 seconds.
+Nobody has zero fresh and zero held rates across all 288 ticks.
+Only eight nobody ticks get beyond warming, so this is limited negative evidence.
+The recordings were used to select the candidate. They are not held-out validation.
+Extra availability in unlabelled recordings is not proof that those extra rates are correct.
 
-The candidate was selected on these same recordings.
-The controls are acceptance checks, not held-out specificity validation.
+## Minimality checks
+
+Cells are fresh / shown counts in the three reported outages.
+Pause and nobody columns count shown ticks; zero also means zero fresh ticks.
+Each restoration changes only the named choice from the proposal.
+
+| Variant | 39.5–43.5 /17 | 57.5–59 /7 | 64–69.5 /23 | Pause /36 | Nobody /288 |
+|---|---:|---:|---:|---:|---:|
+| Proposal | 15 / 17 | 7 / 7 | 22 / 23 | 0 | 0 |
+| Remove clipping | 11 / 13 | 7 / 7 | 22 / 23 | 0 | 0 |
+| Restore 31-sample trend | 15 / 17 | 2 / 6 | 3 / 4 | 0 | 0 |
+| Restore 1.5-second recent window | 13 / 15 | 7 / 7 | 23 / 23 | 4 | 0 |
+| Restore four cycle offsets | 11 / 13 | 6 / 6 | 22 / 23 | 1 | 0 |
+| Restore recent threshold .4 | 15 / 17 | 7 / 7 | 21 / 21 | 0 | 0 |
+| Use clip multiplier 1 instead of .75 | 15 / 17 | 7 / 7 | 22 / 23 | 1 | 0 |
+| Shorten proposal history to 3.5 seconds | 14 / 16 | 7 / 7 | 21 / 23 | 6 | 0 |
+| Baseline with only 3.5-second history | 9 / 11 | 5 / 7 | 6 / 9 | 0 | 0 |
+
+Shortening history alone is a partial improvement, not a solution to early lean.
+In the stronger proposal, shortening history also removes useful negative evidence
+against late-pause artifacts. It is not needed for the successful candidate.
+Changing only the baseline trend to 15 samples covers the lean outage, but produces
+two false pause rates at 24.75 and 25 seconds. A stronger global detector alone is unsafe.
 
 ## Phantom-drop sensitivity
 
-Run the optional counterfactual separately:
-
-```sh
-python3 cpr-coach/tools/rate_bent_lean.py \
-  --data-dir ../ref-t261031-0410-6138/cpr-coach/tools/testdata \
-  --window-ms 3500 --diagnostic-all-gates --phantom-sensitivity
-```
-
-This applies a diagnostic mask to the alternate only.
+The optional mask is an offline diagnostic, not a deployable guard.
 Define U as H<.20 and F/A<.90, and B as H>=.30.
-Find U↔B transitions within 120 ms with wrist displacement>.035 and elbow displacement<.020.
-Exclude each contiguous U run touching one of those transitions.
-The mask uses unscaled image geometry and future frames.
-It is not a causal guard proposal or ground-truth wrist annotation.
+Find U↔B transitions within 120 ms, with wrist displacement>.035 and elbow displacement<.020.
+Exclude contiguous U runs touching those transitions.
+This uses future frames. It does not establish ground-truth wrist identity.
 Masked frames update visible-person time but feed neither rate nor posture.
-The existing guard still processes the remaining frames.
 
 The mask excludes 66/1,597 frames in recording 15.
 It excludes 49/158 in the second bent block and 12/32 in its short outage.
-It excludes none in the first bent block or either straight block.
-It excludes 4/100 in the labelled lean block.
+It excludes none in either straight block or the first bent block, but four in labelled lean.
 
-| Window | Shown 6 s | Shown 6 s + mask | Shown 3.5 s | Shown 3.5 s + mask |
+| Window | Baseline raw / shown | Baseline + mask | Proposal raw / shown | Proposal + mask |
 |---|---:|---:|---:|---:|
-| Bent 38.2–43.4 | 7 | 7 | 15 | 15 |
-| Bent 54–61.5 | 13 | 10 | 23 | 23 |
-| Lean 65–69.5 | 0 | 0 | 5 | 5 |
-| Outage 39.5–43.5 | 3 | 3 | 11 | 11 |
-| Outage 57.5–59 | 0 | 0 | 7 | 7 |
-| Outage 64–69.5 | 4 | 3 | 9 | 8 |
+| Bent 38.2–43.4 | 0 / 7 | 0 / 7 | 16 / 21 | 16 / 21 |
+| Bent 54–61.5 | 13 / 13 | 10 / 10 | 24 / 26 | 24 / 26 |
+| Lean 65–69.5 | 0 / 0 | 0 / 0 | 18 / 19 | 17 / 17 |
+| Outage 39.5–43.5 | 1 / 3 | 1 / 3 | 15 / 17 | 15 / 17 |
+| Outage 57.5–59 | 0 / 0 | 0 / 0 | 7 / 7 | 7 / 7 |
+| Outage 64–69.5 | 2 / 4 | 2 / 3 | 22 / 23 | 21 / 21 |
 
-Dropping suspect wrists alone does not restore lock.
-It can reduce availability because interpolation and history change.
-The 3.5-second candidate still has zero pause and nobody rate ticks with this mask.
-The exact forthcoming landmark-drop change was not supplied, so this mask cannot validate that implementation.
+Both negative controls remain zero after the mask.
+The full mask creates blanks at 65 and 65.25 seconds by changing recent correlation.
+Restricting this sensitivity mask to the known 54–61.5-second phantom block preserves
+all three proposal outage counts: 17/17, 7/7 and 23/23 shown.
+That restriction is an experiment, not a recording-specific app rule.
+The actual forthcoming frame-drop implementation was not supplied.
+It must be replayed separately; full-mask results do not justify claiming guaranteed lock after it.
 
-## Rejected simpler alternatives
+## Limits and decision
 
-These use the same full replay, without the diagnostic mask.
-Cells count shown ticks in the three reported outages, then the pause and nobody.
+The observed problem is periodicity rejection with ample motion.
+The proposed diff meets the three reported outage-display checks and both negative checks
+on the current reference. It also supplies fresh rates throughout most of each outage.
+It is more effective than the previous one-line history change.
 
-| Change | 39.5–43.5 /17 | 57.5–59 /7 | 64–69.5 /23 | Pause /36 | Nobody /288 |
-|---|---:|---:|---:|---:|---:|
-| Baseline 6 s | 3 | 0 | 4 | 1 | 0 |
-| History 5 s | 7 | 5 | 4 | 1 | 0 |
-| History 4 s | 9 | 7 | 8 | 1 | 0 |
-| History 3.5 s | 11 | 7 | 9 | 0 | 0 |
-| History 3.25 s | 12 | 6 | 10 | 1 | 0 |
-| History 3.1 s | 12 | 5 | 10 | 4 | 0 |
-| Recent matches only adjacent cycle | 3 | 7 | 4 | 0 | 0 |
-| History 4 s + adjacent cycle | 9 | 7 | 8 | 5 | 0 |
-| Global correlation floor .20 | 6 | 0 | 4 | 1 | 0 |
-| History 4 s + global floor .20 | 11 | 7 | 9 | 1 | 0 |
+There is a low-amplitude, low-rate tradeoff.
+A throwaway 25 Hz, six-second sine replay checked 60, 80, 100, 110, 120, 140 and 170/min.
+At amplitude .08 torso lengths, both versions accept every tested rate.
+Proposal error at the final read is at most 1.13/min in that sweep.
+At amplitude .03, the proposal rejects 60 and 80/min as still; the baseline accepts them.
+At amplitude .04, it rejects 60/min while the baseline accepts it.
+The shorter detrend attenuates slow motion more strongly even though the amplitude floor is unchanged.
+This needs product evaluation before shipping. Lowering the floor is not part of this patch.
 
-The result is not monotonic in window length.
-Do not present four seconds, a lower amplitude threshold, or adjacent-cycle matching as a complete fix.
-Do not extend the display hold to claim successful rate measurement.
-
-## Stronger filtering is not a complete fix either
-
-Two compact DSP alternatives were also replayed.
-They are not part of the proposed one-line diff.
-The tool exposes them for reproduction.
-
-Use `--window-ms 3500 --detrend-half 11 --signed-sqrt` for a 23-sample trend mean and signed-square-root residuals before correlation.
-The RMS gate still runs before the transform, in the original units.
-This reduces the correlation influence of large residuals.
-It gives raw/shown counts of 12/14, 7/7 and 13/13 in the three reported outages.
-Both named controls remain zero.
-Across all 15 recordings, shown/raw/held totals become 1,694/1,472/222.
-The labelled lean block improves to nine fresh-rate ticks out of 19.
-Fresh lean rates start at 67.5 instead of 68.5.
-Every tick from 65.0 through 67.25 still has no rate.
-Three changes are not justified as a complete solution to that remaining failure.
-
-Use `--detrend-half 7` with the default six-second history for a 15-sample trend mean.
-That covers all 23 reported lean-outage ticks, but reports fresh pause rates at 24.75 and 25.0.
-Those rates are about 110/min.
-Raising its recent threshold to .6 removes both false pause rates.
-It also reduces lean coverage to 14/23 and second-bent coverage to 5/7.
-Nobody remains zero in these runs.
-This is a real sensitivity/specificity conflict, not an amplitude shortage.
-
-## Decision and limits
-
-The one-line history reduction is the smallest measured conservative improvement here.
-It produces fresh rates inside each target block and passes both named negative checks.
-It is not a demonstrated solution for continuous lock throughout the bent and lean blocks.
-In particular, early leaning remains unresolved.
-The strict requirement of a rate throughout all three outages is not met by this candidate.
-Do not ship it under that claim.
-
-Labels for recording 15 straight and bent blocks came from saved pictures, not a verified compression count.
-The lean label is the recorder's unconfirmed account.
-Fresh and held numbers are not proof of correct rate.
-The remaining decision needs correctly tracked wrists and synchronized counted compressions through the transitions.
+No independent compression-count labels establish real-rate accuracy.
+Straight and bent labels were read from saved pictures, not human-verified compression counts.
+Lean is the recorder's unconfirmed account.
+Use the diff as a measured experiment, not a clinically validated rate detector.
+Before deployment, check counted low-amplitude compressions, held-out stops and the exact
+phantom-drop implementation. Do not hide those limits with a longer display hold.
