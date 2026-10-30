@@ -82,7 +82,8 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
         }
     }
     // Home consumes back too: the app must not silently exit with a service still running.
-    BackHandler(onBack = goHome)
+    // On Home, back leaves the app as usual.
+    BackHandler(enabled = screen != Screen.HOME, onBack = goHome)
 
     CoachTheme {
         CompositionLocalProvider(LocalStrings provides strings) {
