@@ -38,6 +38,7 @@ import com.zeroflux.cprcoach.engine.PoseEngine
 import com.zeroflux.cprcoach.engine.TrackingState
 import com.zeroflux.cprcoach.ui.AppLanguage
 import com.zeroflux.cprcoach.ui.CoachColors
+import com.zeroflux.cprcoach.ui.BeatSource
 import com.zeroflux.cprcoach.ui.EmergencyScreen
 import com.zeroflux.cprcoach.ui.EmergencySummaryScreen
 import com.zeroflux.cprcoach.ui.EmergencyUiState
@@ -82,12 +83,15 @@ fun EmergencyHost(
     val playback = remember(appContext) { EmergencyPlayback(appContext) }
     val coach = remember { EmergencyCoach(startMs) }
     val engine by MetronomeService.engine.collectAsState()
+    val currentEngine by rememberUpdatedState(engine)
+    val beat = remember { BeatSource.of { currentEngine } }
     val micState by voice.state.collectAsState()
     val currentHome by rememberUpdatedState(onHome)
     val reportCameraVisible by rememberUpdatedState(onCameraVisibleChange)
     var summary by remember { mutableStateOf<HandoverSummary?>(null) }
     var word by remember { mutableStateOf(EmergencyWord.KEEP_PUSHING) }
     var needsSetup by remember { mutableStateOf(true) }
+    var posture by remember { mutableStateOf<com.zeroflux.cprcoach.engine.PostureReading?>(null) }
     var elapsedSeconds by remember { mutableIntStateOf(0) }
     var audioStarted by remember { mutableStateOf(false) }
     val analyzerBox = remember { arrayOf(LiveAnalyzer()) }
@@ -140,7 +144,7 @@ fun EmergencyHost(
             try {
                 PractiseReplay.play(context, replayName) {
                     overlayPose.push(it, android.os.SystemClock.uptimeMillis())
-                    analyzerBox[0].addFrame(it.sample)
+                    analyzerBox[0].addFrame(it)
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -175,7 +179,9 @@ fun EmergencyHost(
                 }
                 coach.update(reading)
                 word = coach.word
-                needsSetup = coach.needsSetup
+                // Not side-on means no judgement: the same hint says how to fix the view.
+                needsSetup = coach.needsSetup || coach.turnPhoneHint
+                posture = reading.posture
                 if (playback.voiceIdle) {
                     coach.nextCorrection(reading)?.let { playback.speak(it.key) }
                 }
@@ -208,18 +214,19 @@ fun EmergencyHost(
         onCall112 = { openEmergencyDialer(context) },
         onStopConfirmed = finish,
         onMicTap = { voice.toggle() },
+        beat = beat,
         camera = {
             if (audioStarted && cameraPermission && replayName == null) {
-                EmergencyCamera(overlayPose, onFrameSample = { sample ->
+                EmergencyCamera(overlayPose, onFrame = { frame ->
                     try {
-                        analyzerBox[0].addFrame(sample)
+                        analyzerBox[0].addFrame(frame)
                     } catch (error: RuntimeException) {
                         Log.e("CPR_ENGINE", "emergency frame failed; carrying on", error)
                         analyzerBox[0] = LiveAnalyzer()
                     }
                 })
             }
-            ArmOverlay(overlayPose, null, showLabels = false)
+            ArmOverlay(overlayPose, posture, showLabels = false)
             if (replayName != null) {
                 Text(
                     LocalStrings.current.get("debug_replay"),
@@ -233,11 +240,11 @@ fun EmergencyHost(
 
 /** Camera failure of any kind only means no corrections, so nothing here may reach the audio. */
 @Composable
-private fun EmergencyCamera(overlayPose: OverlayPose, onFrameSample: (com.zeroflux.cprcoach.engine.PoseSample?) -> Unit) {
+private fun EmergencyCamera(overlayPose: OverlayPose, onFrame: (com.zeroflux.cprcoach.engine.PoseFrame) -> Unit) {
     val context = LocalContext.current
     val capture = remember { EmergencyCapture() }
     val handler = remember { Handler(Looper.getMainLooper()) }
-    val currentSample by rememberUpdatedState(onFrameSample)
+    val currentFrame by rememberUpdatedState(onFrame)
     val traceDirectory = remember(context) {
         File(context.getExternalFilesDir(null) ?: context.filesDir, "traces")
     }
@@ -251,7 +258,7 @@ private fun EmergencyCamera(overlayPose: OverlayPose, onFrameSample: (com.zerofl
                     overlayPose.push(frame, android.os.SystemClock.uptimeMillis())
                     if (active.get()) {
                         handler.post {
-                            if (active.get()) currentSample(frame.sample)
+                            if (active.get()) currentFrame(frame)
                         }
                     }
                 }

@@ -37,7 +37,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.animation.core.Animatable
 import androidx.compose.runtime.getValue
+import kotlin.math.roundToInt
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -74,6 +78,8 @@ fun CameraOverlay(
     onMicTap: () -> Unit,
     modifier: Modifier = Modifier,
     showStart: Boolean = true,
+    beat: BeatSource? = null,
+    pushes: PushLog? = null,
 ) {
     Box(modifier.fillMaxSize()) {
         // Leaf composables receive only their displayed values. Glow animation frames
@@ -82,7 +88,7 @@ fun CameraOverlay(
             when (state) {
                 is CameraUiState.Framing -> FramingOverlay(state.ready, state.hintKey, showStart, onStart)
                 is CameraUiState.Countdown -> CountdownDigit(state.secondsLeft)
-                is CameraUiState.Live -> LiveOverlay(state, onPauseToggle, onStop)
+                is CameraUiState.Live -> LiveOverlay(state, onPauseToggle, onStop, beat, pushes)
             }
             // Countdown has no other chrome, but the mic remains reachable in every state.
             MicButton(
@@ -214,7 +220,13 @@ private fun cameraStatusKey(tracking: TrackingState, isPaused: Boolean): String?
 }
 
 @Composable
-private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, onStop: () -> Unit) {
+private fun LiveOverlay(
+    state: CameraUiState.Live,
+    onPauseToggle: () -> Unit,
+    onStop: () -> Unit,
+    beat: BeatSource?,
+    pushes: PushLog?,
+) {
     val strings = LocalStrings.current
     // Use the whole window, never the space left by a transient label.
     val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp
@@ -222,6 +234,8 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
     val rate = visibleCameraRate(state.tracking, state.ratePerMinute, state.isPaused)
     // Detecting is only ever shown with no rate and not paused; it replaces any other status.
     val detecting = state.detecting && !state.isPaused && rate == null
+    // Counts between two measured values; never a number when nothing is measured.
+    val shownRate = rememberSmoothRate(rate)
     val statusKey = if (detecting) "live_detecting" else cameraStatusKey(state.tracking, state.isPaused)
     val rateColor = if (rate == null) CoachColors.TextSecondary else when (state.inRange) {
         true -> CoachColors.Teal
@@ -282,8 +296,8 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
                     }
                 } else {
                     FittingText(
-                        text = if (rate == null) strings.get("live_no_rate")
-                            else strings.get("camera_numeric_value").replace("{value}", rate.toString()),
+                        text = if (shownRate == null) strings.get("live_no_rate")
+                            else strings.get("camera_numeric_value").replace("{value}", shownRate.toString()),
                         color = rateColor,
                         fontSize = rateFontSize,
                         modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -311,6 +325,13 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
                         )
                     }
                 }
+                // Fixed slot: the beat pulse and push dots never move the rate or the buttons below.
+                // While paused the beat is still shown, but no push is invented.
+                BeatIndicator(
+                    beat = beat,
+                    pushes = if (state.isPaused) null else pushes,
+                    modifier = Modifier.fillMaxWidth().height(36.dp),
+                )
             }
             TimeLeftRing(state.secondsLeft, state.totalSeconds)
         }
@@ -357,7 +378,7 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
             ) {
                 FittingText(
                     strings.get(if (state.isPaused) "live_resume" else "live_pause"),
-                    CoachColors.TextPrimary, 20.sp, Modifier.fillMaxSize(),
+                    CoachColors.TextPrimary, 20.sp, Modifier.fillMaxSize(), maxLines = 1,
                 )
             }
             TextButton(
@@ -366,10 +387,38 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
                 colors = colors,
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 4.dp),
             ) {
-                FittingText(strings.get("live_stop"), CoachColors.TextPrimary, 20.sp, Modifier.fillMaxSize())
+                FittingText(strings.get("live_stop"), CoachColors.TextPrimary, 20.sp, Modifier.fillMaxSize(), maxLines = 1)
             }
         }
     }
+}
+
+/**
+ * The rate to show: the measured [rate] itself, and when it changes from one measured value to another,
+ * a short count between them. Null in, null out; a first reading after none appears at once.
+ */
+@Composable
+private fun rememberSmoothRate(rate: Int?): Int? {
+    val anim = remember { Animatable(rate?.toFloat() ?: 0f) }
+    var armed by remember { mutableStateOf(rate != null) }
+    LaunchedEffect(rate) {
+        try {
+            when {
+                rate == null -> armed = false
+                !armed -> {
+                    anim.snapTo(rate.toFloat())
+                    armed = true
+                }
+                else -> anim.animateTo(rate.toFloat(), tween(350, easing = FastOutSlowInEasing))
+            }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            armed = false
+        }
+    }
+    val counted by remember { derivedStateOf { anim.value.roundToInt() } }
+    return if (rate == null) null else if (armed) counted else rate
 }
 
 /** Calm pulsing teal dot. Its animation is read only while drawing, so nothing recomposes per frame. */

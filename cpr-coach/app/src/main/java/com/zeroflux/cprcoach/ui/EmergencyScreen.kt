@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -80,6 +81,7 @@ fun EmergencyScreen(
     onStopConfirmed: () -> Unit,
     onMicTap: () -> Unit,
     modifier: Modifier = Modifier,
+    beat: BeatSource? = null,
     camera: @Composable () -> Unit = {},
 ) {
     val strings = LocalStrings.current
@@ -99,7 +101,7 @@ fun EmergencyScreen(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Box(Modifier.height(40.dp)) {
+                Row(Modifier.height(40.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         formatElapsed(state.elapsedSeconds),
                         modifier = Modifier
@@ -111,6 +113,13 @@ fun EmergencyScreen(
                         fontWeight = FontWeight.SemiBold,
                         style = TabularStyle,
                         maxLines = 1,
+                    )
+                    // Only a pulse on the beat: the screen stays one big word. Still and dim when the beat is off.
+                    BeatIndicator(
+                        beat = beat,
+                        pushes = null,
+                        showTrack = false,
+                        modifier = Modifier.padding(start = 12.dp).size(36.dp),
                     )
                 }
 
