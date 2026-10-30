@@ -166,8 +166,8 @@ class PostureJudge {
          * Recordings 10-12 (controlled test, side_on ~100%): straight pushing reads 161-178 in 3 s medians,
          * the deliberately bent block (team-unconfirmed, -12 at 18-29 s) 127-153. The gap between is null.
          */
-        const val BENT_BELOW_DEGREES = 150.0
-        const val STRAIGHT_FROM_DEGREES = 160.0
+        const val BENT_BELOW_DEGREES = 140.0
+        const val STRAIGHT_FROM_DEGREES = 150.0
 
         /** UNMEASURED GUESS: no lean was ever labelled. Recordings sit at |offset| 0.0-0.25 of arm length. Left wide. */
         const val LEAN_ENTER = 0.45

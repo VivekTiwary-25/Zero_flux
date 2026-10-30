@@ -2,8 +2,11 @@ package com.zeroflux.cprcoach.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.hardware.display.DisplayManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CaptureRequest
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.util.Range
 import android.util.Size
@@ -135,6 +138,7 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
                                     it.surfaceProvider = previewView.surfaceProvider
                                 }
                                 val imageAnalysis = analysisBuilder.build()
+                                previewView.display?.let { imageAnalysis.targetRotation = it.rotation }
                                 analysis = imageAnalysis
                                 useCases = arrayOf(preview, imageAnalysis)
                                 // Ownership is unchanged: onImage must close each delivered frame.
@@ -182,8 +186,26 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
         } catch (failure: Exception) {
             Log.e("CPR_CAM", "Could not initialize camera", failure)
         }
+        // The screen may still be turning to landscape when the camera binds, so frames must follow it.
+        val displays = context.getSystemService(DisplayManager::class.java)
+        val displayListener = object : DisplayManager.DisplayListener {
+            override fun onDisplayAdded(displayId: Int) = Unit
+            override fun onDisplayRemoved(displayId: Int) = Unit
+            override fun onDisplayChanged(displayId: Int) {
+                val display = previewView.display ?: return
+                if (display.displayId != displayId) return
+                try {
+                    analysis?.targetRotation = display.rotation
+                    Log.i("CPR_CAM", "Analysis rotation now ${display.rotation}")
+                } catch (failure: Exception) {
+                    Log.w("CPR_CAM", "Could not update analysis rotation", failure)
+                }
+            }
+        }
+        displays?.registerDisplayListener(displayListener, Handler(Looper.getMainLooper()))
         onDispose {
             disposed = true
+            displays?.unregisterDisplayListener(displayListener)
             try {
                 releaseUseCases()
             } catch (failure: Exception) {

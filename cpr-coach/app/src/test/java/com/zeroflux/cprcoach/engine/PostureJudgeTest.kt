@@ -92,8 +92,8 @@ class PostureJudgeTest {
         assertTrue("clear $clearDelay", clearDelay in 800..2000)
     }
 
-    @Test fun bent140IsStillCaught() {
-        val r = run(10.0) { t -> Pose(pushing(if (t >= 3.0) 140.0 else 168.0, t)) }
+    @Test fun bent130IsStillCaught() {
+        val r = run(10.0) { t -> Pose(pushing(if (t >= 3.0) 130.0 else 168.0, t)) }
         val fire = firstAt(r, 3000) { it.issue == PostureIssue.ELBOWS_BENT }
         assertTrue("fired", fire != null)
         println("synthetic bent 140: fire after ${fire!! - 3000}ms")
@@ -159,7 +159,7 @@ class PostureJudgeTest {
     }
 
     @Test fun middleAngleIsNotConfident() {
-        val r = run(8.0) { Pose(155.0) }
+        val r = run(8.0) { Pose(145.0) }
         assertTrue(r.all { it.second.good != true && it.second.issue == null })
     }
 

@@ -140,7 +140,7 @@ class PushDetector {
         const val SMOOTH_TAU_MS = 30.0
 
         /** Torso lengths. Below this swing in the wrist nothing is a push. */
-        const val MIN_PROMINENCE = 0.12
+        const val MIN_PROMINENCE = 0.09
         const val RELATIVE_PROMINENCE = 0.4
     }
 }

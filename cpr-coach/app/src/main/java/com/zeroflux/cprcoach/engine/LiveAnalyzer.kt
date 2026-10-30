@@ -200,7 +200,7 @@ class LiveAnalyzer(
         const val MOVING_MIN_FRAMES = 3
 
         /** Wrist RMS, in torso lengths. Set from the recordings: see the tests. */
-        const val MOVING_ON_RMS = 0.04
-        const val MOVING_OFF_RMS = 0.025
+        const val MOVING_ON_RMS = 0.03
+        const val MOVING_OFF_RMS = 0.02
     }
 }

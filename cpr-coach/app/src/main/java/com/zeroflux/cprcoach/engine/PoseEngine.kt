@@ -1,6 +1,8 @@
 package com.zeroflux.cprcoach.engine
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
@@ -241,14 +243,15 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             // MediaPipe drops frames when it is busy, and those never get a result.
             submitted.keys.removeAll { now - it > STALE_FRAME_MS }
             val rotation = proxy.imageInfo.rotationDegrees
-            val rotated = rotation == 90 || rotation == 270
-            val width = if (rotated) proxy.height else proxy.width
-            val height = if (rotated) proxy.width else proxy.height
-            submitted[now] = width.toFloat() / height
-            val processing = ImageProcessingOptions.builder().setRotationDegrees(rotation).build()
-            val bitmap = proxy.toBitmap()
-            detector.detectAsync(BitmapImageBuilder(bitmap).build(), processing, now)
-            frameDump?.offer(bitmap, rotation, now)
+            val raw = proxy.toBitmap()
+            // Rotate here, so landmarks and aspect always describe the same upright picture the user sees.
+            val bitmap = if (rotation == 0) raw else {
+                val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
+                Bitmap.createBitmap(raw, 0, 0, raw.width, raw.height, matrix, false)
+            }
+            submitted[now] = bitmap.width.toFloat() / bitmap.height
+            detector.detectAsync(BitmapImageBuilder(bitmap).build(), now)
+            frameDump?.offer(bitmap, 0, now)
         }
     }
 

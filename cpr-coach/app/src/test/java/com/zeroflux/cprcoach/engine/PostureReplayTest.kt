@@ -10,7 +10,8 @@ import java.util.Locale
  * Replays every recording that has joint coordinates through [PostureJudge] and writes
  * app/build/posture_replay/<file> (t_s,good,issue) for tools/posture_report.py, which adds the labels.
  *
- * Recordings carry no aspect: 0.75 reproduces the recorded elbow_deg exactly (portrait 3:4 image).
+ * Most recordings were made with a rotation bug that swapped the aspect in the stored elbow_deg. The phone was
+ * landscape, so angles are recomputed from the raw coordinates at the true 4:3.
  * Older recordings have no side_on column, so side-on is assumed true there.
  */
 class PostureReplayTest {
@@ -49,7 +50,8 @@ class PostureReplayTest {
                 elbowVisibility = arm.elbowVis,
                 sideOn = sideOn,
             )
-            rows.add(Row(tS, judge.update(sample, arm, ASPECT)))
+            val corrected = if (arm != null) sample.copy(elbowDegrees = PoseMath.elbowDegrees(arm, ASPECT)) else sample
+            rows.add(Row(tS, judge.update(corrected, arm, ASPECT)))
         }
         return rows
     }
@@ -94,6 +96,6 @@ class PostureReplayTest {
     }
 
     private companion object {
-        const val ASPECT = 0.75f
+        const val ASPECT = 4f / 3f
     }
 }
