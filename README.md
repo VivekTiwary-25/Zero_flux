@@ -139,7 +139,7 @@ flowchart LR
 
 ## 🔬 What it can and can't measure
 
-We'd rather be honest than impressive.
+We'd rather be honest than impressive
 
 | ✅ What it estimates | ❌ What it can't measure |
 |---|---|
