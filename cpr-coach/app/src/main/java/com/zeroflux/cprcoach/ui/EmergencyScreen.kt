@@ -180,18 +180,15 @@ fun EmergencyScreen(
                         autoSize = TextAutoSize.StepBased(minFontSize = 14.sp, maxFontSize = 34.sp, stepSize = 1.sp),
                     )
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                // The mic sits above the button so the label gets the whole column width.
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                     MicButton(state = micState, onTap = onMicTap)
-                    HoldToStopButton(
-                        text = strings.get("em_stop_hold"),
-                        onStopConfirmed = onStopConfirmed,
-                        modifier = Modifier.weight(1f),
-                    )
                 }
+                HoldToStopButton(
+                    text = strings.get("em_stop_hold"),
+                    onStopConfirmed = onStopConfirmed,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
@@ -206,7 +203,6 @@ fun EmergencySummaryScreen(
 ) {
     val strings = LocalStrings.current
     val dash = strings.get("live_no_rate")
-    val rate = summary.averageRate?.let { "$it ${strings.get("live_per_minute")}" } ?: dash
     val pauses = summary.pauses?.toString() ?: dash
     val measured = if (summary.measuredSeconds > 0) formatElapsed(summary.measuredSeconds) else dash
 
@@ -215,55 +211,68 @@ fun EmergencySummaryScreen(
             .fillMaxSize()
             .background(CoachColors.Navy)
             .windowInsetsPadding(WindowInsets.safeDrawing)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Box(
-            Modifier
-                .width(72.dp)
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(CoachColors.Coral),
-        )
-        Text(
-            strings.get("em_summary_title"),
-            modifier = Modifier.fillMaxWidth(),
-            color = CoachColors.TextPrimary,
-            fontSize = 34.sp,
-            lineHeight = 40.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )
-        GlassPanel(Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                SummaryRow(strings.get("em_summary_total"), formatElapsed(summary.totalSeconds))
-                SummaryRow(strings.get("em_summary_rate"), rate)
-                SummaryRow(strings.get("em_summary_pauses"), pauses)
-                Text(
-                    "${strings.get("em_summary_measured")}: $measured",
-                    color = CoachColors.TextSecondary,
-                    fontSize = 18.sp,
-                    style = TabularStyle,
-                )
+        // The facts may scroll as a last resort; the two buttons below never leave the screen.
+        Column(
+            modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(
+                Modifier
+                    .width(72.dp)
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(CoachColors.Coral),
+            )
+            BasicText(
+                strings.get("em_summary_title"),
+                modifier = Modifier.fillMaxWidth(),
+                style = TextStyle(
+                    color = CoachColors.TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 1.2f.em,
+                ),
+                maxLines = 2,
+                autoSize = TextAutoSize.StepBased(minFontSize = 18.sp, maxFontSize = 30.sp, stepSize = 1.sp),
+            )
+            GlassPanel(Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SummaryRow(strings.get("em_summary_total"), formatElapsed(summary.totalSeconds))
+                    SummaryRow(
+                        strings.get("em_summary_rate"),
+                        summary.averageRate?.toString() ?: dash,
+                        unit = if (summary.averageRate != null) strings.get("live_per_minute") else null,
+                    )
+                    SummaryRow(strings.get("em_summary_pauses"), pauses)
+                    Text(
+                        "${strings.get("em_summary_measured")}: $measured",
+                        color = CoachColors.TextSecondary,
+                        fontSize = 15.sp,
+                        lineHeight = 19.sp,
+                        style = TabularStyle,
+                    )
+                }
             }
+            Text(
+                strings.get("em_summary_note"),
+                modifier = Modifier.fillMaxWidth(),
+                color = CoachColors.TextSecondary,
+                fontSize = 13.sp,
+                lineHeight = 17.sp,
+                textAlign = TextAlign.Center,
+            )
         }
-        Text(
-            strings.get("em_summary_note"),
-            modifier = Modifier.fillMaxWidth(),
-            color = CoachColors.TextSecondary,
-            fontSize = 14.sp,
-            lineHeight = 19.sp,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(4.dp))
         ClayButton(
             onClick = onCall112,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 80.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
             color = CoachColors.Coral,
             colorDeep = CoachColors.CoralDeep,
             shape = RoundedCornerShape(28.dp),
@@ -272,20 +281,20 @@ fun EmergencySummaryScreen(
         ) {
             Text(
                 strings.get("em_call"),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 color = Color.White,
-                fontSize = 28.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             )
         }
         ClayButton(
             onClick = onHome,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
         ) {
             Text(
                 strings.get("score_home"),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 color = CoachColors.TextPrimary,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -295,18 +304,39 @@ fun EmergencySummaryScreen(
     }
 }
 
+/** Label and value share a row; the label wraps before the value ever does. */
 @Composable
-private fun SummaryRow(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(label, color = CoachColors.TextSecondary, fontSize = 16.sp, lineHeight = 20.sp)
+private fun SummaryRow(label: String, value: String, unit: String? = null) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            value,
-            color = CoachColors.TextPrimary,
-            fontSize = 40.sp,
-            lineHeight = 46.sp,
-            fontWeight = FontWeight.Bold,
-            style = TabularStyle,
+            label,
+            modifier = Modifier.weight(1f),
+            color = CoachColors.TextSecondary,
+            fontSize = 16.sp,
+            lineHeight = 20.sp,
         )
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                value,
+                color = CoachColors.TextPrimary,
+                fontSize = 30.sp,
+                lineHeight = 36.sp,
+                fontWeight = FontWeight.Bold,
+                style = TabularStyle,
+                maxLines = 1,
+                softWrap = false,
+            )
+            if (unit != null) {
+                Text(
+                    unit,
+                    modifier = Modifier.padding(bottom = 5.dp),
+                    color = CoachColors.TextSecondary,
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp,
+                    maxLines = 2,
+                )
+            }
+        }
     }
 }
 
@@ -322,7 +352,7 @@ private fun HoldToStopButton(
     val currentStop by rememberUpdatedState(onStopConfirmed)
     Box(
         modifier = modifier
-            .height(64.dp)
+            .height(56.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(CoachColors.Raised)
             .semantics {
@@ -365,14 +395,15 @@ private fun HoldToStopButton(
         )
         BasicText(
             text,
-            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 4.dp).wrapContentHeight(Alignment.CenterVertically),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp, vertical = 4.dp).wrapContentHeight(Alignment.CenterVertically),
             style = TextStyle(
                 color = CoachColors.TextPrimary,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             ),
-            maxLines = 2,
-            autoSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = 20.sp, stepSize = 1.sp),
+            maxLines = 1,
+            softWrap = false,
+            autoSize = TextAutoSize.StepBased(minFontSize = 13.sp, maxFontSize = 20.sp, stepSize = 0.5.sp),
         )
     }
 }

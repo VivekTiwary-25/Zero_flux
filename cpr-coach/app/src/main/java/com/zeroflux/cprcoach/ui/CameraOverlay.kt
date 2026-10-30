@@ -5,7 +5,12 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -24,6 +29,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -44,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
@@ -213,7 +220,9 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
     val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp
     val rateFontSize = if (screenHeight < 400) 88.sp else 104.sp
     val rate = visibleCameraRate(state.tracking, state.ratePerMinute, state.isPaused)
-    val statusKey = cameraStatusKey(state.tracking, state.isPaused)
+    // Detecting is only ever shown with no rate and not paused; it replaces any other status.
+    val detecting = state.detecting && !state.isPaused && rate == null
+    val statusKey = if (detecting) "live_detecting" else cameraStatusKey(state.tracking, state.isPaused)
     val rateColor = if (rate == null) CoachColors.TextSecondary else when (state.inRange) {
         true -> CoachColors.Teal
         false -> CoachColors.Amber
@@ -266,15 +275,22 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
                     .padding(horizontal = 24.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                FittingText(
-                    text = if (rate == null) strings.get("live_no_rate")
-                        else strings.get("camera_numeric_value").replace("{value}", rate.toString()),
-                    color = rateColor,
-                    fontSize = rateFontSize,
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    maxLines = 1,
-                    weight = FontWeight.Black,
-                )
+                if (detecting) {
+                    // Same slot as the number: the layout does not move when a rate arrives.
+                    Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        DetectingMark()
+                    }
+                } else {
+                    FittingText(
+                        text = if (rate == null) strings.get("live_no_rate")
+                            else strings.get("camera_numeric_value").replace("{value}", rate.toString()),
+                        color = rateColor,
+                        fontSize = rateFontSize,
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        maxLines = 1,
+                        weight = FontWeight.Black,
+                    )
+                }
                 // Always reserve both caption slots, including while warming or
                 // paused, so rate fitting cannot change when a caption appears.
                 Box(Modifier.fillMaxWidth().height(32.dp)) {
@@ -354,6 +370,32 @@ private fun LiveOverlay(state: CameraUiState.Live, onPauseToggle: () -> Unit, on
             }
         }
     }
+}
+
+/** Calm pulsing teal dot. Its animation is read only while drawing, so nothing recomposes per frame. */
+@Composable
+private fun DetectingMark() {
+    val motionEnabled = rememberCoachMotionEnabled()
+    if (!motionEnabled) {
+        Box(Modifier.size(40.dp).background(CoachColors.Teal.copy(alpha = 0.85f), CircleShape))
+        return
+    }
+    val pulse = rememberInfiniteTransition(label = "detectingPulse").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "detectingPulseValue",
+    )
+    Box(
+        Modifier.size(40.dp)
+            .graphicsLayer {
+                val t = pulse.value
+                alpha = 0.45f + 0.5f * t
+                scaleX = 0.8f + 0.2f * t
+                scaleY = 0.8f + 0.2f * t
+            }
+            .background(CoachColors.Teal, CircleShape),
+    )
 }
 
 @Composable

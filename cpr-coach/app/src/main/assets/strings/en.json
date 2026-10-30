@@ -63,5 +63,6 @@
   "em_summary_rate": "Average rate",
   "em_summary_pauses": "Pauses",
   "em_summary_measured": "Rate measured for",
-  "em_summary_note": "Rate and pauses count only while the camera could see the arms."
+  "em_summary_note": "Rate and pauses count only while the camera could see the arms.",
+  "live_detecting": "Detecting…"
 }

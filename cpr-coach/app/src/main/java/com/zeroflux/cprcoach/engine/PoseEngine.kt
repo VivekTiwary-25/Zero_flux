@@ -40,6 +40,8 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private var submitting = 0
     private var delegateName = "none"
     private var lastAcceptedMs = 0L
+    // Only touched on MediaPipe's result thread.
+    private var nearRight = false
     private var traceRowsSinceFlush = 0
     private val appContext: Context = context.applicationContext ?: context
     private val governor = LoadGovernor()
@@ -243,7 +245,9 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         fun vis(i: Int) = marks[i].visibility().orElse(0f)
         val leftScore = vis(LEFT_SHOULDER) + vis(LEFT_ELBOW) + vis(LEFT_WRIST) + vis(LEFT_HIP)
         val rightScore = vis(RIGHT_SHOULDER) + vis(RIGHT_ELBOW) + vis(RIGHT_WRIST) + vis(RIGHT_HIP)
-        val right = rightScore > leftScore
+        // Hysteresis: keep the current near arm unless the other is clearly better seen.
+        val right = if (nearRight) !(leftScore > rightScore + SIDE_SWITCH_MARGIN) else rightScore > leftScore + SIDE_SWITCH_MARGIN
+        nearRight = right
         val s = marks[if (right) RIGHT_SHOULDER else LEFT_SHOULDER]
         val e = marks[if (right) RIGHT_ELBOW else LEFT_ELBOW]
         val w = marks[if (right) RIGHT_WRIST else LEFT_WRIST]
@@ -254,13 +258,20 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             w.x(), w.y(), w.visibility().orElse(0f),
             h.x(), h.y(), h.visibility().orElse(0f),
         )
+        val sideOn = PoseMath.sideOn(
+            marks[LEFT_SHOULDER].x(), vis(LEFT_SHOULDER),
+            marks[RIGHT_SHOULDER].x(), vis(RIGHT_SHOULDER),
+            arm, right, aspect,
+        )
         val sample = PoseSample(
             timeMs = timeMs,
             wristSignal = PoseMath.wristSignal(arm, aspect),
             elbowDegrees = PoseMath.elbowDegrees(arm, aspect),
             minVisibility = minOf(arm.shoulderVis, arm.elbowVis, arm.wristVis, arm.hipVis),
+            elbowVisibility = arm.elbowVis,
+            sideOn = sideOn,
         )
-        return PoseFrame(timeMs, sample, arm, latency).also { writeTrace(it, if (right) "R" else "L") }
+        return PoseFrame(timeMs, sample, arm, latency).also { writeTrace(it, if (right) "R" else "L", sideOn) }
     }
 
     /** CSV keeps its original prefix; appended coordinates/visibility describe the chosen near arm. */
@@ -269,7 +280,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             trace?.close()
             dir.mkdirs()
             trace = PrintWriter(File(dir, "session-${System.currentTimeMillis()}.csv").bufferedWriter()).also {
-                it.println("t_ms,wrist_signal,elbow_deg,min_vis,latency_ms,frame_gap_ms,thermal_status,battery_temp_c,side,shoulder_x,shoulder_y,elbow_x,elbow_y,wrist_x,wrist_y,hip_x,hip_y,shoulder_vis,elbow_vis,wrist_vis,hip_vis")
+                it.println("t_ms,wrist_signal,elbow_deg,min_vis,latency_ms,frame_gap_ms,thermal_status,battery_temp_c,side,shoulder_x,shoulder_y,elbow_x,elbow_y,wrist_x,wrist_y,hip_x,hip_y,shoulder_vis,elbow_vis,wrist_vis,hip_vis,side_on")
             }
         }
     }
@@ -281,11 +292,11 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         }
     }
 
-    private fun writeTrace(frame: PoseFrame, side: String = "") {
+    private fun writeTrace(frame: PoseFrame, side: String = "", sideOn: Boolean? = null) {
         synchronized(this) {
             val s = frame.sample
             val a = frame.arm
-            trace?.println("${frame.timeMs},${s?.wristSignal ?: ""},${s?.elbowDegrees ?: ""},${s?.minVisibility ?: ""},${frame.latencyMs},$frameGapMs,$thermalStatus,${batteryTempC.takeIf { it.isFinite() } ?: ""},$side,${a?.shoulderX ?: ""},${a?.shoulderY ?: ""},${a?.elbowX ?: ""},${a?.elbowY ?: ""},${a?.wristX ?: ""},${a?.wristY ?: ""},${a?.hipX ?: ""},${a?.hipY ?: ""},${a?.shoulderVis ?: ""},${a?.elbowVis ?: ""},${a?.wristVis ?: ""},${a?.hipVis ?: ""}")
+            trace?.println("${frame.timeMs},${s?.wristSignal ?: ""},${s?.elbowDegrees ?: ""},${s?.minVisibility ?: ""},${frame.latencyMs},$frameGapMs,$thermalStatus,${batteryTempC.takeIf { it.isFinite() } ?: ""},$side,${a?.shoulderX ?: ""},${a?.shoulderY ?: ""},${a?.elbowX ?: ""},${a?.elbowY ?: ""},${a?.wristX ?: ""},${a?.wristY ?: ""},${a?.hipX ?: ""},${a?.hipY ?: ""},${a?.shoulderVis ?: ""},${a?.elbowVis ?: ""},${a?.wristVis ?: ""},${a?.hipVis ?: ""},${sideOn?.let { if (it) 1 else 0 } ?: ""}")
             // A crash must not lose the recording: it is the evidence.
             if (++traceRowsSinceFlush >= TRACE_FLUSH_ROWS) {
                 trace?.flush()
@@ -339,6 +350,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         const val ENV_EVERY_MS = 5_000L
         const val STATS_EVERY_MS = 5_000L
         const val TRACE_FLUSH_ROWS = 30
+        const val SIDE_SWITCH_MARGIN = 0.4f
         const val LEFT_SHOULDER = 11
         const val RIGHT_SHOULDER = 12
         const val LEFT_ELBOW = 13
@@ -352,6 +364,31 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
 
 /** Geometry on normalised landmarks. x is scaled by the aspect ratio, since x and y use different units. */
 object PoseMath {
+    /** Shoulder-to-shoulder gap over torso length: about 0.8 facing the camera, about 0 side-on. 0.35 is roughly 25 degrees of turn. */
+    const val SIDE_ON_MAX_SHOULDER_RATIO = 0.35
+
+    /** Below this the far shoulder is hidden, which is itself what a side-on view looks like. */
+    const val FAR_SHOULDER_MIN_VISIBILITY = 0.3f
+
+    /**
+     * True when the shoulders nearly overlap horizontally relative to torso length, so a 2D elbow angle is meaningful.
+     * Torso uses the chosen near-side shoulder and hip, as in [wristSignal]. Garbage input gives false.
+     */
+    fun sideOn(
+        leftX: Float, leftVis: Float,
+        rightX: Float, rightVis: Float,
+        arm: ArmLandmarks, nearRight: Boolean, aspect: Float,
+    ): Boolean {
+        val dx = ((arm.shoulderX - arm.hipX) * aspect).toDouble()
+        val dy = (arm.shoulderY - arm.hipY).toDouble()
+        val torso = sqrt(dx * dx + dy * dy)
+        if (!torso.isFinite() || torso <= 1e-3) return false
+        val farVis = if (nearRight) leftVis else rightVis
+        if (!(farVis >= FAR_SHOULDER_MIN_VISIBILITY)) return farVis.isFinite()
+        val gap = Math.abs(((leftX - rightX) * aspect).toDouble())
+        return gap.isFinite() && gap / torso <= SIDE_ON_MAX_SHOULDER_RATIO
+    }
+
     fun wristSignal(arm: ArmLandmarks, aspect: Float): Double {
         val dx = ((arm.shoulderX - arm.hipX) * aspect).toDouble()
         val dy = (arm.shoulderY - arm.hipY).toDouble()
