@@ -116,7 +116,7 @@
 - **NEVER invent numbers:** No invented latency, FPS, or accuracy numbers—write only [from MEASUREMENTS.md].
 - **NEVER claim clinical validation:** Do not use words like "accurate", "clinically proven", "detects cardiac arrest", or "replaces an ambulance".
 - **NEVER show or quote made-up rates:** If tracking is lost, show "Can't see arms" and no number.
-- **NEVER open Helper camera during timed demo:** It conceals the Call 112 button.
+- **No Helper camera in this build:** The Emergency screen has no camera button; the Call 112 button stays on screen.
 
 ---
 

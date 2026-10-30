@@ -126,9 +126,7 @@ Do not call out a rate as a result. Do not say the app is accurate.
 
 **Phone:** Tap Start compressions. The metronome and the opening spoken steps play. Let them play. The rescuer keeps pushing on the cushion to the beat. Then hold the "Hold to stop" bar until it fills. The app goes Home.
 
-**Say:** "The metronome and short spoken steps start. The phone can lie on the floor. No camera, no score. The Call 112 button stays on screen. The Helper camera button is optional. If tracking fails, the metronome and the voice keep going. Hold to stop goes straight Home."
-
-Do not open Helper camera in the timed demo. It hides the Call 112 button.
+**Say:** "The metronome and short spoken steps start. The phone can lie on the floor. No camera, no score. The Call 112 button stays on screen. Hold to stop goes straight Home."
 
 ### 2:45–3:00 · Close
 
@@ -221,7 +219,7 @@ If a line in `MEASUREMENTS.md` has no value, say, "We have not measured that yet
 - Do not quote an accuracy or latency figure except from `MEASUREMENTS.md`.
 - Do not claim all ten spoken voices are verified.
 - Do not read an old rate after tracking is lost. Do not invent a rate, score or demo value.
-- Do not open Helper camera in the timed demo. It hides Call 112.
+- There is no Helper camera in this build. The Call 112 button stays on screen.
 
 ## Cue card
 
