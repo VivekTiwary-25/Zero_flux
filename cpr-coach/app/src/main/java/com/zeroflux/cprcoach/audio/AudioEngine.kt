@@ -38,6 +38,7 @@ class AudioEngine(
     private var languageEpoch = 0
     private var playToken = 0
     private var metronomeOn = false
+    private var metronomeEpoch = 0
     private var period = 0L
     private var phase = 0L
     private var clip: ShortArray? = null
@@ -84,6 +85,7 @@ class AudioEngine(
         require(nextPeriod > 0L) { "bpm is too high to schedule" }
         synchronized(lock) {
             if (released) return
+            metronomeEpoch += 1
             period = nextPeriod
             phase = 0L
             metronomeOn = true
@@ -94,6 +96,7 @@ class AudioEngine(
     fun stopMetronome() {
         synchronized(lock) {
             metronomeOn = false
+            metronomeEpoch += 1
             lock.notifyAll()
         }
     }
@@ -271,52 +274,51 @@ class AudioEngine(
 
     private fun runLoop() {
         var track: AudioTrack? = null
+        val block = ShortArray(BLOCK_SAMPLES)
+        val pending = AudioMixBlock(click)
+        val recovery = AudioRecovery(
+            REOPEN_WAIT_MS,
+            RECOVERY_WINDOW_MS,
+            WavClip.SAMPLE_RATE * RECOVERY_WINDOW_MS / 1000,
+        )
         try {
             Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
-            var playbackTrack = openTrack() ?: return
-            track = playbackTrack
-            trackRef = playbackTrack
-            val block = ShortArray(BLOCK_SAMPLES)
-            var reopenAttempts = 0
-            while (true) {
+            while (!released) {
                 synchronized(lock) {
                     while (!released && !metronomeOn && clip == null) {
-                        try {
-                            lock.wait()
-                        } catch (_: InterruptedException) {
-                            if (released) break
-                        }
+                        lock.wait()
                     }
                 }
                 if (released) break
-                if (playbackTrack.playState != AudioTrack.PLAYSTATE_PLAYING) {
-                    playbackTrack.play()
-                }
-                render(block)
-                if (writeAll(playbackTrack, block)) {
-                    reopenAttempts = 0
-                    continue
+                var failure: Exception? = null
+                try {
+                    if (track == null) track = openTrack()
+                    val playbackTrack = track
+                    if (playbackTrack != null && !released) {
+                        if (playbackTrack.playState != AudioTrack.PLAYSTATE_PLAYING) {
+                            playbackTrack.play()
+                        }
+                        render(block, pending)
+                        if (writeAll(playbackTrack, block, pending, recovery)) continue
+                    }
+                } catch (e: Exception) {
+                    failure = e
                 }
                 if (released) break
-                // A phone call or route change can kill the track. The metronome must come back, because
-                // Emergency keeps saying compressing whether or not anyone can hear it.
-                if (++reopenAttempts > MAX_REOPEN_ATTEMPTS) {
-                    Log.e(TAG, "AudioTrack could not be reopened")
-                    break
-                }
-                Log.w(TAG, "AudioTrack died, reopening (attempt $reopenAttempts)")
+                // One warning per outage, even if replacement tracks fail after a few blocks.
+                val report = recovery.failed()
+                if (report) Log.w(TAG, "AudioTrack unavailable; retrying until release", failure)
+                trackRef = null
                 try {
-                    playbackTrack.release()
+                    track?.release()
                 } catch (e: Exception) {
-                    Log.w(TAG, "AudioTrack release failed", e)
+                    if (report) Log.w(TAG, "AudioTrack release failed", e)
                 }
                 track = null
-                trackRef = null
-                Thread.sleep(REOPEN_WAIT_MS)
-                playbackTrack = openTrack() ?: break
-                track = playbackTrack
-                trackRef = playbackTrack
+                if (!waitForRetry(recovery.retryDelayMs)) break
             }
+        } catch (e: InterruptedException) {
+            if (!released) Log.e(TAG, "Audio playback interrupted", e)
         } catch (e: Exception) {
             Log.e(TAG, "Audio playback failed", e)
         } finally {
@@ -330,8 +332,20 @@ class AudioEngine(
         }
     }
 
-    private fun openTrack(): AudioTrack? {
-        return try {
+    private fun waitForRetry(delayMs: Long): Boolean = synchronized(lock) {
+        val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(delayMs)
+        while (!released) {
+            val remaining = deadline - System.nanoTime()
+            if (remaining <= 0L) break
+            java.util.concurrent.TimeUnit.NANOSECONDS.timedWait(lock, remaining)
+        }
+        !released
+    }
+
+    // Creation/publication and release's flag change share the lock: no post-release open.
+    private fun openTrack(): AudioTrack? = synchronized(lock) {
+        if (released) return@synchronized null
+        try {
             val blockBytes = BLOCK_SAMPLES * BYTES_PER_SAMPLE
             val min = AudioTrack.getMinBufferSize(
                 WavClip.SAMPLE_RATE,
@@ -358,65 +372,58 @@ class AudioEngine(
                 .build()
             if (track.state != AudioTrack.STATE_INITIALIZED) {
                 track.release()
-                Log.e(TAG, "AudioTrack failed to initialise")
                 null
             } else {
-                track
+                track.also { trackRef = it }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "AudioTrack init failed", e)
+        } catch (_: Exception) {
+            // The recovery loop rate-limits diagnostics for both open and write failures.
             null
         }
     }
 
-    private fun render(block: ShortArray) {
+    private fun render(block: ShortArray, pending: AudioMixBlock) {
         synchronized(lock) {
-            val periodNow = period
-            val metro = metronomeOn && periodNow > 0L
-            var samples = clip
-            var pos = clipPos
-            for (i in block.indices) {
-                var mix = 0
-                if (metro) {
-                    val clickIndex = (phase % periodNow).toInt()
-                    if (clickIndex < click.size) mix += click[clickIndex].toInt()
-                    phase++
-                }
-                val current = samples
-                if (current != null) {
-                    if (pos < current.size) {
-                        if (!voiceMuted) mix += current[pos].toInt()
-                        pos++
-                    }
-                    if (pos >= current.size) {
-                        val callback = clipDone
-                        clip = null
-                        clipDone = null
-                        samples = null
-                        pos = 0
-                        if (callback != null) postToMain(callback)
-                    }
-                }
-                block[i] = saturate(mix)
-            }
-            clipPos = pos
+            pending.render(
+                block, period, metronomeOn, phase, metronomeEpoch,
+                clip, clipPos, playToken, voiceMuted,
+            )
         }
     }
 
-    private fun writeAll(track: AudioTrack, data: ShortArray): Boolean {
-        var offset = 0
-        try {
-            while (offset < data.size && !released) {
-                val wrote = track.write(data, offset, data.size - offset)
-                if (wrote <= 0) {
-                    Log.e(TAG, "AudioTrack.write failed: $wrote")
-                    return false
+    private fun commit(pending: AudioMixBlock, wrote: Int) {
+        synchronized(lock) {
+            pending.accept(wrote)
+            if (released) return
+            // A UI command can replace/reset either source while a blocking write is in flight.
+            if (pending.metronomeEpoch == metronomeEpoch) phase = pending.phase
+            if (pending.playToken == playToken && pending.samples != null && clip === pending.samples) {
+                if (pending.clipFinished) {
+                    val callback = clipDone
+                    clip = null
+                    clipPos = 0
+                    clipDone = null
+                    postToMain(callback)
+                } else {
+                    clipPos = pending.clipPosition
                 }
-                offset += wrote
             }
-        } catch (e: IllegalStateException) {
-            if (!released) Log.w(TAG, "AudioTrack.write failed", e)
-            return false
+        }
+    }
+
+    private fun writeAll(
+        track: AudioTrack,
+        data: ShortArray,
+        pending: AudioMixBlock,
+        recovery: AudioRecovery,
+    ): Boolean {
+        var offset = 0
+        while (offset < data.size && !released) {
+            val wrote = track.write(data, offset, data.size - offset)
+            if (wrote <= 0) return false
+            commit(pending, wrote)
+            recovery.accepted(wrote)
+            offset += wrote
         }
         return !released
     }
@@ -448,8 +455,9 @@ class AudioEngine(
     companion object {
         private const val TAG = "AudioEngine"
         private const val BLOCK_MS = 10
-        private const val MAX_REOPEN_ATTEMPTS = 20
         private const val REOPEN_WAIT_MS = 300L
+        // Reuse the former 20-attempt horizon for slow retries and sustained-success detection.
+        private const val RECOVERY_WINDOW_MS = 20 * REOPEN_WAIT_MS
         private const val RELEASE_WAIT_MS = 500L
         private const val BLOCK_SAMPLES = WavClip.SAMPLE_RATE * BLOCK_MS / 1000
         private const val BYTES_PER_SAMPLE = 2
@@ -467,11 +475,94 @@ class AudioEngine(
             }
             return beat
         }
+    }
+}
 
-        private fun saturate(value: Int): Short = when {
-            value > Short.MAX_VALUE.toInt() -> Short.MAX_VALUE
-            value < Short.MIN_VALUE.toInt() -> Short.MIN_VALUE
-            else -> value.toShort()
+/** Retry forever; a short-lived replacement must not reset backoff or diagnostic suppression. */
+internal class AudioRecovery(
+    private val initialDelayMs: Long,
+    private val recoveryWindowMs: Long,
+    private val stableSamples: Long,
+) {
+    private var failedForMs = 0L
+    private var acceptedSamples = 0L
+
+    val retryDelayMs: Long
+        get() = if (failedForMs >= recoveryWindowMs) recoveryWindowMs else initialDelayMs
+
+    /** True only for the first failure of an outage. */
+    fun failed(): Boolean {
+        val first = failedForMs == 0L
+        acceptedSamples = 0L
+        failedForMs = minOf(recoveryWindowMs, failedForMs + initialDelayMs)
+        return first
+    }
+
+    fun accepted(count: Int) {
+        if (failedForMs == 0L) return
+        acceptedSamples = minOf(stableSamples, acceptedSamples + count)
+        if (acceptedSamples >= stableSamples) {
+            failedForMs = 0L
+            acceptedSamples = 0L
         }
+    }
+}
+
+/** One reusable rendered snapshot. Only accepted write prefixes advance its source positions. */
+internal class AudioMixBlock(private val click: ShortArray) {
+    var metronomeEpoch = 0
+        private set
+    var playToken = 0
+        private set
+    var samples: ShortArray? = null
+        private set
+    private var initialPhase = 0L
+    private var initialClipPosition = 0
+    private var metro = false
+    private var accepted = 0
+
+    val phase: Long get() = initialPhase + if (metro) accepted else 0
+    val clipPosition: Int
+        get() = minOf(samples?.size ?: 0, initialClipPosition + accepted)
+    val clipFinished: Boolean
+        get() = samples != null && clipPosition >= samples!!.size
+
+    fun render(
+        block: ShortArray,
+        period: Long,
+        metronomeOn: Boolean,
+        phase: Long,
+        metronomeEpoch: Int,
+        samples: ShortArray?,
+        clipPosition: Int,
+        playToken: Int,
+        voiceMuted: Boolean,
+    ) {
+        this.metronomeEpoch = metronomeEpoch
+        this.playToken = playToken
+        this.samples = samples
+        initialPhase = phase
+        initialClipPosition = clipPosition
+        metro = metronomeOn && period > 0L
+        accepted = 0
+        var beatPhase = phase
+        var pos = clipPosition
+        for (i in block.indices) {
+            var mix = 0
+            if (metro) {
+                val clickIndex = (beatPhase % period).toInt()
+                if (clickIndex < click.size) mix += click[clickIndex].toInt()
+                beatPhase++
+            }
+            if (samples != null && pos < samples.size) {
+                if (!voiceMuted) mix += samples[pos].toInt()
+                pos++
+            }
+            block[i] = mix.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+    }
+
+    fun accept(count: Int) {
+        accepted += count
     }
 }
