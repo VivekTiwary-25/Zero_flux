@@ -43,6 +43,7 @@ import com.zeroflux.cprcoach.ui.EmergencyScreen
 import com.zeroflux.cprcoach.ui.EmergencySummaryScreen
 import com.zeroflux.cprcoach.ui.EmergencyUiState
 import com.zeroflux.cprcoach.ui.LocalStrings
+import com.zeroflux.cprcoach.engine.LandmarkGuard
 import com.zeroflux.cprcoach.engine.OverlayPose
 import com.zeroflux.cprcoach.ui.ArmOverlay
 import com.zeroflux.cprcoach.ui.PoseCameraView
@@ -96,6 +97,8 @@ fun EmergencyHost(
     var audioStarted by remember { mutableStateOf(false) }
     val analyzerBox = remember { arrayOf(LiveAnalyzer()) }
     val overlayPose = remember { OverlayPose() }
+    // Its own guard (not the analyzer's): the camera thread draws, the main thread analyses. Same as PractiseHost.
+    val overlayGuard = remember { LandmarkGuard() }
     val replayName = remember(context) {
         if (BuildConfig.DEBUG) PractiseReplay.requestedFile(context) else null
     }
@@ -143,7 +146,7 @@ fun EmergencyHost(
         LaunchedEffect(replayName) {
             try {
                 PractiseReplay.play(context, replayName) {
-                    overlayPose.push(it, android.os.SystemClock.uptimeMillis())
+                    overlayPose.push(overlayGuard.overlayFrame(it), android.os.SystemClock.uptimeMillis())
                     analyzerBox[0].addFrame(it)
                 }
             } catch (cancelled: CancellationException) {
@@ -217,7 +220,7 @@ fun EmergencyHost(
         beat = beat,
         camera = {
             if (audioStarted && cameraPermission && replayName == null) {
-                EmergencyCamera(overlayPose, onFrame = { frame ->
+                EmergencyCamera(overlayPose, overlayGuard, onFrame = { frame ->
                     try {
                         analyzerBox[0].addFrame(frame)
                     } catch (error: RuntimeException) {
@@ -240,7 +243,7 @@ fun EmergencyHost(
 
 /** Camera failure of any kind only means no corrections, so nothing here may reach the audio. */
 @Composable
-private fun EmergencyCamera(overlayPose: OverlayPose, onFrame: (com.zeroflux.cprcoach.engine.PoseFrame) -> Unit) {
+private fun EmergencyCamera(overlayPose: OverlayPose, overlayGuard: LandmarkGuard, onFrame: (com.zeroflux.cprcoach.engine.PoseFrame) -> Unit) {
     val context = LocalContext.current
     val capture = remember { EmergencyCapture() }
     val handler = remember { Handler(Looper.getMainLooper()) }
@@ -255,7 +258,7 @@ private fun EmergencyCamera(overlayPose: OverlayPose, onFrame: (com.zeroflux.cpr
         thread(name = "EmergencyPoseLoad", isDaemon = true) {
             try {
                 val pose = PoseEngine(context.applicationContext) { frame ->
-                    overlayPose.push(frame, android.os.SystemClock.uptimeMillis())
+                    overlayPose.push(overlayGuard.overlayFrame(frame), android.os.SystemClock.uptimeMillis())
                     if (active.get()) {
                         handler.post {
                             if (active.get()) currentFrame(frame)

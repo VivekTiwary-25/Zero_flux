@@ -44,6 +44,10 @@ class LandmarkGuard {
     private val slow = ArrayDeque<Rel>()
     private val bones = ArrayDeque<Bones>()
     private val rejected = ArrayList<Rel>()
+
+    /** Rejected frames of the last [MAJORITY_MS], kept across accepted frames, and the accepted ones' times. */
+    private val pool = ArrayList<Rel>()
+    private val acceptedTimes = ArrayDeque<Long>()
     private var facing = 0
     private var nearRight: Boolean? = null
     private var lastArm: ArmLandmarks? = null
@@ -59,6 +63,8 @@ class LandmarkGuard {
         slow.clear()
         bones.clear()
         rejected.clear()
+        pool.clear()
+        acceptedTimes.clear()
         facing = 0
         lastArm = null
     }
@@ -70,7 +76,8 @@ class LandmarkGuard {
             lastArm = arm
             return frame
         }
-        return lastArm?.let { frame.copy(arm = it) } ?: frame
+        // No held arm (startup, or after a frame with no person): show none rather than the rejected one.
+        return frame.copy(arm = lastArm)
     }
 
     fun check(frame: PoseFrame): GuardVerdict {
@@ -122,22 +129,38 @@ class LandmarkGuard {
 
         rejects++
         rejected.add(now)
+        pool.add(now)
+        pool.removeAll { t - it.t > MAJORITY_MS }
+        while (acceptedTimes.isNotEmpty() && t - acceptedTimes.first() > MAJORITY_MS) acceptedTimes.removeFirst()
         // Time is counted from the last accepted frame, which is what the tracking timeout counts from.
         val blind = t - (ref?.t ?: rejected.first().t)
         if (blind >= REANCHOR_MS) {
             val mx = rejected.sumOf { it.wx } / rejected.size
             val my = rejected.sumOf { it.wy } / rejected.size
             val agree = rejected.size >= REANCHOR_MIN_FRAMES && rejected.all { abs(it.wx - mx) < REANCHOR_SPREAD && abs(it.wy - my) < 2 * REANCHOR_SPREAD }
-            if (agree || blind >= FORCE_MS) {
-                rejects-- // the frame is accepted after all
-                slow.clear()
-                bones.clear()
-                accept(now, upper, fore)
-                return GuardVerdict.REANCHOR
-            }
+            if (agree || blind >= FORCE_MS) return reanchor(now, upper, fore)
             rejected.removeAll { t - it.t > FORCE_MS }
         }
+        // Sparse accepted frames (a ghost every few frames) keep resetting the timer above; but if most of the
+        // last two seconds was rejected and those frames agree, they are the real arm.
+        if (pool.size >= REANCHOR_MIN_FRAMES && pool.size >= MAJORITY_RATIO * acceptedTimes.size && t - pool.first().t >= MAJORITY_MS * 3 / 4) {
+            val mx = pool.sumOf { it.wx } / pool.size
+            val my = pool.sumOf { it.wy } / pool.size
+            if (pool.all { abs(it.wx - mx) < REANCHOR_SPREAD && abs(it.wy - my) < 2 * REANCHOR_SPREAD }) {
+                return reanchor(now, upper, fore)
+            }
+        }
         return reason
+    }
+
+    private fun reanchor(now: Rel, upper: Double, fore: Double): GuardVerdict {
+        rejects-- // the frame is accepted after all
+        slow.clear()
+        bones.clear()
+        pool.clear()
+        acceptedTimes.clear()
+        accept(now, upper, fore)
+        return GuardVerdict.REANCHOR
     }
 
     private fun why(now: Rel, shoulderX: Double, shoulderY: Double, upper: Double, fore: Double): GuardVerdict? {
@@ -171,6 +194,7 @@ class LandmarkGuard {
     private fun accept(now: Rel, upper: Double, fore: Double) {
         ref = now
         rejected.clear()
+        acceptedTimes.addLast(now.t)
         slow.addLast(now)
         while (now.t - slow.first().t > REFERENCE_MS) slow.removeFirst()
         bones.addLast(Bones(now.t, upper, fore))
@@ -234,5 +258,12 @@ class LandmarkGuard {
          * the worst case must be no worse than having no guard. Phantom runs last up to ~300 ms, so they stay out.
          */
         const val FORCE_MS = 400L
+
+        /**
+         * Majority rule: within this window, agreeing rejected frames outnumbering accepted ones [MAJORITY_RATIO] to 1
+         * and spanning most of it re-anchor. Phantom bursts (<= 300 ms, real frames between) never get there.
+         */
+        const val MAJORITY_MS = 2_000L
+        const val MAJORITY_RATIO = 3
     }
 }

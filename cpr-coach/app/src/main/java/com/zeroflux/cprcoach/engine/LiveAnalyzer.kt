@@ -48,6 +48,9 @@ class LiveAnalyzer(
     private val movingOffRms: Double = MOVING_OFF_RMS,
 ) {
     private var lastGoodMs: Long? = null
+
+    /** Last implausible-but-visible arm frame: proof the person is in view while accepted frames are held back. */
+    private var lastSeenMs: Long? = null
     private val elbowHistory = ArrayDeque<Pair<Long, Double>>()
     private val wristHistory = ArrayDeque<Pair<Long, Double>>()
     private val rateHistory = ArrayDeque<Double>()
@@ -63,7 +66,13 @@ class LiveAnalyzer(
     /** Call for every pose result. With arm landmarks the posture judge decides on elbows; without, the old gate does. */
     fun addFrame(frame: PoseFrame) {
         // An implausible arm (MediaPipe's wrist flip) is dropped entirely: neither rate nor posture sees it.
-        if (!guard.check(frame).accepted) return
+        if (!guard.check(frame).accepted) {
+            // The guard only rejects arms it could see well, so a person is there; that keeps tracking from
+            // going LOST during a phantom burst, but nothing from the frame is used.
+            val seen = lastSeenMs
+            if (frame.timeMs.let { seen == null || it > seen }) lastSeenMs = frame.timeMs
+            return
+        }
         val sample = frame.sample
         val arm = frame.arm
         addFrame(sample, arm != null)
@@ -102,7 +111,7 @@ class LiveAnalyzer(
 
     fun read(nowMs: Long): LiveReading {
         val last = lastGoodMs
-        if (last == null || nowMs - last > lostAfterMs) {
+        if (last == null || (nowMs - last > lostAfterMs && !seenRecently(last, nowMs))) {
             clearSignals()
             return LiveReading(nowMs, TrackingState.LOST, null, null, null)
         }
@@ -135,6 +144,12 @@ class LiveAnalyzer(
                 LiveReading(nowMs, TrackingState.BEATING, shown, elbow, elbowVerdict, isMoving, currentPosture(nowMs))
             }
         }
+    }
+
+    /** Rejected frames still arriving, and accepted ones not silent for long: not lost. Never held past [SEEN_HOLD_MS]. */
+    private fun seenRecently(lastGood: Long, nowMs: Long): Boolean {
+        val seen = lastSeenMs ?: return false
+        return nowMs - lastGood <= SEEN_HOLD_MS && nowMs - seen <= lostAfterMs && seen >= lastGood
     }
 
     /**
@@ -198,6 +213,8 @@ class LiveAnalyzer(
 
         /** How long a rate measured a moment ago may keep showing across a dropout, while still moving. */
         /** Posture older than this is not shown (the judge is only fed frames with the arm well seen). */
+        /** Longest accepted-frame silence bridged by rejected frames; after this, LOST whatever else arrives. */
+        const val SEEN_HOLD_MS = 1_500L
         const val POSTURE_STALE_MS = 500L
         const val HOLD_RATE_MS = 2_000L
         const val MOVING_WINDOW_MS = 500L

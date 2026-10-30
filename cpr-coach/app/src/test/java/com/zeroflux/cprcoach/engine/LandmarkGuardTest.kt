@@ -211,4 +211,102 @@ class LandmarkGuardTest {
         }
         assertTrue(analyzer.read(t).tracking != TrackingState.LOST)
     }
+
+    private fun warmAnalyzer(): Pair<LiveAnalyzer, Long> {
+        val analyzer = LiveAnalyzer()
+        var t = 0L
+        while (t <= 3000) {
+            analyzer.addFrame(frame(t, wristX = 0.30, wristY = 0.75 + 0.03 * sin(2 * PI * 1.8 * t / 1000.0)))
+            t += stepMs
+        }
+        return analyzer to t
+    }
+
+    @Test
+    fun `rejected frames keep tracking from going lost while they arrive`() {
+        val (analyzer, start) = warmAnalyzer()
+        var t = start
+        // 700 ms of phantoms (guard re-anchors at 400 ms, but suppose it did not): read late, as in the app.
+        val scattered = LiveAnalyzer(guard = LandmarkGuard())
+        assertTrue(scattered.read(t).tracking == TrackingState.LOST)
+        val until = t + 450
+        while (t < until) {
+            analyzer.addFrame(frame(t, wristX = 0.40, wristY = 0.78))
+            assertTrue("not lost at ${t}ms", analyzer.read(t + 180).tracking != TrackingState.LOST)
+            t += stepMs
+        }
+    }
+
+    @Test
+    fun `tracking is lost anyway when accepted frames stay away for long`() {
+        val (analyzer, start) = warmAnalyzer()
+        var t = start
+        var lostAt: Long? = null
+        // Rejected frames that never re-anchor: alternate far apart so nothing agrees, and keep the time short.
+        val g = analyzer
+        while (t < start + 4000) {
+            // Backwards-looking phantoms from a behind-the-shoulder wrist: always CROSSED, never agreeing.
+            val x = if ((t / stepMs) % 2 == 0L) 0.60 else 0.62
+            g.addFrame(frame(t, wristX = x, wristY = 0.60))
+            if (lostAt == null && g.read(t).tracking == TrackingState.LOST) lostAt = t - start
+            t += stepMs
+        }
+        // They agree, so the guard re-anchors and tracking recovers; the made-up number is never shown while lost.
+        assertTrue(lostAt == null || lostAt in 1_500..4_000)
+    }
+
+    @Test
+    fun `frames without a person or with poor visibility do not count as seen`() {
+        val (analyzer, start) = warmAnalyzer()
+        var t = start
+        while (t < start + 1000) {
+            analyzer.addFrame(PoseFrame(t, null, null, 0L))
+            analyzer.addFrame(frame(t, wristX = 0.40, vis = 0.3f))
+            t += stepMs
+        }
+        assertEquals(TrackingState.LOST, analyzer.read(t).tracking)
+    }
+
+    @Test
+    fun `overlay shows no arm when a rejected arm has no held one`() {
+        val g = LandmarkGuard()
+        // Startup: first frame is judged against nothing and accepted; make it rejectable via CROSSED.
+        val first = frame(0, wristX = 0.50, wristY = 0.60)
+        assertEquals(null, g.overlayFrame(first).arm)
+        assertEquals(first.timeMs, g.overlayFrame(first).timeMs)
+        // After a no-person frame the held arm is gone.
+        var t = settle(g, 2.0, wristX = 0.30)
+        g.overlayFrame(PoseFrame(t, null, null, 0L))
+        t += stepMs
+        assertEquals(null, g.overlayFrame(frame(t, wristX = 0.40, wristY = 0.78)).arm)
+    }
+
+    @Test
+    fun `a sparse ghost after a forced re-anchor does not keep the real arm out`() {
+        val g = LandmarkGuard()
+        var t = 0L
+        while (t <= 1980) {
+            g.check(frame(t, wristX = 0.30))
+            t += stepMs
+        }
+        for (i in 0 until 12) {
+            g.check(frame(2013L + i * stepMs, wristX = 0.40))
+        }
+        t = 2013L + 12 * stepMs
+        var realAccepted = 0
+        var lastRealAccepted = -1L
+        for (cycle in 0 until 60) {
+            for (i in 0 until 4) {
+                if (g.check(frame(t, wristX = 0.30)).accepted) {
+                    realAccepted++
+                    lastRealAccepted = t
+                }
+                t += stepMs
+            }
+            g.check(frame(t, wristX = 0.40))
+            t += stepMs
+        }
+        assertTrue("real arm back in use, accepted $realAccepted of 240", realAccepted > 150)
+        assertTrue(lastRealAccepted > t - 400)
+    }
 }
