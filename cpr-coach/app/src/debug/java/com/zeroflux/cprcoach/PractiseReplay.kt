@@ -64,7 +64,7 @@ internal object PractiseReplay {
         reader.lineSequence().forEachIndexed { index, line ->
             if (line.isBlank()) return@forEachIndexed
             val cells = line.split(',')
-            require(cells.size == 5) { "Invalid CSV row ${index + 2}" }
+            require(cells.size >= 5) { "Invalid CSV row ${index + 2}" }
             val time = cells[0].trim().toLong()
             require(time >= 0L && (rows.isEmpty() || time > rows.last().timeMs)) {
                 "Replay timestamps must be nonnegative and strictly increasing"

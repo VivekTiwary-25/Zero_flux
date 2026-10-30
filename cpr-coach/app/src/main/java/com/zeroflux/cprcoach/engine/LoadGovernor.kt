@@ -2,8 +2,10 @@ package com.zeroflux.cprcoach.engine
 
 /**
  * Chooses the minimum gap between pose frames from recent latency and thermal status.
- * Pure Kotlin. Three steps only (about 15, 12 and 10 frames a second); never below 10,
- * because RateEstimator needs the beat sampled well. Steps down fast, up slowly.
+ * Pure Kotlin. Three steps only, never below about 10 frames a second, because RateEstimator
+ * treats under 8 as no data. Steps down fast, up slowly.
+ * The camera delivers a frame about every 33 ms, so a gap really waits for the next frame after it:
+ * these gaps give about 15, 12 and 10 a second. A gap of 100 ms would really mean 133 ms, 7.5 a second.
  * Not thread safe: call from one thread, or synchronise outside.
  */
 class LoadGovernor(startStep: Int = 0) {
@@ -61,7 +63,7 @@ class LoadGovernor(startStep: Int = 0) {
 
     companion object {
         private const val NEVER = Long.MIN_VALUE
-        val GAPS_MS = longArrayOf(66L, 83L, 100L)
+        val GAPS_MS = longArrayOf(60L, 75L, 90L)
         const val THERMAL_MODERATE = 2
         const val THERMAL_SEVERE = 3
         const val HIGH_LATENCY_MS = 150L

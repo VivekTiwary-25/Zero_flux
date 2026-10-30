@@ -273,10 +273,11 @@ class AudioEngine(
         var track: AudioTrack? = null
         try {
             Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
-            val playbackTrack = openTrack() ?: return
+            var playbackTrack = openTrack() ?: return
             track = playbackTrack
             trackRef = playbackTrack
             val block = ShortArray(BLOCK_SAMPLES)
+            var reopenAttempts = 0
             while (true) {
                 synchronized(lock) {
                     while (!released && !metronomeOn && clip == null) {
@@ -292,7 +293,29 @@ class AudioEngine(
                     playbackTrack.play()
                 }
                 render(block)
-                if (!writeAll(playbackTrack, block)) break
+                if (writeAll(playbackTrack, block)) {
+                    reopenAttempts = 0
+                    continue
+                }
+                if (released) break
+                // A phone call or route change can kill the track. The metronome must come back, because
+                // Emergency keeps saying compressing whether or not anyone can hear it.
+                if (++reopenAttempts > MAX_REOPEN_ATTEMPTS) {
+                    Log.e(TAG, "AudioTrack could not be reopened")
+                    break
+                }
+                Log.w(TAG, "AudioTrack died, reopening (attempt $reopenAttempts)")
+                try {
+                    playbackTrack.release()
+                } catch (e: Exception) {
+                    Log.w(TAG, "AudioTrack release failed", e)
+                }
+                track = null
+                trackRef = null
+                Thread.sleep(REOPEN_WAIT_MS)
+                playbackTrack = openTrack() ?: break
+                track = playbackTrack
+                trackRef = playbackTrack
             }
         } catch (e: Exception) {
             Log.e(TAG, "Audio playback failed", e)
@@ -387,14 +410,12 @@ class AudioEngine(
                 val wrote = track.write(data, offset, data.size - offset)
                 if (wrote <= 0) {
                     Log.e(TAG, "AudioTrack.write failed: $wrote")
-                    abandonPlayback()
                     return false
                 }
                 offset += wrote
             }
         } catch (e: IllegalStateException) {
             if (!released) Log.w(TAG, "AudioTrack.write failed", e)
-            abandonPlayback()
             return false
         }
         return !released
@@ -427,6 +448,8 @@ class AudioEngine(
     companion object {
         private const val TAG = "AudioEngine"
         private const val BLOCK_MS = 10
+        private const val MAX_REOPEN_ATTEMPTS = 20
+        private const val REOPEN_WAIT_MS = 300L
         private const val RELEASE_WAIT_MS = 500L
         private const val BLOCK_SAMPLES = WavClip.SAMPLE_RATE * BLOCK_MS / 1000
         private const val BYTES_PER_SAMPLE = 2
