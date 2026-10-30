@@ -135,9 +135,9 @@ class OverlayPose(
         private const val MIN_INTERVAL_MS = 15L
 
         // Normalised coordinates move about 1 unit/s at most, so beta is large against the default.
-        private const val MIN_CUTOFF_HZ = 2.5
-        private const val BETA = 12.0
-        private const val DERIVATIVE_CUTOFF_HZ = 3.0
+        private const val MIN_CUTOFF_HZ = 0.5
+        private const val BETA = 20.0
+        private const val DERIVATIVE_CUTOFF_HZ = 4.0
     }
 }
 
