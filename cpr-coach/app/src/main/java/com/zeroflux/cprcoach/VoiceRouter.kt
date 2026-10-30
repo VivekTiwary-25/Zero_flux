@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.zeroflux.cprcoach.audio.AudioEngine
 import com.zeroflux.cprcoach.ui.AppLanguage
@@ -21,7 +22,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** One microphone for the app. Routes and live audio are owned by the visible host. */
 class VoiceRouter(
@@ -40,6 +43,8 @@ class VoiceRouter(
     private val engines = mutableSetOf<AudioEngine>()
     private var language = initialLanguage
     private var released = false
+    private var commandTimeoutJob: Job? = null
+    @Volatile private var micEpoch = 0
     @Volatile private var languageEpoch = 0
     @Volatile private var route: Route? = null
 
@@ -55,15 +60,25 @@ class VoiceRouter(
         controller.onTranscript = { transcript ->
             val destination = route
             val epoch = languageEpoch
+            val sessionEpoch = micEpoch
             handler.post {
-                // A transcript queued before navigation or a language change cannot act afterward.
-                if (!released && destination != null && route === destination && epoch == languageEpoch) {
+                // Queued transcripts cannot act after navigation, a language change or a mic restart.
+                if (!released && destination != null && route === destination &&
+                    epoch == languageEpoch && sessionEpoch == micEpoch &&
+                    state.value == MicState.LISTENING
+                ) {
                     when (val result = matcher.match(
                         transcript, language.code, destination.allowed, destination.allowLanguages,
                     )) {
-                        is MatchResult.Command -> destination.onCommand(result.command)
+                        is MatchResult.Command -> {
+                            resetCommandTimeout()
+                            destination.onCommand(result.command)
+                        }
                         is MatchResult.Language -> AppLanguage.entries
-                            .firstOrNull { it.code == result.code }?.let(onLanguage)
+                            .firstOrNull { it.code == result.code }?.let {
+                                resetCommandTimeout()
+                                onLanguage(it)
+                            }
                         MatchResult.None -> Unit
                     }
                 }
@@ -98,6 +113,8 @@ class VoiceRouter(
 
     fun setLanguage(value: AppLanguage) {
         if (language == value || released) return
+        commandTimeoutJob?.cancel()
+        micEpoch += 1
         controller.stop()
         languageEpoch += 1
         language = value
@@ -109,6 +126,8 @@ class VoiceRouter(
 
     fun toggle() {
         if (released) return
+        commandTimeoutJob?.cancel()
+        micEpoch += 1
         if (state.value != MicState.OFF) {
             controller.stop()
             return
@@ -121,11 +140,29 @@ class VoiceRouter(
                 runCatching { app.assets.open(name).use { } }.isFailure
             }) return
         controller.toggle(language.code)
+        resetCommandTimeout()
+    }
+
+    private fun resetCommandTimeout() {
+        commandTimeoutJob?.cancel()
+        commandTimeoutJob = voiceScope.launch {
+            // Model loading is not listening time. OFF also ends failed or cancelled starts.
+            if (state.first { it != MicState.LOADING } != MicState.LISTENING) return@launch
+            val stopped = withTimeoutOrNull(NO_COMMAND_TIMEOUT_MS) {
+                state.first { it != MicState.LISTENING }
+            }
+            if (stopped == null && state.value == MicState.LISTENING) {
+                Log.i("CPR_MIC", "Auto-muted after no matched command")
+                toggle()
+            }
+        }
     }
 
     fun release() {
         if (released) return
         released = true
+        commandTimeoutJob?.cancel()
+        micEpoch += 1
         route = null
         controller.release()
         engines.forEach { it.setVoiceMuted(false) }
@@ -140,6 +177,7 @@ class VoiceRouter(
     }
 
     private companion object {
+        const val NO_COMMAND_TIMEOUT_MS = 15_000L
         val ENGLISH_ASSETS = listOf(
             "tiny.en-encoder.int8.onnx", "tiny.en-decoder.int8.onnx", "tiny.en-tokens.txt",
         )
