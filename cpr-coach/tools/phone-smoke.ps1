@@ -7,8 +7,10 @@
     Clears device logcat, changes camera/microphone/notification permissions,
     launches only CPR Coach's launcher activity, and captures the entire screen
     and device logcat. Review captures for private information before sharing.
-    The app is left open with these permissions revoked; original permission
-    settings and cleared logs are not restored. No dialer or UI input is used.
+    Camera, microphone and notification permissions are granted again when the
+    run ends, even after a failure, so the app is not left unable to use them.
+    The exact original permission state and the cleared logs are not restored.
+    No dialer or UI input is used.
 
     Evidence is saved under a timestamped folder in the PC's temporary directory.
     Any adb failure, missing process/capture, or crash evidence fails the run.
@@ -34,6 +36,9 @@ Set-StrictMode -Version Latest
 # or merge it into stdout on Windows PowerShell 5.1. Check every exit code.
 $ErrorActionPreference = 'Continue'
 $script:Failed = $false
+# Set once this run starts changing permissions, so the restore step knows
+# whether the phone needs fixing up on the way out.
+$script:PermissionsChanged = $false
 $PackageName = 'com.zeroflux.cprcoach'
 $Permissions = @(
     'android.permission.CAMERA',
@@ -67,6 +72,19 @@ function Invoke-Adb {
         foreach ($line in $lines) { Write-Host $line }
     }
     return [pscustomobject]@{ Success = $success; Lines = $lines }
+}
+
+function Set-PermissionsGranted {
+    # Runs on the way out, including after a failure, and clears the flag so a
+    # second call cannot repeat the grants. Each pm grant exit code is checked.
+    if (-not $script:PermissionsChanged) { return }
+    $script:PermissionsChanged = $false
+    Write-Host 'Granting camera, microphone and notification permissions again'
+    foreach ($permission in $Permissions) {
+        $null = Invoke-Adb "restore grant $permission" ($script:DeviceArgs + @(
+            'shell', 'pm', 'grant', $PackageName, $permission
+        ))
+    }
 }
 
 function Test-Startup {
@@ -200,6 +218,7 @@ try {
     Write-Result $true "create evidence folder $script:EvidenceDir"
 
     $null = Invoke-Adb 'granted clear logcat' ($script:DeviceArgs + @('logcat', '-c'))
+    $script:PermissionsChanged = $true
     foreach ($permission in $Permissions) {
         $null = Invoke-Adb "grant $permission" ($script:DeviceArgs + @(
             'shell', 'pm', 'grant', $PackageName, $permission
@@ -221,6 +240,9 @@ try {
 } catch {
     Write-Result $false 'smoke script' $_.Exception.Message
 }
+
+# Leave the phone able to use the app, even when a step above failed.
+Set-PermissionsGranted
 
 if ($script:Failed) {
     Write-Host 'FAIL: phone smoke test' -ForegroundColor Red
