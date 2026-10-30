@@ -7,7 +7,9 @@ Every file in docs/, grouped by use. One plain line each.
 - [`SPEC.md`](SPEC.md) — Build brief: what the app is, screen behaviour, and build order.
 - [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) — One-page camera-to-voice pipeline and limits, for judges.
 - [`STATUS.md`](STATUS.md) — Evidence table of features actually shown to work.
+- [`STATUS_DRAFT.md`](STATUS_DRAFT.md) — Draft judge table tagging each feature PHONE, REPLAY or SYNTHETIC.
 - [`README.md`](README.md) (older) — Earlier index of this folder, replaced by this file.
+- [`INDEX.md`](INDEX.md) — This file: every doc in this folder, grouped by use.
 - [`INSTALL.md`](INSTALL.md) — Steps to build the APK and push models to a team phone.
 - [`LINT.md`](LINT.md) — Lint run with crash-level findings ranked first.
 - [`SPEC_CHECK.md`](SPEC_CHECK.md) — Section 3 requirements checked against source, met or missing.
@@ -16,6 +18,8 @@ Every file in docs/, grouped by use. One plain line each.
 - [`POSE_SPEED.md`](POSE_SPEED.md) — Pose frame-rate audit and debug switches.
 - [`CALL_AUDIO_NOTES.md`](CALL_AUDIO_NOTES.md) — Audio routing pitfalls between media and call usage.
 - [`SMOOTHING.md`](SMOOTHING.md) — Overlay smoothing settings picked from joint replay.
+- [`TOOLS.md`](TOOLS.md) — Each script in tools/ with its one-line usage.
+- [`NIGHT_DECISIONS.md`](NIGHT_DECISIONS.md) — Calls made overnight without Vivek, each the safer option, with commit ids.
 
 ## Testing on phones
 
@@ -36,14 +40,22 @@ Every file in docs/, grouped by use. One plain line each.
 - [`RATE_ALT_METHOD.md`](RATE_ALT_METHOD.md) — Alternative rate methods compared, autocorrelation kept.
 - [`RATE_FPS_STUDY.md`](RATE_FPS_STUDY.md) — Simulated frame-rate and movement-size effects on rate.
 - [`RATE_CHANGE_NOTE.md`](RATE_CHANGE_NOTE.md) — How rate changes can briefly read as paused.
+- [`RATE_BENT_LEAN.md`](RATE_BENT_LEAN.md) — Replay study of rate loss with bent arms and lean, and the 3.5 s history candidate.
 - [`POSTURE_VALIDATION.md`](POSTURE_VALIDATION.md) — Posture judge checks against labels and synthetic tests.
 - [`GUARD_STUDY.md`](GUARD_STUDY.md) — Landmark plausibility sweep across settings and frames.
+- [`RECORDINGS_13_15.md`](RECORDINGS_13_15.md) — What recordings 13-15 contain: duration, pose rows, latency and labels.
+- [`REPLAY_13_15.md`](REPLAY_13_15.md) — Timeline replay of recordings 13-15: Practise voice, Emergency word, missed reactions.
+- [`SCORECARD_CHECK.md`](SCORECARD_CHECK.md) — Scorecard metrics replayed from recordings 14 and 15.
 
 ## Reviews
 
 - [`REVIEW_AUDIO_MUTE.md`](REVIEW_AUDIO_MUTE.md) — Why listening can silently consume speech clips.
 - [`REVIEW_COACH_VOICE.md`](REVIEW_COACH_VOICE.md) — Voice-rule review with pause and resume bugs.
+- [`REVIEW_COACH_VOICE_2.md`](REVIEW_COACH_VOICE_2.md) — Second voice review: two Keep going regressions after the pause changes.
 - [`REVIEW_LANDMARK_GUARD.md`](REVIEW_LANDMARK_GUARD.md) — Independent review finding overlay-hold bugs.
+- [`REVIEW_POSTURE_BASELINE.md`](REVIEW_POSTURE_BASELINE.md) — Review of the personal-baseline posture judge, defects ranked by demo impact.
+- [`REVIEW_POSTURE_HOLD.md`](REVIEW_POSTURE_HOLD.md) — Review of holding a posture issue through a side-on flicker.
+- [`REVIEW_SEEN_HOLD.md`](REVIEW_SEEN_HOLD.md) — Review of the rejected-frame hold, where an old rate can look current.
 - [`REVIEW_SHOULDERS_LINE.md`](REVIEW_SHOULDERS_LINE.md) — Back-translation check of the shoulders cue.
 
 ## Voice and translations
@@ -66,3 +78,4 @@ Every file in docs/, grouped by use. One plain line each.
 - [`DEMO_TEST_5MIN.md`](DEMO_TEST_5MIN.md) — Five-minute live behaviour check before staging.
 - [`PITCH.md`](PITCH.md) — Spoken two-minute pitch script with timings.
 - [`JUDGE_QA.md`](JUDGE_QA.md) — Prepared answers on accuracy, languages, privacy, and scope.
+- [`CLAIMS_CHECK.md`](CLAIMS_CHECK.md) — Check of every number in the pitch and demo scripts against evidence.
