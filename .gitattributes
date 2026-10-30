@@ -1,0 +1,4 @@
+# GitHub language bar: count the app, not the tooling.
+swarm/** linguist-vendored
+tools/** linguist-vendored
+cpr-coach/tools/** linguist-vendored
