@@ -49,6 +49,16 @@
         "hard"
       ],
       "enabled": true
+    },
+    {
+      "name": "codex-astra",
+      "harness": "omp",
+      "model": "openai-codex/gpt-6-astra",
+      "profile": null,
+      "usage_provider": "openai-codex",
+      "usage_match": "",
+      "kinds": [],
+      "enabled": true
     }
   ]
 }
