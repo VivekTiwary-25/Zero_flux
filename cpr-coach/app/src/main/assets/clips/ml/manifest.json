@@ -1,0 +1,86 @@
+[
+  {
+    "code": "ml",
+    "key": "lang_name",
+    "text": "മലയാളം",
+    "sha256": "3080efdb77efa2411025fcd11e89dd22d8d6f1e1e85d70cb2c53b6c5dec19d95"
+  },
+  {
+    "code": "ml",
+    "key": "countdown",
+    "text": "മൂന്ന്, രണ്ട്, ഒന്ന്, തുടങ്ങാം",
+    "sha256": "fc9eb73b30e8df6053abf1866737a600295f6d316e30d86a848f4c94d1ced70c"
+  },
+  {
+    "code": "ml",
+    "key": "push_faster",
+    "text": "കൂടുതൽ വേഗത്തിൽ അമർത്തൂ",
+    "sha256": "26321b6f2b2b4d4abe44cd1c687f0853aa64f3ecc4ea5b53944fec64007b91d0"
+  },
+  {
+    "code": "ml",
+    "key": "slow_down",
+    "text": "കുറച്ച് പതുക്കെ ആക്കൂ",
+    "sha256": "11176a3a64e47d7badea8c264ada49fc74424038747463acde40426f138fdfe9"
+  },
+  {
+    "code": "ml",
+    "key": "elbows_straight",
+    "text": "കൈമുട്ടുകൾ നിവർത്തി വെക്കൂ",
+    "sha256": "b663e3b84f784dda774109d27f4c65126ef423d5846051582e86648818295487"
+  },
+  {
+    "code": "ml",
+    "key": "keep_going",
+    "text": "തുടർന്ന് അമർത്തൂ",
+    "sha256": "6457917b9b754d2d1d55b469bdfce53332120695763ce8ed7d25a1f7c96d13e7"
+  },
+  {
+    "code": "ml",
+    "key": "good",
+    "text": "നല്ലത്, തുടർന്ന് അമർത്തൂ",
+    "sha256": "09496cd6859bf25fbe8536903fe73d15409efdafd0aea028e3df1f9a491504e9"
+  },
+  {
+    "code": "ml",
+    "key": "session_done",
+    "text": "വളരെ നല്ലത്, പരിശീലനം പൂർത്തിയായി",
+    "sha256": "82793746fb37922357ac13afcec67c7b2f2486b9eb974f6d41ab00b6ce6f8732"
+  },
+  {
+    "code": "ml",
+    "key": "em_call",
+    "text": "ഒന്ന് ഒന്ന് രണ്ട് നമ്പറിലേക്ക് വിളിക്കൂ. സ്പീക്കറിൽ ഇടൂ.",
+    "sha256": "9c2fb1a164eb4cc583f4073a89464da0cb6c3c87359131d8c4f4b47bc3f62ccf"
+  },
+  {
+    "code": "ml",
+    "key": "em_hands",
+    "text": "നെഞ്ചിന്റെ നടുവിൽ കൈകൾ വെക്കൂ.",
+    "sha256": "19b694c94e9694e4e168e91d1a716f453fbee9790d1c748486329a423283e996"
+  },
+  {
+    "code": "ml",
+    "key": "em_push",
+    "text": "താളത്തിനൊത്ത് ശക്തമായും വേഗത്തിലും അമർത്തൂ.",
+    "sha256": "068d2831ea26db7ef8202bf821cb25cf1c15fa5c08c6329b96f23fde8d420100"
+  },
+  {
+    "code": "ml",
+    "key": "em_swap",
+    "text": "മറ്റൊരാൾക്ക് മാറി ചെയ്യാൻ പറ്റുമെങ്കിൽ, ഇപ്പോൾ മാറൂ.",
+    "sha256": "1e7a585d8c108a4b54635ca6ef39e15b65699d47e219664478bfe50e4a8d6713"
+  },
+  {
+    "code": "ml",
+    "key": "em_aed",
+    "text": "അടുത്ത് എ ഇ ഡി ഉണ്ടെങ്കിൽ, കൊണ്ടുവരാൻ ആരോടെങ്കിലും പറയൂ.",
+    "sha256": "cfe4d2c0ee8f903ef6aa07fa1ff53e8f608d9c77a752ba992fcef416aa171e08"
+  },
+  {
+    "code": "ml",
+    "key": "em_continue",
+    "text": "സഹായം എത്തുന്നതുവരെ അമർത്തുന്നത് തുടരൂ.",
+    "sha256": "325b7495025ce54aacb1d03ddb256269e9333359cd0d7631d0759e7bac459070"
+  }
+]

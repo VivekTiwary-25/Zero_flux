@@ -1,0 +1,86 @@
+[
+  {
+    "code": "gu",
+    "key": "lang_name",
+    "text": "ગુજરાતી",
+    "sha256": "93febe6cac08ea94884b6c32e012a39a89d856197719756903bb71755d3d76e9"
+  },
+  {
+    "code": "gu",
+    "key": "countdown",
+    "text": "શરૂ કરીએ છીએ ત્રણ, બે, એક",
+    "sha256": "1d98c59e06c3855370bfe48bcf877e040e4c551852f3170da8c856a85af71c5c"
+  },
+  {
+    "code": "gu",
+    "key": "push_faster",
+    "text": "વધુ ઝડપથી દબાવો",
+    "sha256": "4161d709eccb5dbab9c0ea08b8b61a5ed3d3041d2e45a7305d4f62ba54687d33"
+  },
+  {
+    "code": "gu",
+    "key": "slow_down",
+    "text": "થોડું ધીમું કરો",
+    "sha256": "f72ee557d95648b28eacfe12e44167970b113f5a8dd49d96a8c465dba8c29514"
+  },
+  {
+    "code": "gu",
+    "key": "elbows_straight",
+    "text": "કોણી સીધી રાખો",
+    "sha256": "dd4e49bdae0be98efe1cda56e395adebbfd0feea1b49526b490d4828af7c1476"
+  },
+  {
+    "code": "gu",
+    "key": "keep_going",
+    "text": "દબાવતા રહો",
+    "sha256": "f78f60ea7639ad3c8f2905408e6067bab7c11d8c4bf7d2f6142cd7ea52df7b81"
+  },
+  {
+    "code": "gu",
+    "key": "good",
+    "text": "સરસ, દબાવતા રહો",
+    "sha256": "ad89dcf1de1761b544289352905c3af9b23c0bf0b35003098631711e37c5092c"
+  },
+  {
+    "code": "gu",
+    "key": "session_done",
+    "text": "ખૂબ સરસ, પ્રેક્ટિસ પૂરી થઈ",
+    "sha256": "544216265a0e451115cb3972442a723dfd6e6aa5f14f25212ce4b50db7c33081"
+  },
+  {
+    "code": "gu",
+    "key": "em_call",
+    "text": "એક એક બે પર કોલ કરો. ફોન સ્પીકર પર મૂકો.",
+    "sha256": "6f41b68fce66183a4257b15de014c3feb992eb233c890d7e6981dc727e7bce81"
+  },
+  {
+    "code": "gu",
+    "key": "em_hands",
+    "text": "છાતીની વચ્ચે હાથ મૂકો.",
+    "sha256": "a182dc5a3653f3b817c76e6121c8613c7e34b45ca95b4a302559ca672143fd82"
+  },
+  {
+    "code": "gu",
+    "key": "em_push",
+    "text": "તાલ સાથે જોરથી અને ઝડપથી દબાવો.",
+    "sha256": "fcf904d2974a7732add9be161ce6a95f5ec40a4e2e959958e33dee36eaa839a0"
+  },
+  {
+    "code": "gu",
+    "key": "em_swap",
+    "text": "જો કોઈ બીજું કરી શકે તેમ હોય, તો અત્યારે બદલાઈ જાઓ.",
+    "sha256": "f5f4493514681c6403dc1ef5e34376af84c98261f5d7d0b03da9924d2f29a3c2"
+  },
+  {
+    "code": "gu",
+    "key": "em_aed",
+    "text": "જો નજીકમાં એ ઈ ડી હોય, તો કોઈને લાવવા કહો.",
+    "sha256": "8ab4f68735b88c76c9450ca613ad9914e2830e5dec4a939a7141aa99136df213"
+  },
+  {
+    "code": "gu",
+    "key": "em_continue",
+    "text": "મદદ આવે ત્યાં સુધી દબાવતા રહો.",
+    "sha256": "fea5669262141ef760784634e8c0c022ac4807d4c402b1e5422a6d148c807ba5"
+  }
+]

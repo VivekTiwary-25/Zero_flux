@@ -1,0 +1,86 @@
+[
+  {
+    "code": "en",
+    "key": "lang_name",
+    "text": "English",
+    "sha256": "ba118bf7fc9c1aedc1edb28a0aa86e0b43b681f222af6616e13c43be87815b06"
+  },
+  {
+    "code": "en",
+    "key": "countdown",
+    "text": "Starting in three, two, one",
+    "sha256": "47174158f0ee46582e06f19eabbe22cda228876f64e0eed9f84425c31eda1781"
+  },
+  {
+    "code": "en",
+    "key": "push_faster",
+    "text": "Push faster",
+    "sha256": "090a225e12e7e570ecfcf54042428b00ee8ac0a91cab3419c1b51724ce54909e"
+  },
+  {
+    "code": "en",
+    "key": "slow_down",
+    "text": "Slow down",
+    "sha256": "a904382fc7ae0dff8ed32c944a61da0a66d5dc6763c97ded09531c4b0e1971e9"
+  },
+  {
+    "code": "en",
+    "key": "elbows_straight",
+    "text": "Keep your elbows straight",
+    "sha256": "fae8e87738935b3572e9998253c40f5cf8af837da985ca455502d050ce7cd276"
+  },
+  {
+    "code": "en",
+    "key": "keep_going",
+    "text": "Keep going",
+    "sha256": "9d7fd0e0bd0ac15500730fda0e9103d7e4c7dbcdadff9a2db43f262ff1e24d38"
+  },
+  {
+    "code": "en",
+    "key": "good",
+    "text": "Good, keep going",
+    "sha256": "d2ff14db72216cb3f23b6eeb45d64e9991b60e222dcf63477a024ede96a09c3e"
+  },
+  {
+    "code": "en",
+    "key": "session_done",
+    "text": "Great work, session complete",
+    "sha256": "08bdece753a383a3f896d79013de3afabed41b8b61f061fd8ed95c74cbc5787b"
+  },
+  {
+    "code": "en",
+    "key": "em_call",
+    "text": "Call one one two. Put it on speaker.",
+    "sha256": "6b878f6841f67f3214bfc323560b1405e56b60a554b7361bc13c9021d6214e68"
+  },
+  {
+    "code": "en",
+    "key": "em_hands",
+    "text": "Place your hands in the centre of the chest.",
+    "sha256": "7d3bd5e90e7bb8bb1e04f9c5e1982029e4e797cfd9834ae75ae5fdff21f8ecdc"
+  },
+  {
+    "code": "en",
+    "key": "em_push",
+    "text": "Push hard and fast, with the beat.",
+    "sha256": "423623d8d47f5c26afee1841bdda87accb0648bc9a1d769eed872667daaadd12"
+  },
+  {
+    "code": "en",
+    "key": "em_swap",
+    "text": "If someone can take over, switch now.",
+    "sha256": "ebad3135fca6f4aa444469fb7b72adcd7e436107a3403ffd3938249ba4578f3a"
+  },
+  {
+    "code": "en",
+    "key": "em_aed",
+    "text": "If there's an AED nearby, ask someone to bring it.",
+    "sha256": "476fefb1ba199b491eee248d54731dddc0616f7d6a9a12a610b7032e76dd274a"
+  },
+  {
+    "code": "en",
+    "key": "em_continue",
+    "text": "Keep going until help arrives.",
+    "sha256": "73a898ef385ea05251e12550907ee778f4168cac74b1dd977f05824a28d75798"
+  }
+]

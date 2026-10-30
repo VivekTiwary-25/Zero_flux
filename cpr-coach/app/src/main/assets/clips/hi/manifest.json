@@ -1,0 +1,86 @@
+[
+  {
+    "code": "hi",
+    "key": "lang_name",
+    "text": "हिन्दी",
+    "sha256": "9ddb12af8457d635ec15773f905ca8587772ef64d5ecbe24d9aa4eab27a2e79b"
+  },
+  {
+    "code": "hi",
+    "key": "countdown",
+    "text": "शुरू कर रहे हैं तीन, दो, एक",
+    "sha256": "0700221232cc4aded08cbb59ef7ad5c1d7a2c8c4cae844471717469cfaa5e7c8"
+  },
+  {
+    "code": "hi",
+    "key": "push_faster",
+    "text": "और तेज़ दबाएँ",
+    "sha256": "6658229bd32f4a1a8a04793da8c6160b94dc930a5ff7b176a78284396155fe10"
+  },
+  {
+    "code": "hi",
+    "key": "slow_down",
+    "text": "थोड़ा धीरे करें",
+    "sha256": "46a7840c230c1391bf7b9ae6d46bf2c74d7649083164ac3af8dd610ada9f4282"
+  },
+  {
+    "code": "hi",
+    "key": "elbows_straight",
+    "text": "कोहनी सीधी रखें",
+    "sha256": "474ad2ee33596910ddd9d9295afb0c22cd7d3e010d1f32c255b6b40102d98962"
+  },
+  {
+    "code": "hi",
+    "key": "keep_going",
+    "text": "दबाते रहें",
+    "sha256": "0e9d9e552a464dab6ac7096bc0ecbfdc3b71f0467a17d1745f0b425e55110a28"
+  },
+  {
+    "code": "hi",
+    "key": "good",
+    "text": "बहुत अच्छे, दबाते रहें",
+    "sha256": "cd7f701e75890fbd5b1f10893a834a2fbea65f89df9fa762d8521b8039e52b3b"
+  },
+  {
+    "code": "hi",
+    "key": "session_done",
+    "text": "शाबाश, अभ्यास पूरा हुआ",
+    "sha256": "b8b5c2744b8c4a7db00860a1bb6e8beff0d7e357786d8f08d044b1950be891ec"
+  },
+  {
+    "code": "hi",
+    "key": "em_call",
+    "text": "एक एक दो पर कॉल करें। फ़ोन स्पीकर पर रखें।",
+    "sha256": "33d88d6bfe7c67936fc38b7aeb2e46eae854dfbd4b43041da5b6ae5ccb88d02b"
+  },
+  {
+    "code": "hi",
+    "key": "em_hands",
+    "text": "छाती के बीच में दोनों हाथ रखें।",
+    "sha256": "12bdd14238ec05778b312364e797ef7365f0ce9c022316de266a8949af28cb0b"
+  },
+  {
+    "code": "hi",
+    "key": "em_push",
+    "text": "ताल के साथ ज़ोर से और तेज़ दबाएँ।",
+    "sha256": "1b91834f4f90030d521fed7bf01fdb6eb1bf92a981f5450551d94a081d711984"
+  },
+  {
+    "code": "hi",
+    "key": "em_swap",
+    "text": "अगर कोई और कर सकता है, तो अभी बारी बदल लें।",
+    "sha256": "e735219a2308aeab848a5185eed7a3d8416c4e05b459823c565cf6ec20296a52"
+  },
+  {
+    "code": "hi",
+    "key": "em_aed",
+    "text": "अगर पास में ए ई डी है, तो किसी से मँगवाएँ।",
+    "sha256": "168b735603b635c2cd3bbd21e5ae1f6af4bff900e54d1ec75983d8af317e4612"
+  },
+  {
+    "code": "hi",
+    "key": "em_continue",
+    "text": "मदद आने तक दबाते रहें।",
+    "sha256": "1c85943a42b538e6db2e08ebfb63fc5adf949540016c7e6514d1a6a6b7c7675d"
+  }
+]

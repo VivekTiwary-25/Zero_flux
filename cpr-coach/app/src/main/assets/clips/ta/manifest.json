@@ -1,0 +1,86 @@
+[
+  {
+    "code": "ta",
+    "key": "lang_name",
+    "text": "தமிழ்",
+    "sha256": "540a59cf6fd8508ba43aa077a3128e234b5c486a919eabd6d8c05b9930bf2487"
+  },
+  {
+    "code": "ta",
+    "key": "countdown",
+    "text": "மூன்று, இரண்டு, ஒன்று, தொடங்கலாம்",
+    "sha256": "6cfcf1a1f638171adaf808ef7a309f6fe5f1d16be25f5783d9bce47dce14da64"
+  },
+  {
+    "code": "ta",
+    "key": "push_faster",
+    "text": "இன்னும் வேகமாக அழுத்துங்கள்",
+    "sha256": "4d51a5357042cd574b3297aa52117f15181fa7161f33b464aa029a7c0936a4cd"
+  },
+  {
+    "code": "ta",
+    "key": "slow_down",
+    "text": "கொஞ்சம் மெதுவாக அழுத்துங்கள்",
+    "sha256": "abc5e5b8a3beb90334410fcc1ac07639748e2efb606d48855b42c0669e35181c"
+  },
+  {
+    "code": "ta",
+    "key": "elbows_straight",
+    "text": "முழங்கையை நேராக வையுங்கள்",
+    "sha256": "5b2157a270201a59f1a26084db6dcc3c01ddd5d584ea6146dc3f6f3b39684854"
+  },
+  {
+    "code": "ta",
+    "key": "keep_going",
+    "text": "தொடர்ந்து அழுத்துங்கள்",
+    "sha256": "321c51876c239d3ed7047c8222a072a9bf11caa79d6b9c1db416ac1fbfbbbbc2"
+  },
+  {
+    "code": "ta",
+    "key": "good",
+    "text": "நன்று, தொடர்ந்து அழுத்துங்கள்",
+    "sha256": "f0f7b2955ee27da9705b8ee2cf70eb8e82157b943fe7f568028e25d85b6435c3"
+  },
+  {
+    "code": "ta",
+    "key": "session_done",
+    "text": "சிறப்பு, பயிற்சி முடிந்தது",
+    "sha256": "737deff1eedea33e8c1e05ba3b9a1115706d3935dd8edf73321856dbe6848acf"
+  },
+  {
+    "code": "ta",
+    "key": "em_call",
+    "text": "ஒன்று ஒன்று இரண்டுக்கு அழைக்கவும். ஸ்பீக்கரில் போடுங்கள்.",
+    "sha256": "f12c5845a92119c5388dd022d5c492d759ec01c641b6f4e10457e9b2ced8a673"
+  },
+  {
+    "code": "ta",
+    "key": "em_hands",
+    "text": "மார்பின் நடுவில் கைகளை வையுங்கள்.",
+    "sha256": "11eefcabbfcab87325f4f10ffada36166f690e53f35ac7a1b7df91003a27c1dc"
+  },
+  {
+    "code": "ta",
+    "key": "em_push",
+    "text": "தாளத்தோடு வேகமாகவும் பலமாகவும் அழுத்துங்கள்.",
+    "sha256": "12b9fac4d1fcbf8eafcf8698095da8b181ff89549f093e10ca8b06345149515f"
+  },
+  {
+    "code": "ta",
+    "key": "em_swap",
+    "text": "வேறு யாராவது இருந்தால், இப்போது மாறிக்கொள்ளுங்கள்.",
+    "sha256": "92d21c999cfb3f16bdc5e6f834d78ea6229f444c251a4ab100d9480b9da4a30d"
+  },
+  {
+    "code": "ta",
+    "key": "em_aed",
+    "text": "அருகில் ஏ இ டி இருந்தால், யாரையாவது எடுத்து வரச் சொல்லுங்கள்.",
+    "sha256": "daf205bbb515a04052109a0992ca4061da5537c0e0618ca8b349fc2ced8fbed0"
+  },
+  {
+    "code": "ta",
+    "key": "em_continue",
+    "text": "உதவி வரும் வரை தொடர்ந்து அழுத்துங்கள்.",
+    "sha256": "595de000d127903ece1255f0f253be59794b49174470ddebaa7439026416df02"
+  }
+]

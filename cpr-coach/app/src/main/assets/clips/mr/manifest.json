@@ -1,0 +1,86 @@
+[
+  {
+    "code": "mr",
+    "key": "lang_name",
+    "text": "मराठी",
+    "sha256": "4b76a6025425f06bde7741df95819d2f89245ccaf6fedc36734d1301323444ef"
+  },
+  {
+    "code": "mr",
+    "key": "countdown",
+    "text": "सुरू करत आहोत तीन, दोन, एक",
+    "sha256": "907fc16f1e8ecd14b6876e5f6b630fab14ed3e081bf71717762027eac6fe1a9f"
+  },
+  {
+    "code": "mr",
+    "key": "push_faster",
+    "text": "अजून वेगाने दाबा",
+    "sha256": "f1f60440169086b50a630b1e61efe2e91e7642754455b2efe4a5b9998c8e88c5"
+  },
+  {
+    "code": "mr",
+    "key": "slow_down",
+    "text": "थोडे हळू करा",
+    "sha256": "2701052bfaf71281690bd9770e0f49459db30d2c8fef2b49eda74200a0f04356"
+  },
+  {
+    "code": "mr",
+    "key": "elbows_straight",
+    "text": "कोपर सरळ ठेवा",
+    "sha256": "e8e5c8901ceabb1e448df2df606d22013878dc6db0a6b8c5c79094054d44546b"
+  },
+  {
+    "code": "mr",
+    "key": "keep_going",
+    "text": "दाबत राहा",
+    "sha256": "dfe8e4f35d3e166c70373b01c0da315e061ced1d11bd3893bd9b3044ffc9e432"
+  },
+  {
+    "code": "mr",
+    "key": "good",
+    "text": "छान, दाबत राहा",
+    "sha256": "97886c390c2c89b1b58d79e24dac2cba81e0184cc1e51aad0948fedf2ba17a99"
+  },
+  {
+    "code": "mr",
+    "key": "session_done",
+    "text": "खूप छान, सराव पूर्ण झाला",
+    "sha256": "cfe2e031c370a0e64fa15ee6d9356b7d5a94248777640e91bbfda6b4c04fc340"
+  },
+  {
+    "code": "mr",
+    "key": "em_call",
+    "text": "एक एक दोन वर कॉल करा. फोन स्पीकरवर ठेवा.",
+    "sha256": "35a5607f2151a66adf35dfe7f3d020e4a80542a2ef8adff1c92783aa8578bf60"
+  },
+  {
+    "code": "mr",
+    "key": "em_hands",
+    "text": "छातीच्या मध्यभागी हात ठेवा.",
+    "sha256": "76ed4138a9ec89373f594d8b3082ab4408b47e78ac197b7e474c30093450606d"
+  },
+  {
+    "code": "mr",
+    "key": "em_push",
+    "text": "तालासोबत जोरात आणि वेगाने दाबा.",
+    "sha256": "20803bf0b3719004f651fecc7ffcbe5377ea9bce9523f67cdb5a11e767fade4c"
+  },
+  {
+    "code": "mr",
+    "key": "em_swap",
+    "text": "कोणी बदली करू शकत असेल, तर आता जागा बदला.",
+    "sha256": "4904e752705d343ce504f2751e254161b1505f5e03d6ed5a620879341b154c37"
+  },
+  {
+    "code": "mr",
+    "key": "em_aed",
+    "text": "जवळ ए ई डी असेल, तर कोणालातरी आणायला सांगा.",
+    "sha256": "596fca04651f5c943eca11b0c3a4b250a697a6f5a035c6b540d7d5836e1b5cc4"
+  },
+  {
+    "code": "mr",
+    "key": "em_continue",
+    "text": "मदत येईपर्यंत दाबत राहा.",
+    "sha256": "133608e0bfa9099ed1fdcd43818b269e453c7081b62507c7d2355878559cf88e"
+  }
+]

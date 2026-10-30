@@ -1,0 +1,86 @@
+[
+  {
+    "code": "or",
+    "key": "lang_name",
+    "text": "ଓଡ଼ିଆ",
+    "sha256": "b0e0c2b59a322fe7dd62ddd80acb6ee09310fecc3e2c188bae2ed4e3762bd4a3"
+  },
+  {
+    "code": "or",
+    "key": "countdown",
+    "text": "ଆରମ୍ଭ ହେଉଛି ତିନି, ଦୁଇ, ଏକ",
+    "sha256": "4e2a4cc3cba980da5efafcda4493edd8ddfeef1c7722d03dab577aa300263f23"
+  },
+  {
+    "code": "or",
+    "key": "push_faster",
+    "text": "ଆହୁରି ଶୀଘ୍ର ଦବାନ୍ତୁ",
+    "sha256": "49cdc0dd927cc94f0173458c8420c3cf7b9253017bc4825b4760f96ff0cd4fec"
+  },
+  {
+    "code": "or",
+    "key": "slow_down",
+    "text": "ଟିକେ ଧୀରେ କରନ୍ତୁ",
+    "sha256": "5531670fae4f8e75b1031bc75796e340493c61c86d7d0b69086a5b8aafae3acd"
+  },
+  {
+    "code": "or",
+    "key": "elbows_straight",
+    "text": "କହୁଣୀ ସିଧା ରଖନ୍ତୁ",
+    "sha256": "bf1f9b0c618f66a77b466a5a7afe5dea3a4bf7281414661c7d2f09c4e0671da3"
+  },
+  {
+    "code": "or",
+    "key": "keep_going",
+    "text": "ଦବାଇ ଚାଲନ୍ତୁ",
+    "sha256": "ba44d85ce6892ef9626faa97b64eb959c3deff09153f649578fbcaa255a08369"
+  },
+  {
+    "code": "or",
+    "key": "good",
+    "text": "ବହୁତ ଭଲ, ଦବାଇ ଚାଲନ୍ତୁ",
+    "sha256": "63dba4b41d6265672bcfccf2264f6e40c1f688b10d5c2f46870722766e20b675"
+  },
+  {
+    "code": "or",
+    "key": "session_done",
+    "text": "ବହୁତ ବଢ଼ିଆ, ଅଭ୍ୟାସ ଶେଷ ହେଲା",
+    "sha256": "e38cf4ec8f33f4d35afdc0eccb756c6627d82d7b6e0782f8b5d76828ea4ddd67"
+  },
+  {
+    "code": "or",
+    "key": "em_call",
+    "text": "ଏକ ଏକ ଦୁଇ କୁ କଲ୍ କରନ୍ତୁ। ସ୍ପିକରରେ ରଖନ୍ତୁ।",
+    "sha256": "dc4cd911c0aa98161c99cafe642d1d997f9e81c44cff883522c1610ad432838b"
+  },
+  {
+    "code": "or",
+    "key": "em_hands",
+    "text": "ଛାତି ମଝିରେ ହାତ ରଖନ୍ତୁ।",
+    "sha256": "da8359f8ad92fe9320c04294f50d579f7e5abcc1cb69c719cccaea925cd7da52"
+  },
+  {
+    "code": "or",
+    "key": "em_push",
+    "text": "ତାଳ ସହିତ ଜୋରରେ ଏବଂ ଶୀଘ୍ର ଦବାନ୍ତୁ।",
+    "sha256": "784bf89076ffcc0aad9b03b7482a7e4296b6d89183d090e407d842af2d5953fa"
+  },
+  {
+    "code": "or",
+    "key": "em_swap",
+    "text": "ଯଦି ଆଉ କେହି ଅଛନ୍ତି, ଏବେ ପାଳି ବଦଳାନ୍ତୁ।",
+    "sha256": "aa0d3c7cd56366c0a39533d4b25d779c19a76534296f29a66e3427793d31834f"
+  },
+  {
+    "code": "or",
+    "key": "em_aed",
+    "text": "ଯଦି ପାଖରେ ଏ ଇ ଡି ଅଛି, କାହାକୁ ଆଣିବାକୁ କୁହନ୍ତୁ।",
+    "sha256": "8635a9ebbc82776f84ce6e9639921e6e540a6ae87df37e7173f5c147b3915fcb"
+  },
+  {
+    "code": "or",
+    "key": "em_continue",
+    "text": "ସାହାଯ୍ୟ ଆସିବା ପର୍ଯ୍ୟନ୍ତ ଦବାଇ ଚାଲନ୍ତୁ।",
+    "sha256": "e0dd07859031f2f4d819210a0e790eb8fde12c6faff4b03d1ae97fce06dc4e3a"
+  }
+]

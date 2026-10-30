@@ -1,0 +1,86 @@
+[
+  {
+    "code": "kn",
+    "key": "lang_name",
+    "text": "ಕನ್ನಡ",
+    "sha256": "93cce92606560be2c806b1ed222e0d177f5f90969c5369216372dbfb3dfaae1a"
+  },
+  {
+    "code": "kn",
+    "key": "countdown",
+    "text": "ಮೂರು, ಎರಡು, ಒಂದು, ಶುರು",
+    "sha256": "24619ef59bde76bb2e722a27b07fba70ef6cd1dc01fa94709e25ffa1e2ae1edd"
+  },
+  {
+    "code": "kn",
+    "key": "push_faster",
+    "text": "ಇನ್ನೂ ವೇಗವಾಗಿ ಒತ್ತಿ",
+    "sha256": "4461bacbe0de9268cb54a9886fa61c53c8ba864399ec80546884083527d63932"
+  },
+  {
+    "code": "kn",
+    "key": "slow_down",
+    "text": "ಸ್ವಲ್ಪ ನಿಧಾನ ಮಾಡಿ",
+    "sha256": "cb6c18e3fc335103a0a12e452b5a10bba89ccab5a990641eb2df695d95456cb9"
+  },
+  {
+    "code": "kn",
+    "key": "elbows_straight",
+    "text": "ಮೊಣಕೈ ನೇರವಾಗಿ ಇಡಿ",
+    "sha256": "75a41a6fd1fd42524fb5766e935d196011232ffc7245ccd55b8fd130ac160c67"
+  },
+  {
+    "code": "kn",
+    "key": "keep_going",
+    "text": "ಒತ್ತುತ್ತಾ ಇರಿ",
+    "sha256": "5def0fe54f84abb7362cfc1a5c6e13e05d70b4ec5bca3fcd1e9328721888a974"
+  },
+  {
+    "code": "kn",
+    "key": "good",
+    "text": "ಚೆನ್ನಾಗಿದೆ, ಒತ್ತುತ್ತಾ ಇರಿ",
+    "sha256": "bf43d0915afa75c37514f8d3f98ebc0c5ced5b18c204e0be32abca8bd1c8f9a7"
+  },
+  {
+    "code": "kn",
+    "key": "session_done",
+    "text": "ಶಾಬಾಶ್, ಅಭ್ಯಾಸ ಮುಗಿಯಿತು",
+    "sha256": "9c458bcd6aaf047efe55c05f20578996b9882e399f0b41047871eab836376ae4"
+  },
+  {
+    "code": "kn",
+    "key": "em_call",
+    "text": "ಒಂದು ಒಂದು ಎರಡು ಕ್ಕೆ ಕಾಲ್ ಮಾಡಿ. ಸ್ಪೀಕರ್ ಆನ್ ಮಾಡಿ.",
+    "sha256": "3b2945fe58fbc8f7291c7cc120b48763b7fdc8e890d6209f470f73fa85303f61"
+  },
+  {
+    "code": "kn",
+    "key": "em_hands",
+    "text": "ಎದೆಯ ಮಧ್ಯದಲ್ಲಿ ಕೈಗಳನ್ನು ಇಡಿ.",
+    "sha256": "6a7e8e5e26591a84138ab65bab63bdc298254c77a6199ea7850aaed7e6074605"
+  },
+  {
+    "code": "kn",
+    "key": "em_push",
+    "text": "ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಜೋರಾಗಿ ಮತ್ತು ವೇಗವಾಗಿ ಒತ್ತಿ.",
+    "sha256": "511abdacf3a46eb3dbf6c4ffb5c0cdff670ed87e3dc59b9f4456bf660b714de9"
+  },
+  {
+    "code": "kn",
+    "key": "em_swap",
+    "text": "ಬೇರೆಯವರು ಇದ್ದರೆ, ಈಗ ಜಾಗ ಬದಲಿಸಿ.",
+    "sha256": "90938116bd48d9cad73cb7c189d35a36a2066721206a3eb54abdeb6743cae14f"
+  },
+  {
+    "code": "kn",
+    "key": "em_aed",
+    "text": "ಹತ್ತಿರದಲ್ಲಿ ಎ ಇ ಡಿ ಇದ್ದರೆ, ಯಾರಾದರೂ ತರಲು ಹೇಳಿ.",
+    "sha256": "8a8bf602799744595c9bbee1342a96238778f66d7918c6f3a7cd18fcc97a783d"
+  },
+  {
+    "code": "kn",
+    "key": "em_continue",
+    "text": "ಸಹಾಯ ಬರುವವರೆಗೂ ಒತ್ತುತ್ತಾ ಇರಿ.",
+    "sha256": "0eb503cd90e8b0bad8441823bb8ce945d7f81374a42fc7d9d4272501cf0eb0b0"
+  }
+]

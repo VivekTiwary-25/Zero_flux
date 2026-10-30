@@ -1,0 +1,86 @@
+[
+  {
+    "code": "bn",
+    "key": "lang_name",
+    "text": "বাংলা",
+    "sha256": "3bdfce0a268d154828af6e9f5e4b9962d0ee04a148ca64d8994570eed9556afd"
+  },
+  {
+    "code": "bn",
+    "key": "countdown",
+    "text": "শুরু হচ্ছে তিন, দুই, এক",
+    "sha256": "4fdfc42fe3e4b1b7d1e5c4acf00eb99e1e9474aea15decb1b1ef613b224621a2"
+  },
+  {
+    "code": "bn",
+    "key": "push_faster",
+    "text": "আরও দ্রুত চাপুন",
+    "sha256": "3f4bd501cc0224823f36bd040ccb93776147785b3bfbbc32a84cfcce9d06601d"
+  },
+  {
+    "code": "bn",
+    "key": "slow_down",
+    "text": "একটু ধীরে করুন",
+    "sha256": "2acc1cf0dfd619c1b20f85f6a6ee888f864e364a512b4ad7fcf639111a134767"
+  },
+  {
+    "code": "bn",
+    "key": "elbows_straight",
+    "text": "কনুই সোজা রাখুন",
+    "sha256": "dc2e260c836c951d0a7bf80c42b3dbd4424a2c8d8d30134f8e6c79fcb58d98e9"
+  },
+  {
+    "code": "bn",
+    "key": "keep_going",
+    "text": "চাপতে থাকুন",
+    "sha256": "e1ed843038a849f1cd3c673258a92f1431ea5f4c3349bca4b79facc2b314aeb3"
+  },
+  {
+    "code": "bn",
+    "key": "good",
+    "text": "বেশ ভালো, চাপতে থাকুন",
+    "sha256": "5e71b17b37beca120393b2b8eace399f235e714bd039a03b4361559c767edaa6"
+  },
+  {
+    "code": "bn",
+    "key": "session_done",
+    "text": "দারুণ কাজ, অনুশীলন শেষ",
+    "sha256": "5bb95ec7800ed99ed4b93526b32f64ce666265c4f7ddb82a4162a12c7e22f133"
+  },
+  {
+    "code": "bn",
+    "key": "em_call",
+    "text": "এক এক দুই নম্বরে কল করুন। স্পিকারে দিন।",
+    "sha256": "9a9a788951f19052aada0cd765be0baf2c48e3364587f662ad0828afc47265ce"
+  },
+  {
+    "code": "bn",
+    "key": "em_hands",
+    "text": "বুকের ঠিক মাঝখানে হাত রাখুন।",
+    "sha256": "ebe82076598e5b80f34367b4f5583b0970eded5e8c958b5d0b57c39d79c97ed1"
+  },
+  {
+    "code": "bn",
+    "key": "em_push",
+    "text": "তালের সাথে জোরে এবং দ্রুত চাপুন।",
+    "sha256": "e0b31c7b0b69f93125f9885ffd9d57ff6e0f521a7890bc75f620351543ac89f8"
+  },
+  {
+    "code": "bn",
+    "key": "em_swap",
+    "text": "অন্য কেউ থাকলে, এখনই পালা বদল করুন।",
+    "sha256": "fe6dec8f91ecc2884f94b891cf9481c0f633ebd85fcf1ad3ca8ddfdcd9882e8d"
+  },
+  {
+    "code": "bn",
+    "key": "em_aed",
+    "text": "কাছে এ ই ডি থাকলে, কাউকে আনতে বলুন।",
+    "sha256": "553549ff22abfef766d6251445f3e6558108ec078cf7923d8247aa23f01bdfff"
+  },
+  {
+    "code": "bn",
+    "key": "em_continue",
+    "text": "সাহায্য না আসা পর্যন্ত চাপতে থাকুন।",
+    "sha256": "e4b4b39b2bc049d53bc747dde7f7720dd3119129f4297ab18ec2be99eeb892bc"
+  }
+]
