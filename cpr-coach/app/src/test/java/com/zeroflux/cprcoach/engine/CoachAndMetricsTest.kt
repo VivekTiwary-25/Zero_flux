@@ -58,6 +58,64 @@ class CoachAndMetricsTest {
         assertTrue(run(CoachPolicy(), 0, 30_000) { lost(it) }.isEmpty())
     }
 
+    private fun pushing(t: Long, issue: PostureIssue?, tracking: TrackingState = TrackingState.PAUSED) = LiveReading(
+        t, tracking, if (tracking == TrackingState.BEATING) 110 else null, 170.0, null, moving = true,
+        posture = PostureReading(if (issue == null) true else false, issue, 170.0, null),
+    )
+
+    @Test
+    fun `posture is corrected while pushing without a locked rate`() {
+        val spoken = run(CoachPolicy(), 0, 5_000) { pushing(it, PostureIssue.ELBOWS_BENT) }
+        assertEquals(Phrase.ELBOWS_STRAIGHT, spoken.single().second)
+        assertTrue(spoken.single().first in 2_000..2_500)
+    }
+
+    @Test
+    fun `posture is not corrected while paused and still`() {
+        val spoken = run(CoachPolicy(), 0, 1_900) { t -> pushing(t, PostureIssue.ELBOWS_BENT).copy(moving = false) }
+        assertTrue(spoken.isEmpty())
+    }
+
+    @Test
+    fun `leaning says shoulders over hands`() {
+        val spoken = run(CoachPolicy(), 0, 5_000) { pushing(it, PostureIssue.SHOULDERS_NOT_OVER_HANDS) }
+        assertEquals(Phrase.SHOULDERS_OVER_HANDS, spoken.single().second)
+    }
+
+    @Test
+    fun `shoulders over hands ranks below elbows and rate`() {
+        val both = run(CoachPolicy(), 0, 4_000) { t ->
+            pushing(t, PostureIssue.ELBOWS_BENT, TrackingState.BEATING).copy(elbowsBent = true)
+        }
+        assertEquals(Phrase.ELBOWS_STRAIGHT, both.single().second)
+        val rate = run(CoachPolicy(), 0, 5_000) { t ->
+            pushing(t, PostureIssue.SHOULDERS_NOT_OVER_HANDS, TrackingState.BEATING).copy(ratePerMinute = 90)
+        }
+        assertEquals(Phrase.PUSH_FASTER, rate.first().second)
+    }
+
+    @Test
+    fun `a pause with flickering movement still says keep going`() {
+        val policy = CoachPolicy()
+        run(policy, 0, 8_000) { beating(it, 110) }
+        val spoken = run(policy, 8_000, 13_000) { t -> paused(t).copy(moving = (t / 250) % 4 == 0L) }
+        assertEquals(Phrase.KEEP_GOING, spoken.first().second)
+    }
+
+    @Test
+    fun `pushing without a rate is not a pause`() {
+        val policy = CoachPolicy()
+        run(policy, 0, 8_000) { beating(it, 110) }
+        val spoken = run(policy, 8_000, 20_000) { paused(it).copy(moving = true) }
+        assertTrue(spoken.none { it.second == Phrase.KEEP_GOING })
+    }
+
+    @Test
+    fun `lost tracking stays silent even with a posture issue`() {
+        val spoken = run(CoachPolicy(), 0, 10_000) { lost(it).copy(moving = true, posture = PostureReading(false, PostureIssue.ELBOWS_BENT, null, null)) }
+        assertTrue(spoken.isEmpty())
+    }
+
     @Test
     fun `keep going after a real pause`() {
         val policy = CoachPolicy()
