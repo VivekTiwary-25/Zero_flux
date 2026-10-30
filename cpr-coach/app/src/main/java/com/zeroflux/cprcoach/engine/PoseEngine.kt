@@ -32,7 +32,8 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private val lifecycleLock = Any()
     private var lastTimestampMs = 0L
     private var trace: PrintWriter? = null
-    private var closed = false
+    @Volatile private var closed = false
+    private var submitting = false
     private val landmarker: PoseLandmarker? = try {
         create(context, Delegate.GPU)
     } catch (e: Exception) {
@@ -42,7 +43,13 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         } catch (cpuError: Exception) {
             Log.e(TAG, "Pose unavailable: CPU delegate failed", cpuError)
             null
+        } catch (cpuError: LinkageError) {
+            Log.e(TAG, "Pose unavailable: native library failed", cpuError)
+            null
         }
+    } catch (e: LinkageError) {
+        Log.e(TAG, "Pose unavailable: native library failed", e)
+        null
     }
 
     private fun create(context: Context, delegate: Delegate): PoseLandmarker {
@@ -53,14 +60,13 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setNumPoses(1)
             .setResultListener { result, _ ->
-                synchronized(lifecycleLock) {
-                    if (closed) return@setResultListener
-                    val timestamp = result.timestampMs()
-                    val aspect = submitted.remove(timestamp) ?: return@setResultListener
-                    val latency = SystemClock.uptimeMillis() - timestamp
-                    val marks = result.landmarks().firstOrNull()
-                    onFrame(toFrame(marks, timestamp, aspect, latency))
-                }
+                // Takes no lifecycle lock: submit and close may be waiting on MediaPipe.
+                if (closed) return@setResultListener
+                val timestamp = result.timestampMs()
+                val aspect = submitted.remove(timestamp) ?: return@setResultListener
+                val latency = SystemClock.uptimeMillis() - timestamp
+                val marks = result.landmarks().firstOrNull()
+                onFrame(toFrame(marks, timestamp, aspect, latency))
             }
             .setErrorListener { e -> Log.e(TAG, "pose error", e) }
             .build()
@@ -69,13 +75,24 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
 
     /** Takes ownership of [image] and always closes it. */
     fun submit(image: ImageProxy) {
-        // The lock stops close() running while a frame is on its way into the landmarker.
         synchronized(lifecycleLock) {
             if (closed) {
                 image.close()
                 return
             }
+            submitting = true
+        }
+        try {
             detect(image)
+        } catch (e: RuntimeException) {
+            // A bad frame must not kill the camera thread. The session sees tracking lost.
+            Log.e(TAG, "pose frame failed", e)
+        } finally {
+            // close() waits for this, so the landmarker is never closed under a frame on its way in.
+            synchronized(lifecycleLock) {
+                submitting = false
+                (lifecycleLock as Object).notifyAll()
+            }
         }
     }
 
@@ -156,15 +173,26 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             if (closed) return
             closed = true
             submitted.clear()
+            val giveUpAt = SystemClock.uptimeMillis() + CLOSE_WAIT_MS
+            while (submitting) {
+                val left = giveUpAt - SystemClock.uptimeMillis()
+                if (left <= 0) break
+                (lifecycleLock as Object).wait(left)
+            }
         }
         stopTrace()
         // Native teardown may wait for a result listener, so don't hold its lifecycle lock.
-        landmarker?.close()
+        try {
+            landmarker?.close()
+        } catch (e: RuntimeException) {
+            Log.e(TAG, "pose close failed", e)
+        }
     }
 
     private companion object {
         const val TAG = "CPR_POSE"
         const val STALE_FRAME_MS = 5_000L
+        const val CLOSE_WAIT_MS = 500L
         const val LEFT_SHOULDER = 11
         const val RIGHT_SHOULDER = 12
         const val LEFT_ELBOW = 13

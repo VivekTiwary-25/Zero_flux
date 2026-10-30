@@ -69,7 +69,7 @@ class AudioEngine(
             languageEpoch
         }
         if (released) return
-        loader.execute {
+        runOnLoader {
             try {
                 loadDirectory(code, epoch)
             } catch (e: Exception) {
@@ -139,7 +139,7 @@ class AudioEngine(
             return
         }
         if (cached != null) return
-        loader.execute {
+        runOnLoader {
             val loaded = try {
                 openClip(code, key)
             } catch (e: Exception) {
@@ -206,11 +206,20 @@ class AudioEngine(
         }
         loader.shutdownNow()
         try {
-            thread.join()
+            thread.join(RELEASE_WAIT_MS)
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
         }
         if (pending != null) postToMain(pending)
+    }
+
+    /** The loader is shut down by release(), which can race with a call already on its way here. */
+    private fun runOnLoader(block: () -> Unit) {
+        try {
+            loader.execute(block)
+        } catch (e: java.util.concurrent.RejectedExecutionException) {
+            Log.w(TAG, "clip load skipped: engine released", e)
+        }
     }
 
     private fun loadDirectory(code: String, epoch: Int) {
@@ -418,6 +427,7 @@ class AudioEngine(
     companion object {
         private const val TAG = "AudioEngine"
         private const val BLOCK_MS = 10
+        private const val RELEASE_WAIT_MS = 500L
         private const val BLOCK_SAMPLES = WavClip.SAMPLE_RATE * BLOCK_MS / 1000
         private const val BYTES_PER_SAMPLE = 2
         private const val CLICK_MS = 30

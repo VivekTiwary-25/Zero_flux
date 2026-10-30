@@ -268,6 +268,7 @@ private class PractiseAudio : SessionAudio {
 
     override fun startMetronome() { engine?.startMetronome() }
     override fun stopMetronome() { engine?.stopMetronome() }
+    override fun stopVoice() { engine?.stopClips() }
     fun repeat() { lastKey?.let { engine?.play(it) } }
     fun reset() {
         lastKey = null
@@ -285,10 +286,9 @@ private class PractiseCapture {
     }
 
     fun submit(image: ImageProxy) {
-        synchronized(lock) {
-            val pose = engine
-            if (pose == null) image.close() else pose.submit(image)
-        }
+        // PoseEngine guards its own teardown, and holding this lock would make the main thread wait on MediaPipe.
+        val pose = synchronized(lock) { engine }
+        if (pose == null) image.close() else pose.submit(image)
     }
 
     fun startTrace(directory: File) {
