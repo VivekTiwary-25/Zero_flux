@@ -2,13 +2,13 @@
 .SYNOPSIS
     Copies CPR Coach session traces from an Android phone and summarizes each one.
 
-.DESCRIPTION
     Finds the phone, pulls /sdcard/Android/data/com.zeroflux.cprcoach/files/traces/
-    into a local folder, then runs analyze_trace.py on every CSV that came back
-    and prints its summary.
+    into a local folder, then runs analyze_trace.py on the selected CSV traces.
+    With -Frames, it also pulls the matching frame folders and makes contact sheets.
 
-    The phone is only read. This script never installs, deletes or starts
-    anything on it.
+    -Latest limits processing to the newest session IDs; by default all sessions
+    are included. The phone is only read. This script never installs, deletes or
+    starts anything on it.
 
 .PARAMETER Serial
     The adb serial of the phone to use. If omitted, the only attached phone is
@@ -18,6 +18,12 @@
     The local folder for the pulled traces. Defaults to a traces folder beside
     this script.
 
+.PARAMETER Frames
+    Also pull session frame pictures and generate contact sheets.
+
+.PARAMETER Latest
+    Process only the N newest sessions by session ID. Defaults to all sessions.
+
 .EXAMPLE
     .\pull-traces.ps1
 
@@ -26,13 +32,18 @@
 
 .EXAMPLE
     .\pull-traces.ps1 -Out D:\cpr-traces
+
+.EXAMPLE
+    .\pull-traces.ps1 -Frames -Latest 3
 #>
 #Requires -Version 5.1
 
 [CmdletBinding()]
 param(
     [string]$Serial,
-    [string]$Out
+    [string]$Out,
+    [switch]$Frames,
+    [ValidateRange(1, [int]::MaxValue)][int]$Latest
 )
 
 Set-StrictMode -Version Latest
@@ -46,6 +57,7 @@ $ErrorActionPreference = 'Continue'
 $PackageName = 'com.zeroflux.cprcoach'
 $RemoteTracesDir = "/sdcard/Android/data/$PackageName/files/traces"
 $AnalyzerName = 'analyze_trace.py'
+$FrameSheetName = 'frame_sheet.py'
 
 function Write-Head {
     param([string]$Message)
@@ -185,6 +197,14 @@ function Find-Analyzer {
     Write-Ok "Using analyzer: $($script:AnalyzerPath)"
 }
 
+function Find-FrameSheet {
+    $script:FrameSheetPath = Join-Path $PSScriptRoot $FrameSheetName
+    if (-not (Test-Path -LiteralPath $script:FrameSheetPath -PathType Leaf)) {
+        Stop-Script "The frame sheet generator was not found: $($script:FrameSheetPath)"
+    }
+    Write-Ok "Using frame sheet generator: $($script:FrameSheetPath)"
+}
+
 function Find-Python {
     Write-Head 'Finding Python'
 
@@ -229,25 +249,34 @@ function Resolve-TraceFolder {
 }
 
 function Copy-Traces {
-    param([string]$TargetSerial, [string]$OutDir)
+    param([string]$TargetSerial, [string]$OutDir, [int]$Latest)
 
     Write-Head 'Copying the traces from the phone'
     Write-Host '  This only reads from the phone. It does not install, delete or start anything.'
 
-    # adb copies the contents of a remote folder into the destination only when
-    # the destination does not exist yet. Pull into a fresh temporary folder and
-    # copy its contents across, so OutDir holds the CSVs, not another traces folder.
     $stagingDir = Join-Path ([System.IO.Path]::GetTempPath()) ("cpr-coach-traces-" + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
 
-    Invoke-Adb -What "Copying $RemoteTracesDir to $OutDir..." -AdbArguments @('-s', $TargetSerial, 'pull', "$RemoteTracesDir/", $stagingDir)
+    if ($Latest -gt 0) {
+        $remoteItems = @(Invoke-Adb -What "Listing traces in $RemoteTracesDir..." -AdbArguments @('-s', $TargetSerial, 'shell', 'ls', $RemoteTracesDir) -Capture)
+        $sessionIds = @($remoteItems | ForEach-Object {
+            $name = ([string]$_).Trim()
+            if ($name -match '^session-(.+)\.csv$') { $Matches[1] }
+        } | Sort-Object -Unique | Select-Object -Last $Latest)
+        foreach ($sessionId in $sessionIds) {
+            Invoke-Adb -What "Copying session-$sessionId.csv..." -AdbArguments @('-s', $TargetSerial, 'pull', "$RemoteTracesDir/session-$sessionId.csv", $stagingDir)
+        }
+    } else {
+        Invoke-Adb -What "Copying $RemoteTracesDir to $OutDir..." -AdbArguments @('-s', $TargetSerial, 'pull', "$RemoteTracesDir/", $stagingDir)
+    }
 
     $copyFailure = $null
     $copyFinished = $false
     try {
         if (Test-Path -LiteralPath $stagingDir -PathType Container) {
-            $pulledItems = @(Get-ChildItem -LiteralPath $stagingDir -Force -ErrorAction Stop)
+            $pulledItems = @(Get-ChildItem -LiteralPath $stagingDir -Filter 'session-*.csv' -File -Recurse -ErrorAction Stop)
             foreach ($item in $pulledItems) {
-                Copy-Item -LiteralPath $item.FullName -Destination $OutDir -Recurse -Force -ErrorAction Stop
+                Copy-Item -LiteralPath $item.FullName -Destination $OutDir -Force -ErrorAction Stop
             }
         }
         $copyFinished = $true
@@ -265,6 +294,54 @@ function Copy-Traces {
     Write-Ok 'The traces are on this PC.'
 }
 
+function Get-SessionId {
+    param([string]$Path)
+    if ($Path -match '^session-(.+)\.csv$') {
+        return $Matches[1]
+    }
+    return $null
+}
+
+function Get-SessionDirectories {
+    param([string]$Root)
+    return @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'frames-*' -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^frames-(.+)$' } | Sort-Object -Property @{ Expression = { $_.Name.Substring(7) }; Descending = $true })
+}
+
+function Copy-Frames {
+    param([string]$TargetSerial, [string]$OutDir, [int]$Latest)
+
+    Write-Head 'Copying frame pictures from the phone'
+    $remoteItems = @(Invoke-Adb -What "Listing frame folders in $RemoteTracesDir..." -AdbArguments @('-s', $TargetSerial, 'shell', 'ls', $RemoteTracesDir) -Capture)
+    $remoteFrameNames = @($remoteItems | ForEach-Object { ([string]$_).Trim() } | Where-Object { $_ -match '^frames-.+$' })
+    $sessions = @(Get-ChildItem -LiteralPath $OutDir -Filter 'session-*.csv' -File -ErrorAction SilentlyContinue | ForEach-Object { Get-SessionId -Path $_.Name } | Where-Object { $null -ne $_ } | Sort-Object -Unique)
+    if ($Latest -gt 0) { $sessions = @($sessions | Select-Object -Last $Latest) }
+
+    foreach ($sessionId in $sessions) {
+        $frameFolderName = "frames-$sessionId"
+        if ($remoteFrameNames -cnotcontains $frameFolderName) { continue }
+        $destinationFolder = Join-Path $OutDir $frameFolderName
+        $sourceCount = 0
+        if (Test-Path -LiteralPath $destinationFolder -PathType Container) {
+            $sourceCount = @(Get-ChildItem -LiteralPath $destinationFolder -File -Recurse -ErrorAction SilentlyContinue).Count
+        }
+        if ($sourceCount -gt 0) {
+            Write-Ok "Skipping $frameFolderName; it already has $sourceCount files."
+            continue
+        }
+
+        $stagingDir = Join-Path ([System.IO.Path]::GetTempPath()) ("cpr-coach-frames-" + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
+        Invoke-Adb -What "Copying $frameFolderName..." -AdbArguments @('-s', $TargetSerial, 'pull', "$RemoteTracesDir/$frameFolderName", $stagingDir)
+        $sourceFolder = Join-Path $stagingDir $frameFolderName
+        if (Test-Path -LiteralPath $sourceFolder -PathType Container) {
+            $sourceCount = @(Get-ChildItem -LiteralPath $sourceFolder -File -Recurse -ErrorAction SilentlyContinue).Count
+            Copy-Item -LiteralPath $sourceFolder -Destination $OutDir -Recurse -Force
+            Write-Ok "Pulled $frameFolderName ($sourceCount files)."
+        }
+        Remove-Item -LiteralPath $stagingDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 Write-Host ''
 Write-Host 'CPR Coach trace pull' -ForegroundColor Cyan
 
@@ -273,18 +350,24 @@ $serialSpecified = $PSBoundParameters.ContainsKey('Serial')
 $SelectedSerial = Select-Phone -RequestedSerial $Serial -SerialSpecified:$serialSpecified
 Find-Python
 Find-Analyzer
+if ($Frames) { Find-FrameSheet }
 $OutDir = Resolve-TraceFolder -RequestedOut $Out
-Copy-Traces -TargetSerial $SelectedSerial -OutDir $OutDir
+Copy-Traces -TargetSerial $SelectedSerial -OutDir $OutDir -Latest $(if ($PSBoundParameters.ContainsKey('Latest')) { $Latest } else { 0 })
+
+$LatestCount = 0
+if ($PSBoundParameters.ContainsKey('Latest')) { $LatestCount = $Latest }
+$sessionCsvs = @(Get-ChildItem -LiteralPath $OutDir -Filter 'session-*.csv' -File -Recurse -ErrorAction SilentlyContinue | Sort-Object -Property FullName)
+if ($LatestCount -gt 0) {
+    $sessionCsvs = @($sessionCsvs | Sort-Object -Property { Get-SessionId -Path $_.Name } | Select-Object -Last $LatestCount)
+}
 
 Write-Head 'Summarizing the traces'
-$csvFiles = @(Get-ChildItem -LiteralPath $OutDir -Filter '*.csv' -File -Recurse -ErrorAction SilentlyContinue | Sort-Object -Property FullName)
-
 $analysisFailures = 0
-if ($csvFiles.Count -eq 0) {
+if ($sessionCsvs.Count -eq 0) {
     Write-Warn "No CSV traces were found under $OutDir."
     Write-Warn 'Run a Practise session on the phone, then run this script again.'
 } else {
-    foreach ($csv in $csvFiles) {
+    foreach ($csv in $sessionCsvs) {
         Write-Head "Analyzing $($csv.FullName)"
         $global:LASTEXITCODE = 0
         & $script:PythonPath $script:AnalyzerPath $csv.FullName
@@ -295,10 +378,33 @@ if ($csvFiles.Count -eq 0) {
     }
 }
 
+$sheetFailures = 0
+if ($Frames) {
+    Copy-Frames -TargetSerial $SelectedSerial -OutDir $OutDir -Latest $LatestCount
+    $frameFolders = @($sessionCsvs | ForEach-Object {
+        $framePath = Join-Path $OutDir ("frames-" + (Get-SessionId -Path $_.Name))
+        if (Test-Path -LiteralPath $framePath -PathType Container) { Get-Item -LiteralPath $framePath }
+    })
+    $sheetsDir = Join-Path $OutDir 'sheets'
+    foreach ($frameFolder in $frameFolders) {
+        $sessionId = $frameFolder.Name.Substring(7)
+        Write-Head "Creating frame sheet for $sessionId"
+        $global:LASTEXITCODE = 0
+        & $script:PythonPath $script:FrameSheetPath $OutDir $sessionId $sheetsDir
+        if ($LASTEXITCODE -ne 0) {
+            $sheetFailures++
+            Write-Warn "frame_sheet.py failed for $sessionId with exit code $LASTEXITCODE."
+        } else {
+            $sheetPaths = @(Get-ChildItem -LiteralPath $sheetsDir -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -match [regex]::Escape($sessionId) } | Sort-Object -Property FullName)
+            foreach ($sheet in $sheetPaths) { Write-Ok "Sheet: $($sheet.FullName)" }
+        }
+    }
+}
+
 Write-Host ''
-if ($analysisFailures -gt 0) {
-    Write-Host "DONE with $analysisFailures trace(s) that could not be summarized. The traces are in $OutDir." -ForegroundColor Yellow
+if ($analysisFailures -gt 0 -or $sheetFailures -gt 0) {
+    Write-Host "DONE with $analysisFailures trace(s) and $sheetFailures frame sheet(s) that could not be summarized. The files are in $OutDir." -ForegroundColor Yellow
     exit 1
 }
-Write-Host "DONE: $($csvFiles.Count) trace(s) are in $OutDir." -ForegroundColor Green
+Write-Host "DONE: $($sessionCsvs.Count) trace(s) are in $OutDir." -ForegroundColor Green
 exit 0
