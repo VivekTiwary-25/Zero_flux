@@ -1,6 +1,10 @@
 package com.zeroflux.cprcoach.engine
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
+import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Log
 import androidx.camera.core.ImageProxy
@@ -37,6 +41,14 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private var delegateName = "none"
     private var lastAcceptedMs = 0L
     private var traceRowsSinceFlush = 0
+    private val appContext: Context = context.applicationContext ?: context
+    private val governor = LoadGovernor()
+    @Volatile private var frameGapMs = LoadGovernor.GAPS_MS[0]
+    @Volatile private var thermalStatus = -1
+    @Volatile private var batteryTempC = Float.NaN
+    private var lastEnvMs = 0L
+    private var power: PowerManager? = null
+    private var thermalListener: PowerManager.OnThermalStatusChangedListener? = null
     private val statsLatency = ArrayList<Long>()
     private var statsStartMs = 0L
     private val landmarker: PoseLandmarker? = try {
@@ -57,6 +69,55 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         null
     }
 
+    init {
+        try {
+            val pm = appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager
+            if (pm != null) {
+                power = pm
+                thermalStatus = pm.currentThermalStatus
+                val l = PowerManager.OnThermalStatusChangedListener { thermalStatus = it }
+                pm.addThermalStatusListener(l)
+                thermalListener = l
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "thermal status unavailable", e)
+        }
+    }
+
+    /** Real values only: thermal status, headroom (NaN if unknown), battery temperature. Apps get no CPU temperature. */
+    private fun readBatteryTemp() {
+        try {
+            val intent: Intent? = appContext.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            val tenths = intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE) ?: Int.MIN_VALUE
+            batteryTempC = if (tenths == Int.MIN_VALUE) Float.NaN else tenths / 10f
+        } catch (e: Exception) {
+            Log.w(TAG, "battery temperature unavailable", e)
+        }
+    }
+
+    private fun headroom(): Float = try {
+        power?.getThermalHeadroom(10) ?: Float.NaN
+    } catch (e: Exception) {
+        Float.NaN
+    }
+
+    private fun adapt(timeMs: Long, latency: Long) {
+        try {
+            if (timeMs - lastEnvMs >= ENV_EVERY_MS) {
+                lastEnvMs = timeMs
+                readBatteryTemp()
+            }
+            val old = frameGapMs
+            val next = synchronized(governor) { governor.update(timeMs, latency, thermalStatus) }
+            frameGapMs = next
+            if (old != next) {
+                Log.i(TAG, "frame_gap_ms $old -> $next thermal_status=$thermalStatus latency_ms=$latency")
+            }
+        } catch (e: RuntimeException) {
+            Log.w(TAG, "load governor failed", e)
+        }
+    }
+
     private fun create(context: Context, delegate: Delegate): PoseLandmarker {
         val options = PoseLandmarker.PoseLandmarkerOptions.builder()
             .setBaseOptions(
@@ -71,6 +132,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
                 val aspect = submitted.remove(timestamp) ?: return@setResultListener
                 val latency = SystemClock.uptimeMillis() - timestamp
                 logStats(timestamp, latency)
+                adapt(timestamp, latency)
                 val marks = result.landmarks().firstOrNull()
                 onFrame(toFrame(marks, timestamp, aspect, latency))
             }
@@ -84,7 +146,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         val accepted = synchronized(lifecycleLock) {
             val now = SystemClock.uptimeMillis()
             // More frames add heat, not accuracy: the rate needs about 15 a second.
-            if (closed || now - lastAcceptedMs < MIN_FRAME_GAP_MS) false else {
+            if (closed || now - lastAcceptedMs < frameGapMs) false else {
                 lastAcceptedMs = now
                 submitting++
                 true
@@ -143,8 +205,11 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             val sorted = statsLatency.sorted()
             Log.i(
                 TAG,
-                "pose delegate=$delegateName model=$MODEL results_per_s=%.1f latency_median_ms=%d latency_p90_ms=%d"
-                    .format(statsLatency.size * 1000.0 / span, sorted[sorted.size / 2], sorted[sorted.size * 9 / 10]),
+                "pose delegate=$delegateName model=$MODEL results_per_s=%.1f latency_median_ms=%d latency_p90_ms=%d frame_gap_ms=%d thermal_status=%d thermal_headroom=%.2f battery_temp_c=%.1f"
+                    .format(
+                        statsLatency.size * 1000.0 / span, sorted[sorted.size / 2], sorted[sorted.size * 9 / 10],
+                        frameGapMs, thermalStatus, headroom(), batteryTempC,
+                    ),
             )
             statsLatency.clear()
             statsStartMs = timeMs
@@ -182,7 +247,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             trace?.close()
             dir.mkdirs()
             trace = PrintWriter(File(dir, "session-${System.currentTimeMillis()}.csv").bufferedWriter()).also {
-                it.println("t_ms,wrist_signal,elbow_deg,min_vis,latency_ms")
+                it.println("t_ms,wrist_signal,elbow_deg,min_vis,latency_ms,frame_gap_ms,thermal_status,battery_temp_c")
             }
         }
     }
@@ -197,7 +262,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private fun writeTrace(frame: PoseFrame) {
         synchronized(this) {
             val s = frame.sample
-            trace?.println("${frame.timeMs},${s?.wristSignal ?: ""},${s?.elbowDegrees ?: ""},${s?.minVisibility ?: ""},${frame.latencyMs}")
+            trace?.println("${frame.timeMs},${s?.wristSignal ?: ""},${s?.elbowDegrees ?: ""},${s?.minVisibility ?: ""},${frame.latencyMs},$frameGapMs,$thermalStatus,${batteryTempC.takeIf { it.isFinite() } ?: ""}")
             // A crash must not lose the recording: it is the evidence.
             if (++traceRowsSinceFlush >= TRACE_FLUSH_ROWS) {
                 trace?.flush()
@@ -230,6 +295,11 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             submitted.clear()
             stopTrace()
             try {
+                thermalListener?.let { power?.removeThermalStatusListener(it) }
+            } catch (e: RuntimeException) {
+                Log.w(TAG, "thermal listener removal failed", e)
+            }
+            try {
                 landmarker?.close()
             } catch (e: RuntimeException) {
                 Log.e(TAG, "pose close failed", e)
@@ -243,7 +313,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         const val TAG = "CPR_POSE"
         const val STALE_FRAME_MS = 5_000L
         const val MODEL = "pose_landmarker_full.task"
-        const val MIN_FRAME_GAP_MS = 66L
+        const val ENV_EVERY_MS = 5_000L
         const val STATS_EVERY_MS = 5_000L
         const val TRACE_FLUSH_ROWS = 30
         const val LEFT_SHOULDER = 11
