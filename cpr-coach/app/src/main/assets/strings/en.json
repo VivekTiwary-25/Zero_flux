@@ -42,9 +42,6 @@
   "score_swap": "Swap roles and try again",
   "score_home": "Home",
   "em_call": "Call 112",
-  "em_start": "Start compressions",
-  "em_helper_camera": "Helper camera",
-  "em_helper_camera_off": "Close camera",
   "em_stop_hold": "Hold to stop",
   "em_step_call": "Call 112. Put it on speaker.",
   "em_step_hands": "Hands in the centre of the chest.",
@@ -54,5 +51,17 @@
   "live_no_rate": "—",
   "debug_replay": "Debug replay — synthetic input, not measurements",
   "debug_replay_error": "Debug replay failed — check trace file; camera disabled",
-  "practise_help": "?"
+  "practise_help": "?",
+  "em_word_faster": "FASTER",
+  "em_word_good": "GOOD",
+  "em_word_slower": "SLOWER",
+  "em_word_straighten": "STRAIGHTEN ARMS",
+  "em_word_keep_pushing": "Keep pushing with the beat",
+  "em_setup_hint": "Hold the phone from the side, or prop it on the floor facing the rescuer's side.",
+  "em_summary_title": "For the ambulance crew",
+  "em_summary_total": "Total CPR time",
+  "em_summary_rate": "Average rate",
+  "em_summary_pauses": "Pauses",
+  "em_summary_measured": "Rate measured for",
+  "em_summary_note": "Rate and pauses count only while the camera could see the arms."
 }

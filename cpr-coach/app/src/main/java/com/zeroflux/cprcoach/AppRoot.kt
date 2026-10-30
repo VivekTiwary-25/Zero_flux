@@ -67,7 +67,7 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
         }
     }
     // Observe these in composition, not only inside SideEffect: child navigation can recompose alone.
-    val orientation = if (screen == Screen.PRACTISE && cameraVisible) {
+    val orientation = if (screen != Screen.HOME && cameraVisible) {
         ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
     } else {
         ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
@@ -125,8 +125,15 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         onHome = goHome,
                     )
                 }
-                Screen.EMERGENCY -> Box(Modifier.fillMaxSize().safeDrawingPadding()) {
-                    EmergencyHost(language = language, voice = voice, onHome = goHome)
+                // Edge to edge: its screens apply their own insets, and the camera and frame fill the display.
+                Screen.EMERGENCY -> Box(Modifier.fillMaxSize()) {
+                    EmergencyHost(
+                        language = language,
+                        voice = voice,
+                        cameraPermission = cameraPermission,
+                        onCameraVisibleChange = { cameraVisible = it },
+                        onHome = goHome,
+                    )
                 }
             }
         }
