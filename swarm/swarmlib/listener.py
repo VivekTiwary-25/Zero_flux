@@ -375,6 +375,7 @@ def _worker_entry(w, me):
 
 
 def _build_hb(me, workers, now, own_alerts, net):
+    from . import tasks
     done = util.load_json(util.state_dir() / "done.json", []) or []
     # Finished tasks keep their queue file until the boss closes them, so they are not queued work.
     finished = gitops.remote_task_branches()
