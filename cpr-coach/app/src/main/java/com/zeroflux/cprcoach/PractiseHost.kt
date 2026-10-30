@@ -283,13 +283,16 @@ private fun PractiseCamera(
             onStop = stopSession,
             onMicTap = voice::toggle,
         )
-        TextButton(
-            onClick = onWalkthrough,
-            modifier = Modifier.align(Alignment.TopStart)
-                .windowInsetsPadding(WindowInsets.safeDrawing).padding(8.dp)
-                .sizeIn(minWidth = 48.dp, minHeight = 48.dp),
-        ) {
-            Text(LocalStrings.current.get("practise_help"), color = CoachColors.TextPrimary)
+        // Help only while setting up: leaving a running session here would lose it.
+        if (ui is CameraUiState.Framing) {
+            TextButton(
+                onClick = onWalkthrough,
+                modifier = Modifier.align(Alignment.TopStart)
+                    .windowInsetsPadding(WindowInsets.safeDrawing).padding(8.dp)
+                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp),
+            ) {
+                Text(LocalStrings.current.get("practise_help"), color = CoachColors.TextPrimary)
+            }
         }
     }
 }
