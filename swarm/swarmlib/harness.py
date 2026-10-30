@@ -120,6 +120,8 @@ def run_agent(worker, cwd, prompt_text, timeout_s, env_extra=None, holder=None):
 def classify(result):
     if result.code == 0:
         return None
+    if result.code == 127:
+        return "no_agent"
     text = (result.out or "") + "\n" + (result.err or "")
     for name, pattern in PATTERNS:
         if re.search(pattern, text, re.I):

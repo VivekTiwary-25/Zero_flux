@@ -107,6 +107,31 @@ def run(cmd, cwd=None, env=None, timeout=None, input=None):
         return Result(1, "", repr(e))
 
 
+_login_path_done = False
+
+
+def _import_login_path():
+    """A systemd service has no shell PATH, so tools like omp (and the runtime it needs) can't be found."""
+    global _login_path_done
+    if _login_path_done:
+        return
+    _login_path_done = True
+    marker = "__SWARM_PATH__"
+    home = Path.home()
+    extra = [str(home / d) for d in (".local/bin", ".bun/bin", ".npm-global/bin", ".cargo/bin", ".omp/bin")]
+    extra.append("/usr/local/bin")
+    try:
+        res = subprocess.run(["bash", "-lic", "printf '%s%s\n' " + marker + " \"$PATH\""],
+                             stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=15)
+        for line in res.stdout.splitlines():
+            if line.startswith(marker):
+                extra = line[len(marker):].split(":") + extra
+    except (OSError, subprocess.SubprocessError):
+        pass
+    current = os.environ.get("PATH", "").split(":")
+    os.environ["PATH"] = ":".join(dict.fromkeys(current + [d for d in extra if d]))
+
+
 def which(name):
     found = shutil.which(name)
     if found:
@@ -116,7 +141,9 @@ def which(name):
             found = shutil.which(name + ext)
             if found:
                 return found
-    return None
+        return None
+    _import_login_path()
+    return shutil.which(name)
 
 
 # ---------- logging and events ----------
