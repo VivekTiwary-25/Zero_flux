@@ -33,5 +33,10 @@
     "boss_low_pct": 10,
     "usage_refresh_sec": 300,
     "renotify_min": 30
+  },
+  "allow_models": {
+    "pratham-pc": [
+      "*astra*"
+    ]
   }
 }

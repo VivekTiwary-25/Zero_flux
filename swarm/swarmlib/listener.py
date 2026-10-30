@@ -58,6 +58,10 @@ def _sleep(seconds):
 
 
 def _is_never(model, routing):
+    # allow_models lets one PC run a model named on purpose. Automatic routing still never picks it.
+    allowed = routing.get("allow_models", {}).get(config.machine(), [])
+    if any(fnmatch.fnmatch(model or "", p) for p in allowed):
+        return False
     return any(fnmatch.fnmatch(model or "", p) for p in routing.get("never_models", []))
 
 
