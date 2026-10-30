@@ -43,6 +43,8 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
     val lifecycleOwner = LocalLifecycleOwner.current
     val previewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
     val currentOnImage = rememberUpdatedState(onImage)
+    // Debug builds read pose_model / capture_frames launch extras here; no-op in release.
+    remember(context) { com.zeroflux.cprcoach.engine.DebugOptions.refreshFrom(context) }
 
     DisposableEffect(lifecycleOwner) {
         val executor = Executors.newSingleThreadExecutor()

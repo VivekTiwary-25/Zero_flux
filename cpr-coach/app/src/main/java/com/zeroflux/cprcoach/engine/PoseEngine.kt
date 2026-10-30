@@ -9,7 +9,9 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.camera.core.ImageProxy
 import com.google.mediapipe.framework.image.BitmapImageBuilder
+import com.google.mediapipe.tasks.components.containers.Landmark
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
+import com.zeroflux.cprcoach.BuildConfig
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.ImageProcessingOptions
@@ -17,8 +19,10 @@ import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import java.io.File
 import java.io.PrintWriter
+import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.acos
+import kotlin.math.hypot
 import kotlin.math.sqrt
 
 /** One frame the pose model ran on. Both fields are null when it found no person. */
@@ -60,6 +64,9 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private var cameraIntervals = 0L
     private var analysisWidth = 0
     private var analysisHeight = 0
+    private var frameDump: FrameDump? = null
+    private val modelChoice: Pair<String, ByteBuffer?> = resolveModel(context)
+    private val modelName: String = modelChoice.first
     private val landmarker: PoseLandmarker? = try {
         create(context, Delegate.GPU).also { delegateName = "GPU" }
     } catch (e: Exception) {
@@ -128,10 +135,36 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         }
     }
 
+    /** Debug builds only: pose_model lite|heavy from the launching intent, read from the app's external models folder. */
+    private fun resolveModel(context: Context): Pair<String, ByteBuffer?> {
+        if (!BuildConfig.DEBUG) return MODEL_NAME to null
+        try {
+            DebugOptions.refreshFrom(context)
+            val wanted = DebugOptions.poseModel
+            if (wanted != "lite" && wanted != "heavy") return MODEL_NAME to null
+            val file = File(File(context.getExternalFilesDir(null), "models"), "pose_landmarker_$wanted.task")
+            if (!file.isFile) {
+                Log.w(TAG, "pose_model=$wanted requested but pose_landmarker_$wanted.task is missing from models/; using full")
+                return MODEL_NAME to null
+            }
+            val bytes = file.readBytes()
+            val direct = ByteBuffer.allocateDirect(bytes.size)
+            direct.put(bytes).flip()
+            Log.i(TAG, "pose_model=$wanted loaded (${bytes.size} bytes)")
+            return wanted to direct
+        } catch (e: Throwable) {
+            Log.w(TAG, "pose_model switch failed; using full", e)
+            return MODEL_NAME to null
+        }
+    }
+
     private fun create(context: Context, delegate: Delegate): PoseLandmarker {
         val options = PoseLandmarker.PoseLandmarkerOptions.builder()
             .setBaseOptions(
-                BaseOptions.builder().setModelAssetPath(MODEL).setDelegate(delegate).build()
+                BaseOptions.builder().setDelegate(delegate).also { b ->
+                    val buffer = modelChoice.second
+                    if (buffer != null) b.setModelAssetBuffer(buffer.duplicate()) else b.setModelAssetPath(MODEL)
+                }.build()
             )
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setNumPoses(1)
@@ -145,7 +178,8 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
                     logStats(SystemClock.uptimeMillis(), latency)
                     adapt(timestamp, latency)
                     val marks = result.landmarks().firstOrNull()
-                    onFrame(toFrame(marks, timestamp, aspect, latency))
+                    val world = try { result.worldLandmarks().firstOrNull() } catch (e: RuntimeException) { null }
+                    onFrame(toFrame(marks, world, timestamp, aspect, latency))
                 } catch (e: RuntimeException) {
                     // This runs on MediaPipe's thread, where an escape would kill the process and the beat.
                     Log.e(TAG, "pose result failed", e)
@@ -212,7 +246,9 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             val height = if (rotated) proxy.width else proxy.height
             submitted[now] = width.toFloat() / height
             val processing = ImageProcessingOptions.builder().setRotationDegrees(rotation).build()
-            detector.detectAsync(BitmapImageBuilder(proxy.toBitmap()).build(), processing, now)
+            val bitmap = proxy.toBitmap()
+            detector.detectAsync(BitmapImageBuilder(bitmap).build(), processing, now)
+            frameDump?.offer(bitmap, rotation, now)
         }
     }
 
@@ -228,7 +264,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             val cameraFps = if (cameraSpan > 0L) cameraIntervals * 1000.0 / cameraSpan else Double.NaN
             Log.i(
                 TAG,
-                "pose delegate=$delegateName model=$MODEL results_per_s=%.1f latency_median_ms=%d latency_p90_ms=%d frame_gap_ms=%d thermal_status=%d thermal_headroom=%.2f battery_temp_c=%.1f camera_frames_per_s=%.1f analysis_size=%dx%d"
+                "pose delegate=$delegateName model=$modelName results_per_s=%.1f latency_median_ms=%d latency_p90_ms=%d frame_gap_ms=%d thermal_status=%d thermal_headroom=%.2f battery_temp_c=%.1f camera_frames_per_s=%.1f analysis_size=%dx%d"
                     .format(
                         statsLatency.size * 1000.0 / span, sorted[sorted.size / 2], sorted[sorted.size * 9 / 10],
                         frameGapMs, thermalStatus, headroom(), batteryTempC,
@@ -242,8 +278,8 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         }
     }
 
-    private fun toFrame(marks: List<NormalizedLandmark>?, timeMs: Long, aspect: Float, latency: Long): PoseFrame {
-        if (marks == null) return PoseFrame(timeMs, null, null, latency).also { writeTrace(it) }
+    private fun toFrame(marks: List<NormalizedLandmark>?, world: List<Landmark>?, timeMs: Long, aspect: Float, latency: Long): PoseFrame {
+        if (marks == null) return PoseFrame(timeMs, null, null, latency, aspect).also { writeTrace(it) }
         fun vis(i: Int) = marks[i].visibility().orElse(0f)
         val leftScore = vis(LEFT_SHOULDER) + vis(LEFT_ELBOW) + vis(LEFT_WRIST) + vis(LEFT_HIP)
         val rightScore = vis(RIGHT_SHOULDER) + vis(RIGHT_ELBOW) + vis(RIGHT_WRIST) + vis(RIGHT_HIP)
@@ -265,6 +301,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             marks[RIGHT_SHOULDER].x(), vis(RIGHT_SHOULDER),
             arm, right, aspect,
         )
+        val worldElbow = worldArm(world, right)
         val sample = PoseSample(
             timeMs = timeMs,
             wristSignal = PoseMath.wristSignal(arm, aspect),
@@ -272,17 +309,39 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             minVisibility = minOf(arm.shoulderVis, arm.elbowVis, arm.wristVis, arm.hipVis),
             elbowVisibility = arm.elbowVis,
             sideOn = sideOn,
+            worldElbowDegrees = worldElbow?.first,
         )
-        return PoseFrame(timeMs, sample, arm, latency).also { writeTrace(it, if (right) "R" else "L", sideOn) }
+        return PoseFrame(timeMs, sample, arm, latency, aspect).also { writeTrace(it, if (right) "R" else "L", sideOn, worldElbow) }
+    }
+
+    /** World elbow angle and shoulder-over-wrist metres for the chosen arm, or null if unavailable. */
+    private fun worldArm(world: List<Landmark>?, right: Boolean): Pair<Double?, Double?>? {
+        if (world == null || world.size <= RIGHT_HIP) return null
+        return try {
+            val s = world[if (right) RIGHT_SHOULDER else LEFT_SHOULDER]
+            val e = world[if (right) RIGHT_ELBOW else LEFT_ELBOW]
+            val w = world[if (right) RIGHT_WRIST else LEFT_WRIST]
+            WorldMath.elbowDegrees(s.x(), s.y(), s.z(), e.x(), e.y(), e.z(), w.x(), w.y(), w.z()) to
+                WorldMath.shoulderOverWrist(s.x(), s.z(), w.x(), w.z())
+        } catch (ex: RuntimeException) {
+            null
+        }
     }
 
     /** CSV keeps its original prefix; appended coordinates/visibility describe the chosen near arm. */
     fun startTrace(dir: File) {
         synchronized(this) {
             trace?.close()
+            frameDump?.close()
+            frameDump = null
             dir.mkdirs()
-            trace = PrintWriter(File(dir, "session-${System.currentTimeMillis()}.csv").bufferedWriter()).also {
-                it.println("t_ms,wrist_signal,elbow_deg,min_vis,latency_ms,frame_gap_ms,thermal_status,battery_temp_c,side,shoulder_x,shoulder_y,elbow_x,elbow_y,wrist_x,wrist_y,hip_x,hip_y,shoulder_vis,elbow_vis,wrist_vis,hip_vis,side_on")
+            val sessionId = System.currentTimeMillis()
+            if (BuildConfig.DEBUG) {
+                DebugOptions.refreshFrom(appContext)
+                if (DebugOptions.captureFrames) frameDump = FrameDump.create(File(dir, "frames-$sessionId"))
+            }
+            trace = PrintWriter(File(dir, "session-$sessionId.csv").bufferedWriter()).also {
+                it.println("t_ms,wrist_signal,elbow_deg,min_vis,latency_ms,frame_gap_ms,thermal_status,battery_temp_c,side,shoulder_x,shoulder_y,elbow_x,elbow_y,wrist_x,wrist_y,hip_x,hip_y,shoulder_vis,elbow_vis,wrist_vis,hip_vis,side_on,world_elbow_deg,world_shoulder_over_wrist")
             }
         }
     }
@@ -291,14 +350,16 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         synchronized(this) {
             trace?.close()
             trace = null
+            frameDump?.close()
+            frameDump = null
         }
     }
 
-    private fun writeTrace(frame: PoseFrame, side: String = "", sideOn: Boolean? = null) {
+    private fun writeTrace(frame: PoseFrame, side: String = "", sideOn: Boolean? = null, world: Pair<Double?, Double?>? = null) {
         synchronized(this) {
             val s = frame.sample
             val a = frame.arm
-            trace?.println("${frame.timeMs},${s?.wristSignal ?: ""},${s?.elbowDegrees ?: ""},${s?.minVisibility ?: ""},${frame.latencyMs},$frameGapMs,$thermalStatus,${batteryTempC.takeIf { it.isFinite() } ?: ""},$side,${a?.shoulderX ?: ""},${a?.shoulderY ?: ""},${a?.elbowX ?: ""},${a?.elbowY ?: ""},${a?.wristX ?: ""},${a?.wristY ?: ""},${a?.hipX ?: ""},${a?.hipY ?: ""},${a?.shoulderVis ?: ""},${a?.elbowVis ?: ""},${a?.wristVis ?: ""},${a?.hipVis ?: ""},${sideOn?.let { if (it) 1 else 0 } ?: ""}")
+            trace?.println("${frame.timeMs},${s?.wristSignal ?: ""},${s?.elbowDegrees ?: ""},${s?.minVisibility ?: ""},${frame.latencyMs},$frameGapMs,$thermalStatus,${batteryTempC.takeIf { it.isFinite() } ?: ""},$side,${a?.shoulderX ?: ""},${a?.shoulderY ?: ""},${a?.elbowX ?: ""},${a?.elbowY ?: ""},${a?.wristX ?: ""},${a?.wristY ?: ""},${a?.hipX ?: ""},${a?.hipY ?: ""},${a?.shoulderVis ?: ""},${a?.elbowVis ?: ""},${a?.wristVis ?: ""},${a?.hipVis ?: ""},${sideOn?.let { if (it) 1 else 0 } ?: ""},${world?.first ?: ""},${world?.second ?: ""}")
             // A crash must not lose the recording: it is the evidence.
             if (++traceRowsSinceFlush >= TRACE_FLUSH_ROWS) {
                 trace?.flush()
@@ -349,6 +410,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         const val TAG = "CPR_POSE"
         const val STALE_FRAME_MS = 5_000L
         const val MODEL = "pose_landmarker_full.task"
+        const val MODEL_NAME = "full"
         const val ENV_EVERY_MS = 5_000L
         const val STATS_EVERY_MS = 5_000L
         const val TRACE_FLUSH_ROWS = 30
@@ -365,6 +427,23 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
 }
 
 /** Geometry on normalised landmarks. x is scaled by the aspect ratio, since x and y use different units. */
+object WorldMath {
+    /** 3D angle at the elbow from MediaPipe world landmarks (metres). Null for non-finite or degenerate input. */
+    fun elbowDegrees(
+        sx: Float, sy: Float, sz: Float, ex: Float, ey: Float, ez: Float, wx: Float, wy: Float, wz: Float,
+    ): Double? {
+        val ax = (sx - ex).toDouble(); val ay = (sy - ey).toDouble(); val az = (sz - ez).toDouble()
+        val bx = (wx - ex).toDouble(); val by = (wy - ey).toDouble(); val bz = (wz - ez).toDouble()
+        val lengths = sqrt(ax * ax + ay * ay + az * az) * sqrt(bx * bx + by * by + bz * bz)
+        if (!lengths.isFinite() || lengths < 1e-9) return null
+        return Math.toDegrees(acos(((ax * bx + ay * by + az * bz) / lengths).coerceIn(-1.0, 1.0)))
+    }
+
+    /** Horizontal (x/z plane; world y is vertical) distance in metres between shoulder and wrist. */
+    fun shoulderOverWrist(sx: Float, sz: Float, wx: Float, wz: Float): Double? =
+        hypot((sx - wx).toDouble(), (sz - wz).toDouble()).takeIf { it.isFinite() }
+}
+
 object PoseMath {
     /** Shoulder-to-shoulder gap over torso length: about 0.8 facing the camera, about 0 side-on. 0.35 is roughly 25 degrees of turn. */
     const val SIDE_ON_MAX_SHOULDER_RATIO = 0.35

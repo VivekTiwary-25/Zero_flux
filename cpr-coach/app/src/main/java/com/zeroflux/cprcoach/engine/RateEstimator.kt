@@ -13,6 +13,8 @@ data class PoseSample(
     val elbowVisibility: Float = minVisibility,
     /** False when the shoulders show the rescuer is not side-on, so a 2D elbow angle can't be trusted. */
     val sideOn: Boolean = true,
+    /** 3D elbow angle from MediaPipe world landmarks, for comparison with the 2D angle. Trace and posture research only. */
+    val worldElbowDegrees: Double? = null,
 )
 
 sealed interface BeatReading {
