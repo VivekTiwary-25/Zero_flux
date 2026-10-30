@@ -33,7 +33,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private var lastTimestampMs = 0L
     private var trace: PrintWriter? = null
     @Volatile private var closed = false
-    private var submitting = false
+    private var submitting = 0
     private val landmarker: PoseLandmarker? = try {
         create(context, Delegate.GPU)
     } catch (e: Exception) {
@@ -60,7 +60,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setNumPoses(1)
             .setResultListener { result, _ ->
-                // Takes no lifecycle lock: submit and close may be waiting on MediaPipe.
+                // Native teardown may wait for this listener; never take its lifecycle lock here.
                 if (closed) return@setResultListener
                 val timestamp = result.timestampMs()
                 val aspect = submitted.remove(timestamp) ?: return@setResultListener
@@ -75,12 +75,15 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
 
     /** Takes ownership of [image] and always closes it. */
     fun submit(image: ImageProxy) {
-        synchronized(lifecycleLock) {
-            if (closed) {
-                image.close()
-                return
+        val accepted = synchronized(lifecycleLock) {
+            if (closed) false else {
+                submitting++
+                true
             }
-            submitting = true
+        }
+        if (!accepted) {
+            image.close()
+            return
         }
         try {
             detect(image)
@@ -88,11 +91,12 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             // A bad frame must not kill the camera thread. The session sees tracking lost.
             Log.e(TAG, "pose frame failed", e)
         } finally {
-            // close() waits for this, so the landmarker is never closed under a frame on its way in.
-            synchronized(lifecycleLock) {
-                submitting = false
-                (lifecycleLock as Object).notifyAll()
+            // Only the last submission can own teardown after close() has marked us closed.
+            val shouldClose = synchronized(lifecycleLock) {
+                submitting--
+                closed && submitting == 0
             }
+            if (shouldClose) closeInBackground()
         }
     }
 
@@ -103,7 +107,9 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             lastTimestampMs = now
             val detector = landmarker
             if (detector == null) {
-                onFrame(PoseFrame(now, null, null, SystemClock.uptimeMillis() - now).also(::writeTrace))
+                if (!closed) {
+                    onFrame(PoseFrame(now, null, null, SystemClock.uptimeMillis() - now).also(::writeTrace))
+                }
                 return
             }
             // MediaPipe drops frames when it is busy, and those never get a result.
@@ -168,31 +174,42 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         }
     }
 
+    /**
+     * Rejects new frames immediately, without waiting for submission or native teardown.
+     * A listener already past its closed check can still invoke onFrame after this returns.
+     * PractiseHost makes that harmless by clearing its active flag before closing, then
+     * checking that flag on the main thread before delivering any posted frame to the session.
+     */
     fun close() {
-        synchronized(lifecycleLock) {
+        val shouldClose = synchronized(lifecycleLock) {
             if (closed) return
             closed = true
+            submitting == 0
+        }
+        // If a submit is active, its finally block takes ownership instead. The lock makes
+        // these two ownership transitions mutually exclusive, including repeated close calls.
+        if (shouldClose) closeInBackground()
+    }
+
+    private fun closeInBackground() {
+        // Native close may wait for a result listener. Keep it off the caller/main thread
+        // and outside lifecycleLock, even when no submit was active at close().
+        Thread({
             submitted.clear()
-            val giveUpAt = SystemClock.uptimeMillis() + CLOSE_WAIT_MS
-            while (submitting) {
-                val left = giveUpAt - SystemClock.uptimeMillis()
-                if (left <= 0) break
-                (lifecycleLock as Object).wait(left)
+            stopTrace()
+            try {
+                landmarker?.close()
+            } catch (e: RuntimeException) {
+                Log.e(TAG, "pose close failed", e)
+            } catch (e: LinkageError) {
+                Log.e(TAG, "pose close failed", e)
             }
-        }
-        stopTrace()
-        // Native teardown may wait for a result listener, so don't hold its lifecycle lock.
-        try {
-            landmarker?.close()
-        } catch (e: RuntimeException) {
-            Log.e(TAG, "pose close failed", e)
-        }
+        }, "CPR_POSE_CLOSE").start()
     }
 
     private companion object {
         const val TAG = "CPR_POSE"
         const val STALE_FRAME_MS = 5_000L
-        const val CLOSE_WAIT_MS = 500L
         const val LEFT_SHOULDER = 11
         const val RIGHT_SHOULDER = 12
         const val LEFT_ELBOW = 13
