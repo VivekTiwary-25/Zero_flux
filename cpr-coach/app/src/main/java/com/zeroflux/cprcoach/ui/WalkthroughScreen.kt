@@ -1,10 +1,12 @@
 package com.zeroflux.cprcoach.ui
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,8 +52,7 @@ fun WalkthroughScreen(
     modifier: Modifier = Modifier,
 ) {
     var page by remember { mutableIntStateOf(0) }
-    val strings = LocalStrings.current
-
+    val motionEnabled = rememberCoachMotionEnabled()
     Column(
         modifier
             .fillMaxSize()
@@ -64,11 +65,14 @@ fun WalkthroughScreen(
             targetState = page,
             modifier = Modifier.weight(1f).fillMaxWidth(),
             transitionSpec = {
-                val movingForward = targetState > initialState
-                slideInHorizontally(tween(240)) { width -> if (movingForward) width else -width } togetherWith
-                    slideOutHorizontally(tween(240)) { width -> if (movingForward) -width else width }
+                if (!motionEnabled) {
+                    EnterTransition.None togetherWith ExitTransition.None
+                } else {
+                    val movingForward = targetState > initialState
+                    slideInHorizontally(tween(240)) { width -> if (movingForward) width else -width } togetherWith
+                        slideOutHorizontally(tween(240)) { width -> if (movingForward) -width else width }
+                }
             },
-            label = "walkthroughPage",
         ) { targetPage ->
             GlassPanel(Modifier.fillMaxSize()) {
                 Column(
