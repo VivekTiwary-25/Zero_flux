@@ -31,7 +31,8 @@ class SessionMetrics(private val minPauseMs: Long = 2_000) {
         val previous = lastMs
         lastMs = now
         if (previous == null) return
-        val dt = now - previous
+        // Time going backwards must never count as negative time.
+        val dt = (now - previous).coerceAtLeast(0L)
         elapsedMs += dt
 
         reading.ratePerMinute?.let { rate ->

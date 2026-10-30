@@ -47,12 +47,15 @@ class LiveAnalyzer(
 
     /** Call for every camera frame the pose model ran on. Pass null when it found no person. */
     fun addFrame(sample: PoseSample?) {
-        if (sample == null || sample.minVisibility < minVisibility) return
+        if (sample == null || !(sample.minVisibility >= minVisibility)) return
+        // A NaN or infinite reading counts as not visible, so it can't poison the windows.
+        if (!sample.wristSignal.isFinite() || !sample.elbowDegrees.isFinite()) return
         val last = lastGoodMs
-        if (last != null && sample.timeMs - last > lostAfterMs) clearSignals()
+        // A long gap, or time going backwards, starts the windows afresh.
+        if (last != null && (sample.timeMs - last > lostAfterMs || sample.timeMs < last)) clearSignals()
         lastGoodMs = sample.timeMs
         rate.add(sample.timeMs, sample.wristSignal)
-        elbowHistory.addLast(sample.timeMs to sample.elbowDegrees)
+        elbowHistory.addLast(sample.timeMs to sample.elbowDegrees.coerceIn(0.0, 180.0))
         while (sample.timeMs - elbowHistory.first().first > ELBOW_WINDOW_MS) elbowHistory.removeFirst()
     }
 

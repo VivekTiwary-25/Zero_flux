@@ -70,22 +70,22 @@ class FramingAdvisor(
     private fun evaluateHint(arm: ArmLandmarks?): String? {
         if (arm == null) return "frame_no_person"
 
-        if (arm.wristVis < minVisibility || isNearEdge(arm.wristX, arm.wristY)) {
+        if (!(arm.wristVis >= minVisibility) || isNearEdge(arm.wristX, arm.wristY)) {
             return "frame_arm_out"
         }
 
-        if (arm.hipVis < minVisibility || isNearEdge(arm.hipX, arm.hipY)) {
+        if (!(arm.hipVis >= minVisibility) || isNearEdge(arm.hipX, arm.hipY)) {
             return "frame_hip_out"
         }
 
-        if (arm.shoulderVis < minVisibility || arm.elbowVis < minVisibility) {
+        if (!(arm.shoulderVis >= minVisibility) || !(arm.elbowVis >= minVisibility)) {
             return "frame_side_on"
         }
 
         val dx = arm.shoulderX - arm.hipX
         val dy = arm.shoulderY - arm.hipY
         val distance = sqrt(dx * dx + dy * dy)
-        if (distance > MAX_TORSO_DISTANCE) {
+        if (!(distance <= MAX_TORSO_DISTANCE)) {
             return "frame_move_back"
         }
 
@@ -93,6 +93,7 @@ class FramingAdvisor(
     }
 
     private fun isNearEdge(x: Float, y: Float): Boolean {
-        return x <= EDGE_MARGIN || x >= (1f - EDGE_MARGIN) || y <= EDGE_MARGIN || y >= (1f - EDGE_MARGIN)
+        // Written so that NaN counts as outside the safe area.
+        return !(x > EDGE_MARGIN && x < (1f - EDGE_MARGIN) && y > EDGE_MARGIN && y < (1f - EDGE_MARGIN))
     }
 }
