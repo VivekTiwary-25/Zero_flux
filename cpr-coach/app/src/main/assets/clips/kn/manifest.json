@@ -8,8 +8,8 @@
   {
     "code": "kn",
     "key": "countdown",
-    "text": "ಮೂರು, ಎರಡು, ಒಂದು, ಶುರು",
-    "sha256": "24619ef59bde76bb2e722a27b07fba70ef6cd1dc01fa94709e25ffa1e2ae1edd"
+    "text": "ಶುರುವಾಗುತ್ತಿದೆ: ಮೂರು, ಎರಡು, ಒಂದು",
+    "sha256": "7094d7070aa9efdba8596e089ec94acb0630675222f46d0954578733b9664c83"
   },
   {
     "code": "kn",
@@ -20,14 +20,14 @@
   {
     "code": "kn",
     "key": "slow_down",
-    "text": "ಸ್ವಲ್ಪ ನಿಧಾನ ಮಾಡಿ",
-    "sha256": "cb6c18e3fc335103a0a12e452b5a10bba89ccab5a990641eb2df695d95456cb9"
+    "text": "ವೇಗ ಸ್ವಲ್ಪ ಕಡಿಮೆ ಮಾಡಿ",
+    "sha256": "29780ec60ec91e66ed79d1efdc234d4a2105704f0d4ac1962a6fe71c766f82c8"
   },
   {
     "code": "kn",
     "key": "elbows_straight",
-    "text": "ಮೊಣಕೈ ನೇರವಾಗಿ ಇಡಿ",
-    "sha256": "75a41a6fd1fd42524fb5766e935d196011232ffc7245ccd55b8fd130ac160c67"
+    "text": "ಮೊಣಕೈಗಳನ್ನು ನೇರವಾಗಿಡಿ",
+    "sha256": "13a1c5a6af83fbdaf7f96a65cbedcc825809fc84dc453e83741ed236f7cd5769"
   },
   {
     "code": "kn",
@@ -62,14 +62,14 @@
   {
     "code": "kn",
     "key": "em_push",
-    "text": "ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಜೋರಾಗಿ ಮತ್ತು ವೇಗವಾಗಿ ಒತ್ತಿ.",
-    "sha256": "511abdacf3a46eb3dbf6c4ffb5c0cdff670ed87e3dc59b9f4456bf660b714de9"
+    "text": "ತಾಳಕ್ಕೆ ತಕ್ಕಂತೆ ಬಲವಾಗಿ ಮತ್ತು ವೇಗವಾಗಿ ಒತ್ತಿ.",
+    "sha256": "9e9f6e14ff203112241b52450cae2426d55d5d7612fed0c8349418f586d9ef73"
   },
   {
     "code": "kn",
     "key": "em_swap",
-    "text": "ಬೇರೆಯವರು ಇದ್ದರೆ, ಈಗ ಜಾಗ ಬದಲಿಸಿ.",
-    "sha256": "90938116bd48d9cad73cb7c189d35a36a2066721206a3eb54abdeb6743cae14f"
+    "text": "ಬೇರೆಯವರು ಇದ್ದರೆ, ಈಗ ಸರದಿ ಬದಲಿಸಿ.",
+    "sha256": "1cda147f880db1d1e4f1d2896415b900f4e927a57f9d0e895f9279e6e6003876"
   },
   {
     "code": "kn",
