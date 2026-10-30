@@ -1,0 +1,30 @@
+{
+  "machine": "moksh-pc",
+  "os": "windows",
+  "workers": [
+    {
+      "name": "ag-argon",
+      "harness": "omp",
+      "model": "google-antigravity/gemini-4-argon",
+      "profile": null,
+      "usage_provider": "google-antigravity",
+      "usage_match": "Gemini",
+      "kinds": [
+        "second"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "antigravity",
+      "harness": "omp",
+      "model": "google-antigravity/gemini-3.8-flash",
+      "profile": null,
+      "usage_provider": "google-antigravity",
+      "usage_match": "Gemini",
+      "kinds": [
+        "second"
+      ],
+      "enabled": true
+    }
+  ]
+}
