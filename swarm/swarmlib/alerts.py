@@ -57,6 +57,13 @@ def bad_model(machine, w):
                 "Edit swarm/config/machines/%s.json (model name) or run: swarm remove %s" % (machine, name))
 
 
+def no_agent(machine, w):
+    name = w.get("name")
+    return make("no_agent", machine, name,
+                "%s/%s: agent program not found by the swarm" % (machine, name),
+                "On %s, check that '%s' runs in a terminal, then run: swarm fix" % (machine, w.get("harness")))
+
+
 def boss_low(machine, pct, window, resets_at):
     return make("boss_low", machine, None,
                 "Boss Claude is at %s%% (%s) (resets %s)" % (pct, window, util.fmt_reset(resets_at)),
@@ -83,6 +90,8 @@ def for_problem(problem, machine, w, resets_at=None, target=None):
         return key_expired(machine, w)
     if problem == "bad_model":
         return bad_model(machine, w)
+    if problem == "no_agent":
+        return no_agent(machine, w)
     return None
 
 

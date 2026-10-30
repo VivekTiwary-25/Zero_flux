@@ -7,7 +7,7 @@ from pathlib import Path
 from . import config, gitops, harness, util
 
 KEY_ORDER = ["id", "title", "kind", "files", "created", "moved_from"]
-BLOCKING = ("key_expired", "logged_out", "tokens", "bad_model", "offline")
+BLOCKING = ("key_expired", "logged_out", "tokens", "bad_model", "offline", "no_agent")
 _done_lock = threading.Lock()
 
 PROMPT = """# Task {id}: {title}
