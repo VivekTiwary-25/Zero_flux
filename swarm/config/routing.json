@@ -4,11 +4,26 @@
     "note": "Vivek's Opus in Claude Code. Backup: Vachana's Claude on same PC (/logout, /login)."
   },
   "routes": {
-    "routine": ["openai-codex/gpt-6-luna", "*/claude-haiku-5-5", "*/deepseek-v4.1-flash", "xai-oauth/*"],
-    "hard": ["opencode-go/gemini-4-argon", "openai-codex/gpt-6.1-sol", "openai-codex/gpt-6.1-terra", "*/deepseek-v4-pro"],
-    "second": ["google-antigravity/*", "*/gemini-4-argon"]
+    "routine": [
+      "openai-codex/gpt-6-luna",
+      "openai-codex/gpt-6.1-sol",
+      "xai-oauth/*",
+      "*/deepseek-v4.1-flash",
+      "*/muse-spark-*"
+    ],
+    "hard": [
+      "openai-codex/gpt-6.1-sol",
+      "openai-codex/gpt-6.1-terra",
+      "openai-codex/gpt-6-luna"
+    ],
+    "second": [
+      "google-antigravity/*",
+      "*/gemini-4-argon"
+    ]
   },
-  "never_models": ["*astra*"],
+  "never_models": [
+    "*astra*"
+  ],
   "settings": {
     "heartbeat_sec": 60,
     "peer_stale_sec": 180,
@@ -18,5 +33,10 @@
     "boss_low_pct": 10,
     "usage_refresh_sec": 300,
     "renotify_min": 30
+  },
+  "allow_models": {
+    "pratham-pc": [
+      "*astra*"
+    ]
   }
 }
