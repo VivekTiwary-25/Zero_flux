@@ -25,16 +25,6 @@
         "hard"
       ],
       "enabled": true
-    },
-    {
-      "name": "failtest",
-      "harness": "missing",
-      "model": "failtest/none",
-      "profile": null,
-      "usage_provider": "",
-      "usage_match": "",
-      "kinds": [],
-      "enabled": true
     }
   ]
 }
