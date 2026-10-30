@@ -17,7 +17,10 @@ class StringAssetsTest {
 
         val english = AssetJson.readObject(File(TestAssets.assetsDir, "strings/en.json"))
         val englishKeys = english.keys
-        val englishOnly = setOf("mic_enable", "camera_numeric_value", "live_no_rate")
+        val englishOnly = setOf(
+            "mic_enable", "camera_numeric_value", "live_no_rate",
+            "debug_replay", "debug_replay_error", "practise_help",
+        )
 
         for (language in AppLanguage.entries) {
             val file = File(TestAssets.assetsDir, "strings/${language.code}.json")
