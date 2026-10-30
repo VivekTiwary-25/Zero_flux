@@ -1,11 +1,13 @@
 package com.zeroflux.cprcoach.engine
 
 /**
- * Chooses the minimum gap between pose frames from recent latency and thermal status.
- * Pure Kotlin. Three steps only, never below about 10 frames a second, because RateEstimator
- * treats under 8 as no data. Steps down fast, up slowly.
- * The camera delivers a frame about every 33 ms, so a gap really waits for the next frame after it:
- * these gaps give about 15, 12 and 10 a second. A gap of 100 ms would really mean 133 ms, 7.5 a second.
+ * Chooses the minimum gap between pose frames from recent latency and battery-gated thermal status.
+ * Pure Kotlin. Starts at the fastest of three steps, never below about 10 frames a second on a
+ * 30 fps camera, because RateEstimator treats under 8 as no data. Steps down fast, up slowly.
+ * Gaps leave margin below one, two and three camera frame intervals, yielding about 30, 15 and
+ * 10 results a second before processing limits. A 100 ms gap risks waiting for a fourth frame.
+ * A known battery temperature at or above 40 C enables thermal limits; CRITICAL or above also
+ * enables them at any known temperature. Unknown temperature means latency-only control.
  * Not thread safe: call from one thread, or synchronise outside.
  */
 class LoadGovernor(startStep: Int = 0) {
@@ -17,8 +19,18 @@ class LoadGovernor(startStep: Int = 0) {
     private val latencies = ArrayDeque<Long>()
     private var lastChangeMs = NEVER
 
-    /** Records one result. Returns the (possibly new) minimum frame gap in ms. */
-    fun update(nowMs: Long, latencyMs: Long?, thermalStatus: Int): Long {
+    /**
+     * Records one result and returns the (possibly new) minimum frame gap in ms.
+     * Hot batteries impose at least the middle step, or the lowest at SEVERE and above.
+     * With a known cooler battery, only CRITICAL and above impose the lowest step.
+     * NaN temperature ignores thermal status entirely, including CRITICAL.
+     */
+    fun update(
+        nowMs: Long,
+        latencyMs: Long?,
+        thermalStatus: Int,
+        batteryTempC: Float = Float.NaN,
+    ): Long {
         if (latencyMs != null && latencyMs >= 0) {
             times.addLast(nowMs)
             latencies.addLast(latencyMs)
@@ -31,17 +43,18 @@ class LoadGovernor(startStep: Int = 0) {
         val median = median()
         val enough = latencies.size >= MIN_SAMPLES
         val sinceChange = nowMs - lastChangeMs
+        val thermalLimited = !batteryTempC.isNaN() &&
+            (batteryTempC >= HOT_BATTERY_TEMP_C || thermalStatus >= THERMAL_CRITICAL)
         var target = step
-        if (thermalStatus >= THERMAL_SEVERE) {
-            target = GAPS_MS.lastIndex
-        } else if (thermalStatus >= THERMAL_MODERATE) {
-            target = maxOf(step, 1)
-        } else if (enough && median > HIGH_LATENCY_MS && sinceChange >= DOWN_HOLD_MS) {
-            target = step + 1
+        if (thermalLimited) {
+            target = maxOf(step, if (thermalStatus >= THERMAL_SEVERE) GAPS_MS.lastIndex else 1)
+        }
+        if (enough && median > HIGH_LATENCY_MS && sinceChange >= DOWN_HOLD_MS) {
+            target = maxOf(target, step + 1)
         }
         if (target > step) {
             move(target.coerceAtMost(GAPS_MS.lastIndex), nowMs)
-        } else if (thermalStatus < THERMAL_MODERATE && enough && median < LOW_LATENCY_MS &&
+        } else if (!thermalLimited && enough && median < LOW_LATENCY_MS &&
             sinceChange >= UP_HOLD_MS && step > 0
         ) {
             move(step - 1, nowMs)
@@ -63,9 +76,11 @@ class LoadGovernor(startStep: Int = 0) {
 
     companion object {
         private const val NEVER = Long.MIN_VALUE
-        val GAPS_MS = longArrayOf(60L, 75L, 90L)
+        val GAPS_MS = longArrayOf(30L, 60L, 90L)
+        const val HOT_BATTERY_TEMP_C = 40f
         const val THERMAL_MODERATE = 2
         const val THERMAL_SEVERE = 3
+        const val THERMAL_CRITICAL = 4
         const val HIGH_LATENCY_MS = 150L
         const val LOW_LATENCY_MS = 90L
         const val WINDOW_MS = 4_000L

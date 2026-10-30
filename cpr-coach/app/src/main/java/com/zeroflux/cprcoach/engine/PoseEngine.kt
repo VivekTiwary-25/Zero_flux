@@ -51,6 +51,11 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private var thermalListener: PowerManager.OnThermalStatusChangedListener? = null
     private val statsLatency = ArrayList<Long>()
     private var statsStartMs = 0L
+    // Guarded by statsLatency; count camera deliveries before the governor skips anything.
+    private var cameraStatsStartMs = 0L
+    private var cameraIntervals = 0L
+    private var analysisWidth = 0
+    private var analysisHeight = 0
     private val landmarker: PoseLandmarker? = try {
         create(context, Delegate.GPU).also { delegateName = "GPU" }
     } catch (e: Exception) {
@@ -91,6 +96,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             val tenths = intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE) ?: Int.MIN_VALUE
             batteryTempC = if (tenths == Int.MIN_VALUE) Float.NaN else tenths / 10f
         } catch (e: Exception) {
+            batteryTempC = Float.NaN
             Log.w(TAG, "battery temperature unavailable", e)
         }
     }
@@ -103,15 +109,15 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
 
     private fun adapt(timeMs: Long, latency: Long) {
         try {
-            if (timeMs - lastEnvMs >= ENV_EVERY_MS) {
+            if (lastEnvMs == 0L || timeMs - lastEnvMs >= ENV_EVERY_MS) {
                 lastEnvMs = timeMs
                 readBatteryTemp()
             }
             val old = frameGapMs
-            val next = synchronized(governor) { governor.update(timeMs, latency, thermalStatus) }
+            val next = synchronized(governor) { governor.update(timeMs, latency, thermalStatus, batteryTempC) }
             frameGapMs = next
             if (old != next) {
-                Log.i(TAG, "frame_gap_ms $old -> $next thermal_status=$thermalStatus latency_ms=$latency")
+                Log.i(TAG, "frame_gap_ms $old -> $next thermal_status=$thermalStatus battery_temp_c=$batteryTempC latency_ms=$latency")
             }
         } catch (e: RuntimeException) {
             Log.w(TAG, "load governor failed", e)
@@ -131,7 +137,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
                 val timestamp = result.timestampMs()
                 val aspect = submitted.remove(timestamp) ?: return@setResultListener
                 val latency = SystemClock.uptimeMillis() - timestamp
-                logStats(timestamp, latency)
+                logStats(SystemClock.uptimeMillis(), latency)
                 adapt(timestamp, latency)
                 val marks = result.landmarks().firstOrNull()
                 onFrame(toFrame(marks, timestamp, aspect, latency))
@@ -143,9 +149,15 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
 
     /** Takes ownership of [image] and always closes it. */
     fun submit(image: ImageProxy) {
+        val now = SystemClock.uptimeMillis()
+        if (!closed) {
+            synchronized(statsLatency) {
+                if (cameraStatsStartMs == 0L) cameraStatsStartMs = now else cameraIntervals++
+                analysisWidth = image.width
+                analysisHeight = image.height
+            }
+        }
         val accepted = synchronized(lifecycleLock) {
-            val now = SystemClock.uptimeMillis()
-            // More frames add heat, not accuracy: the rate needs about 15 a second.
             if (closed || now - lastAcceptedMs < frameGapMs) false else {
                 lastAcceptedMs = now
                 submitting++
@@ -179,7 +191,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             val detector = landmarker
             if (detector == null) {
                 if (!closed) {
-                    onFrame(PoseFrame(now, null, null, SystemClock.uptimeMillis() - now).also(::writeTrace))
+                    onFrame(PoseFrame(now, null, null, SystemClock.uptimeMillis() - now).also { writeTrace(it) })
                 }
                 return
             }
@@ -203,21 +215,26 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             val span = timeMs - statsStartMs
             if (span < STATS_EVERY_MS) return
             val sorted = statsLatency.sorted()
+            val cameraSpan = timeMs - cameraStatsStartMs
+            val cameraFps = if (cameraSpan > 0L) cameraIntervals * 1000.0 / cameraSpan else Double.NaN
             Log.i(
                 TAG,
-                "pose delegate=$delegateName model=$MODEL results_per_s=%.1f latency_median_ms=%d latency_p90_ms=%d frame_gap_ms=%d thermal_status=%d thermal_headroom=%.2f battery_temp_c=%.1f"
+                "pose delegate=$delegateName model=$MODEL results_per_s=%.1f latency_median_ms=%d latency_p90_ms=%d frame_gap_ms=%d thermal_status=%d thermal_headroom=%.2f battery_temp_c=%.1f camera_frames_per_s=%.1f analysis_size=%dx%d"
                     .format(
                         statsLatency.size * 1000.0 / span, sorted[sorted.size / 2], sorted[sorted.size * 9 / 10],
                         frameGapMs, thermalStatus, headroom(), batteryTempC,
+                        cameraFps, analysisWidth, analysisHeight,
                     ),
             )
             statsLatency.clear()
             statsStartMs = timeMs
+            cameraStatsStartMs = timeMs
+            cameraIntervals = 0L
         }
     }
 
     private fun toFrame(marks: List<NormalizedLandmark>?, timeMs: Long, aspect: Float, latency: Long): PoseFrame {
-        if (marks == null) return PoseFrame(timeMs, null, null, latency).also(::writeTrace)
+        if (marks == null) return PoseFrame(timeMs, null, null, latency).also { writeTrace(it) }
         fun vis(i: Int) = marks[i].visibility().orElse(0f)
         val leftScore = vis(LEFT_SHOULDER) + vis(LEFT_ELBOW) + vis(LEFT_WRIST) + vis(LEFT_HIP)
         val rightScore = vis(RIGHT_SHOULDER) + vis(RIGHT_ELBOW) + vis(RIGHT_WRIST) + vis(RIGHT_HIP)
@@ -238,16 +255,16 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             elbowDegrees = PoseMath.elbowDegrees(arm, aspect),
             minVisibility = minOf(arm.shoulderVis, arm.elbowVis, arm.wristVis, arm.hipVis),
         )
-        return PoseFrame(timeMs, sample, arm, latency).also(::writeTrace)
+        return PoseFrame(timeMs, sample, arm, latency).also { writeTrace(it, if (right) "R" else "L") }
     }
 
-    /** Saves every frame as CSV, so accuracy can be measured and the maths re-tested on a PC. */
+    /** CSV keeps its original prefix; appended coordinates/visibility describe the chosen near arm. */
     fun startTrace(dir: File) {
         synchronized(this) {
             trace?.close()
             dir.mkdirs()
             trace = PrintWriter(File(dir, "session-${System.currentTimeMillis()}.csv").bufferedWriter()).also {
-                it.println("t_ms,wrist_signal,elbow_deg,min_vis,latency_ms,frame_gap_ms,thermal_status,battery_temp_c")
+                it.println("t_ms,wrist_signal,elbow_deg,min_vis,latency_ms,frame_gap_ms,thermal_status,battery_temp_c,side,shoulder_x,shoulder_y,elbow_x,elbow_y,wrist_x,wrist_y,hip_x,hip_y,shoulder_vis,elbow_vis,wrist_vis,hip_vis")
             }
         }
     }
@@ -259,10 +276,11 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         }
     }
 
-    private fun writeTrace(frame: PoseFrame) {
+    private fun writeTrace(frame: PoseFrame, side: String = "") {
         synchronized(this) {
             val s = frame.sample
-            trace?.println("${frame.timeMs},${s?.wristSignal ?: ""},${s?.elbowDegrees ?: ""},${s?.minVisibility ?: ""},${frame.latencyMs},$frameGapMs,$thermalStatus,${batteryTempC.takeIf { it.isFinite() } ?: ""}")
+            val a = frame.arm
+            trace?.println("${frame.timeMs},${s?.wristSignal ?: ""},${s?.elbowDegrees ?: ""},${s?.minVisibility ?: ""},${frame.latencyMs},$frameGapMs,$thermalStatus,${batteryTempC.takeIf { it.isFinite() } ?: ""},$side,${a?.shoulderX ?: ""},${a?.shoulderY ?: ""},${a?.elbowX ?: ""},${a?.elbowY ?: ""},${a?.wristX ?: ""},${a?.wristY ?: ""},${a?.hipX ?: ""},${a?.hipY ?: ""},${a?.shoulderVis ?: ""},${a?.elbowVis ?: ""},${a?.wristVis ?: ""},${a?.hipVis ?: ""}")
             // A crash must not lose the recording: it is the evidence.
             if (++traceRowsSinceFlush >= TRACE_FLUSH_ROWS) {
                 trace?.flush()
