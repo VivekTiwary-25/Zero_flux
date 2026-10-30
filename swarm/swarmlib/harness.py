@@ -131,6 +131,18 @@ def classify(result):
     return None
 
 
+def describe_failure(result, had_report):
+    """(what happened, in plain words) for a task the agent did not finish properly."""
+    if result.code == 124:
+        return "the agent ran out of time"
+    if result.code != 0:
+        tail = ((result.err or "").strip() or (result.out or "").strip()).splitlines()[-1:] or [""]
+        return ("the agent stopped with an error (exit %s): %s" % (result.code, tail[0]))[:140].strip()
+    if not had_report:
+        return "the agent stopped without writing a report, so the work may not be done"
+    return None
+
+
 def quick_test(worker):
     with tempfile.TemporaryDirectory(prefix="swarm-qt-") as tmp:
         res = run_agent(worker, tmp, QUICK_PROMPT, 180)

@@ -93,6 +93,25 @@ def forget_done(task_id):
         util.save_json(done_path(), done)
 
 
+def failed_path():
+    return util.state_dir() / "failed_tasks.json"
+
+
+def note_failure(task_id, title, worker_name, what, human):
+    """Remember a failed task. Its alert stays up until the boss closes the task."""
+    with _done_lock:
+        records = [r for r in util.load_json(failed_path(), []) if r.get("id") != task_id]
+        records.append({"id": task_id, "title": title, "worker": worker_name, "what": what,
+                        "human": human, "ts": util.now()})
+        util.save_json(failed_path(), records[-50:])
+
+
+def open_failures():
+    """Failed tasks still in the queue. Merge or reject removes the queue file, which ends the alert."""
+    open_ids = {p.stem for p in all_queue_files()}
+    return [r for r in util.load_json(failed_path(), []) if r.get("id") in open_ids]
+
+
 def _worker_key(machine, hb_worker):
     return "%s/%s" % (machine, hb_worker.get("name"))
 
@@ -227,6 +246,7 @@ def run_task(worker, path, holder=None):
             return _result("blocked", tid, title, problem)
         (wt / "SWARM_TASK.md").unlink()
         report = wt / "swarm" / "reports" / (tid + ".md")
+        what = harness.describe_failure(res, report.exists())
         if not report.exists():
             report.parent.mkdir(parents=True, exist_ok=True)
             report.write_text(_report_fallback(res), encoding="utf-8", newline="\n")
@@ -234,7 +254,9 @@ def run_task(worker, path, holder=None):
         if not ok:
             return _result("error", tid, title, err)
         mark_done({"id": tid, "worker": "%s/%s" % (machine, worker["name"]),
-                   "ok": res.code == 0, "ts": util.now()})
+                   "ok": what is None, "ts": util.now()})
+        if what:
+            note_failure(tid, title, worker["name"], what, human=False)
         util.event("task %s finished by %s/%s, branch task/%s ready for review"
                    % (tid, machine, worker["name"], tid), machine)
         return _result("done", tid, title)

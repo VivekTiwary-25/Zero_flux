@@ -265,8 +265,11 @@ def _finish_task(w, st, result):
         return
     st["state"] = "idle"
     if status == "error":
+        from . import tasks
         st["failed"].add(task_id)
         st["problem"] = "task error: %s" % str(result.get("problem"))[:80]
+        tasks.note_failure(task_id, result.get("title") or "", w["name"],
+                           ("the swarm could not save the work: %s" % result.get("problem"))[:140], human=True)
     else:
         st["problem"] = None
 
@@ -338,6 +341,8 @@ def _own_alerts(me, workers, net, settings, now):
         a = alerts.for_problem(st["problem"], me, w, resets_at, st.get("target"))
         if a:
             found.append(a)
+    from . import tasks
+    found += [alerts.task_failed(me, r) for r in tasks.open_failures()]
     low = [b for b in CTX["boss"] if b.get("remaining_pct") is not None
            and b["remaining_pct"] <= settings.get("boss_low_pct", 10)]
     if low:

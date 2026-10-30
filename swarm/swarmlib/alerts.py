@@ -64,6 +64,16 @@ def no_agent(machine, w):
                 "On %s, check that '%s' runs in a terminal, then run: swarm fix" % (machine, w.get("harness")))
 
 
+def task_failed(machine, record):
+    name = "%s/%s" % (machine, record.get("worker"))
+    text = "Task %s (%s) failed on %s: %s" % (record.get("id"), record.get("title"), name, record.get("what"))
+    if record.get("human"):
+        action = "Human needed: on %s run: swarm fix" % machine
+    else:
+        action = "No human needed: the boss will review and requeue it"
+    return make("task_failed", machine, record.get("id"), text, action)
+
+
 def boss_low(machine, pct, window, resets_at):
     return make("boss_low", machine, None,
                 "Boss Claude is at %s%% (%s) (resets %s)" % (pct, window, util.fmt_reset(resets_at)),
