@@ -259,6 +259,7 @@ private fun PractiseCamera(
     }
 
     LaunchedEffect(session) {
+        session.onEngineError = { error -> Log.e("CPR_ENGINE", "analysis failed, showing no number", error) }
         while (isActive) {
             session.tick(SystemClock.uptimeMillis())
             val card = session.scorecard.value

@@ -62,6 +62,7 @@ class LiveAnalyzer(
             clearSignals()
             return LiveReading(nowMs, TrackingState.LOST, null, null, null)
         }
+        if (elbowHistory.isEmpty()) return LiveReading(nowMs, TrackingState.LOST, null, null, null)
         val elbow = medianOf(elbowHistory.map { it.second })
         elbowsBent = if (elbowsBent) {
             elbow < elbowBentBelow + elbowHysteresis
@@ -80,7 +81,7 @@ class LiveAnalyzer(
                     rateHistory.addLast(beat.perMinute)
                     if (rateHistory.size > RATE_SMOOTHING) rateHistory.removeFirst()
                 }
-                val smoothed = medianOf(rateHistory.toList())
+                val smoothed = if (rateHistory.isEmpty()) beat.perMinute else medianOf(rateHistory.toList())
                 LiveReading(nowMs, TrackingState.BEATING, Math.round(smoothed).toInt(), elbow, elbowsBent)
             }
         }

@@ -34,12 +34,17 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private var trace: PrintWriter? = null
     @Volatile private var closed = false
     private var submitting = 0
+    private var delegateName = "none"
+    private var lastAcceptedMs = 0L
+    private var traceRowsSinceFlush = 0
+    private val statsLatency = ArrayList<Long>()
+    private var statsStartMs = 0L
     private val landmarker: PoseLandmarker? = try {
-        create(context, Delegate.GPU)
+        create(context, Delegate.GPU).also { delegateName = "GPU" }
     } catch (e: Exception) {
         Log.w(TAG, "GPU delegate unavailable, using CPU", e)
         try {
-            create(context, Delegate.CPU)
+            create(context, Delegate.CPU).also { delegateName = "CPU" }
         } catch (cpuError: Exception) {
             Log.e(TAG, "Pose unavailable: CPU delegate failed", cpuError)
             null
@@ -55,7 +60,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private fun create(context: Context, delegate: Delegate): PoseLandmarker {
         val options = PoseLandmarker.PoseLandmarkerOptions.builder()
             .setBaseOptions(
-                BaseOptions.builder().setModelAssetPath("pose_landmarker_full.task").setDelegate(delegate).build()
+                BaseOptions.builder().setModelAssetPath(MODEL).setDelegate(delegate).build()
             )
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setNumPoses(1)
@@ -65,6 +70,7 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
                 val timestamp = result.timestampMs()
                 val aspect = submitted.remove(timestamp) ?: return@setResultListener
                 val latency = SystemClock.uptimeMillis() - timestamp
+                logStats(timestamp, latency)
                 val marks = result.landmarks().firstOrNull()
                 onFrame(toFrame(marks, timestamp, aspect, latency))
             }
@@ -76,7 +82,10 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     /** Takes ownership of [image] and always closes it. */
     fun submit(image: ImageProxy) {
         val accepted = synchronized(lifecycleLock) {
-            if (closed) false else {
+            val now = SystemClock.uptimeMillis()
+            // More frames add heat, not accuracy: the rate needs about 15 a second.
+            if (closed || now - lastAcceptedMs < MIN_FRAME_GAP_MS) false else {
+                lastAcceptedMs = now
                 submitting++
                 true
             }
@@ -121,6 +130,24 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
             submitted[now] = width.toFloat() / height
             val processing = ImageProcessingOptions.builder().setRotationDegrees(rotation).build()
             detector.detectAsync(BitmapImageBuilder(proxy.toBitmap()).build(), processing, now)
+        }
+    }
+
+    /** One line every few seconds, so a slow phone can be diagnosed from logcat. */
+    private fun logStats(timeMs: Long, latency: Long) {
+        synchronized(statsLatency) {
+            if (statsStartMs == 0L) statsStartMs = timeMs
+            statsLatency.add(latency)
+            val span = timeMs - statsStartMs
+            if (span < STATS_EVERY_MS) return
+            val sorted = statsLatency.sorted()
+            Log.i(
+                TAG,
+                "pose delegate=$delegateName model=$MODEL results_per_s=%.1f latency_median_ms=%d latency_p90_ms=%d"
+                    .format(statsLatency.size * 1000.0 / span, sorted[sorted.size / 2], sorted[sorted.size * 9 / 10]),
+            )
+            statsLatency.clear()
+            statsStartMs = timeMs
         }
     }
 
@@ -171,6 +198,11 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
         synchronized(this) {
             val s = frame.sample
             trace?.println("${frame.timeMs},${s?.wristSignal ?: ""},${s?.elbowDegrees ?: ""},${s?.minVisibility ?: ""},${frame.latencyMs}")
+            // A crash must not lose the recording: it is the evidence.
+            if (++traceRowsSinceFlush >= TRACE_FLUSH_ROWS) {
+                trace?.flush()
+                traceRowsSinceFlush = 0
+            }
         }
     }
 
@@ -210,6 +242,10 @@ class PoseEngine(context: Context, private val onFrame: (PoseFrame) -> Unit) {
     private companion object {
         const val TAG = "CPR_POSE"
         const val STALE_FRAME_MS = 5_000L
+        const val MODEL = "pose_landmarker_full.task"
+        const val MIN_FRAME_GAP_MS = 66L
+        const val STATS_EVERY_MS = 5_000L
+        const val TRACE_FLUSH_ROWS = 30
         const val LEFT_SHOULDER = 11
         const val RIGHT_SHOULDER = 12
         const val LEFT_ELBOW = 13

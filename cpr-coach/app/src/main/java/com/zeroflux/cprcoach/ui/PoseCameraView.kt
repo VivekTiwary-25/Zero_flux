@@ -3,6 +3,7 @@ package com.zeroflux.cprcoach.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Log
+import android.util.Size
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraState
 import androidx.camera.core.CameraSelector
@@ -11,6 +12,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
@@ -52,14 +54,24 @@ fun PoseCameraView(onImage: (ImageProxy) -> Unit, modifier: Modifier = Modifier)
                     try {
                         val resolved = future.get()
                         provider = resolved
-                        val selector = ResolutionSelector.Builder()
+                        val previewSelector = ResolutionSelector.Builder()
                             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                            .setResolutionStrategy(
+                                ResolutionStrategy(Size(1280, 960), ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER),
+                            )
                             .build()
-                        val preview = Preview.Builder().setResolutionSelector(selector).build().also {
+                        // The pose model scales its input down to 256 px, so larger frames only add heat.
+                        val analysisSelector = ResolutionSelector.Builder()
+                            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                            .setResolutionStrategy(
+                                ResolutionStrategy(Size(640, 480), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER),
+                            )
+                            .build()
+                        val preview = Preview.Builder().setResolutionSelector(previewSelector).build().also {
                             it.surfaceProvider = previewView.surfaceProvider
                         }
                         val imageAnalysis = ImageAnalysis.Builder()
-                            .setResolutionSelector(selector)
+                            .setResolutionSelector(analysisSelector)
                             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                             .build()

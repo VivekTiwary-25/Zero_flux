@@ -38,6 +38,9 @@ class PractiseSession(
     private val _ui = MutableStateFlow<CameraUiState>(CameraUiState.Framing(false, "frame_no_person"))
     val ui: StateFlow<CameraUiState> = _ui
 
+    /** Called if the analysis itself fails. The session carries on showing no number. */
+    var onEngineError: ((Throwable) -> Unit)? = null
+
     private val _scorecard = MutableStateFlow<Scorecard?>(null)
 
     /** Becomes non-null once when the session ends. */
@@ -92,7 +95,14 @@ class PractiseSession(
             publishPaused()
             return
         }
-        val reading = analyzer.read(nowMs)
+        val reading = try {
+            analyzer.read(nowMs)
+        } catch (e: RuntimeException) {
+            // A demo must never die on one bad reading, and never keep showing the last number.
+            onEngineError?.invoke(e)
+            analyzer = LiveAnalyzer()
+            LiveReading(nowMs, TrackingState.LOST, null, null, null)
+        }
         liveMsLeft -= nowMs - (lastTickMs ?: nowMs)
         metrics.add(reading)
         coach.update(reading)?.let { audio.play(it.key) }

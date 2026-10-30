@@ -146,6 +146,8 @@ class RateEstimator(
     private fun pickLag(r: DoubleArray): Int? {
         val peaks = (MIN_LAG..minOf(MAX_LAG, r.size - 2)).filter { r[it] > r[it - 1] && r[it] >= r[it + 1] }
         val best = peaks.maxOfOrNull { r[it] } ?: return null
+        // A negative best means no beat at all. Scaling it would also raise the bar above every peak.
+        if (best <= 0.0) return null
         return peaks.first { r[it] >= best * OCTAVE_PREFERENCE }
     }
 
