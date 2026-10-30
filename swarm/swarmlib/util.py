@@ -108,28 +108,31 @@ def run(cmd, cwd=None, env=None, timeout=None, input=None):
 
 
 _login_path_done = False
+_login_path_lock = threading.Lock()
 
 
 def _import_login_path():
     """A systemd service has no shell PATH, so tools like omp (and the runtime it needs) can't be found."""
     global _login_path_done
-    if _login_path_done:
-        return
-    _login_path_done = True
-    marker = "__SWARM_PATH__"
-    home = Path.home()
-    extra = [str(home / d) for d in (".local/bin", ".bun/bin", ".npm-global/bin", ".cargo/bin", ".omp/bin")]
-    extra.append("/usr/local/bin")
-    try:
-        res = subprocess.run(["bash", "-lic", "printf '%s%s\n' " + marker + " \"$PATH\""],
-                             stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=15)
-        for line in res.stdout.splitlines():
-            if line.startswith(marker):
-                extra = line[len(marker):].split(":") + extra
-    except (OSError, subprocess.SubprocessError):
-        pass
-    current = os.environ.get("PATH", "").split(":")
-    os.environ["PATH"] = ":".join(dict.fromkeys(current + [d for d in extra if d]))
+    # Workers start together. The others must wait here, or they look for omp before PATH is ready.
+    with _login_path_lock:
+        if _login_path_done:
+            return
+        marker = "__SWARM_PATH__"
+        home = Path.home()
+        extra = [str(home / d) for d in (".local/bin", ".bun/bin", ".npm-global/bin", ".cargo/bin", ".omp/bin")]
+        extra.append("/usr/local/bin")
+        try:
+            res = subprocess.run(["bash", "-lic", "printf '%s%s\\n' " + marker + " \"$PATH\""],
+                                 stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=15)
+            for line in res.stdout.splitlines():
+                if line.startswith(marker):
+                    extra = line[len(marker):].split(":") + extra
+        except (OSError, subprocess.SubprocessError):
+            pass
+        current = os.environ.get("PATH", "").split(":")
+        os.environ["PATH"] = ":".join(dict.fromkeys(current + [d for d in extra if d]))
+        _login_path_done = True
 
 
 def which(name):
