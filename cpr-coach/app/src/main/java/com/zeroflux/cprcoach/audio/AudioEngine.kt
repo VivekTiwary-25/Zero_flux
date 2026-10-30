@@ -186,18 +186,22 @@ class AudioEngine(
                 }
             }
             val samples = loaded?.samples
-            val outcome = synchronized(lock) {
-                if (token != playToken) LoadOutcome.SUPERSEDED
-                else if (released || samples == null) {
-                    postToMain(clipDone)
-                    clipDone = null
-                    LoadOutcome.DONE
-                }
-                else {
-                    clip = samples
-                    clipPos = 0
-                    lock.notifyAll()
-                    LoadOutcome.STARTED
+            // Serialize the freshness check and installation with setLanguage().
+            val outcome = synchronized(cacheLock) {
+                synchronized(lock) {
+                    if (token != playToken) LoadOutcome.SUPERSEDED
+                    else if (released || samples == null ||
+                        !isCurrentAudioLanguage(code, epoch, languageCode, languageEpoch)
+                    ) {
+                        postToMain(clipDone)
+                        clipDone = null
+                        LoadOutcome.DONE
+                    } else {
+                        clip = samples
+                        clipPos = 0
+                        lock.notifyAll()
+                        LoadOutcome.STARTED
+                    }
                 }
             }
             if (outcome == LoadOutcome.DONE) {
@@ -649,3 +653,10 @@ internal class AudioMixBlock(private val click: ShortArray) {
         accepted += count
     }
 }
+
+internal fun isCurrentAudioLanguage(
+    requestedCode: String,
+    requestedEpoch: Int,
+    currentCode: String?,
+    currentEpoch: Int,
+): Boolean = requestedCode == currentCode && requestedEpoch == currentEpoch

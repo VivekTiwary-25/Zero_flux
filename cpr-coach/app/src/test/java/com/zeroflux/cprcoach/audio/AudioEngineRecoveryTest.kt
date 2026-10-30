@@ -8,6 +8,13 @@ import org.junit.Test
 
 class AudioEngineRecoveryTest {
     @Test
+    fun staleLanguageLoadIsRejectedByCodeOrEpoch() {
+        assertTrue(isCurrentAudioLanguage("en", 4, "en", 4))
+        assertFalse(isCurrentAudioLanguage("en", 4, "es", 5))
+        assertFalse(isCurrentAudioLanguage("en", 4, "en", 5))
+    }
+
+    @Test
     fun longOutageKeepsCalmRetriesAndReportsOnlyOnce() {
         val recovery = AudioRecovery(300, 6_000, 600)
         assertTrue(recovery.failed())
