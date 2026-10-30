@@ -48,5 +48,8 @@
   "em_stop_hold": "Hold to stop",
   "em_step_call": "Call 112. Put it on speaker.",
   "em_step_hands": "Hands in the centre of the chest.",
-  "em_step_push": "Push hard and fast, with the beat."
+  "em_step_push": "Push hard and fast, with the beat.",
+  "mic_enable": "Turn on hands-free listening",
+  "camera_numeric_value": "{value}",
+  "live_no_rate": "—"
 }
