@@ -48,5 +48,6 @@ dependencies {
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
     implementation(libs.mediapipe.tasks.vision)
+    implementation(files("libs/sherpa-onnx-1.13.7.aar"))
     testImplementation(libs.junit)
 }
