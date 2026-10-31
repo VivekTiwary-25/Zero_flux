@@ -1,0 +1,171 @@
+diff --git a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/CoachPolicy.kt b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/CoachPolicy.kt
+index 6d7b7f5..da5a311 100644
+--- a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/CoachPolicy.kt
++++ b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/CoachPolicy.kt
+@@ -20,6 +20,7 @@ class CoachPolicy(
+     private val postureSteadyMs: Long = 2_000,
+     private val cooldownMs: Long = 6_000,
+     private val praiseEveryMs: Long = 20_000,
++    private val elbowSteadyMs: Long = 1_000,
+ ) {
+     // When each currently wanted phrase started to be wanted without a break; a phrase that drops out loses its time.
+     private val wantedSinceMs = java.util.EnumMap<Phrase, Long>(Phrase::class.java)
+@@ -76,8 +77,9 @@ class CoachPolicy(
+     // Recovering from a pause should be acknowledged quickly, everything else must be steady.
+     private fun requiredMs(phrase: Phrase) = when (phrase) {
+         Phrase.KEEP_GOING -> 0
+-        // The posture judge already waits about a second, so the voice follows the amber screen promptly.
+-        Phrase.ELBOWS_STRAIGHT, Phrase.SHOULDERS_OVER_HANDS -> postureSteadyMs
++        // Elbows are already sustained by the judge; keep the shoulder voice timing unchanged.
++        Phrase.ELBOWS_STRAIGHT -> elbowSteadyMs
++        Phrase.SHOULDERS_OVER_HANDS -> postureSteadyMs
+         else -> steadyMs
+     }
+ 
+diff --git a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachAndMetricsTest.kt b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachAndMetricsTest.kt
+index 88517f5..a1975e3 100644
+--- a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachAndMetricsTest.kt
++++ b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachAndMetricsTest.kt
+@@ -65,9 +65,10 @@ class CoachAndMetricsTest {
+ 
+     @Test
+     fun `posture is corrected while pushing without a locked rate`() {
+-        val spoken = run(CoachPolicy(), 0, 5_000) { pushing(it, PostureIssue.ELBOWS_BENT) }
+-        assertEquals(Phrase.ELBOWS_STRAIGHT, spoken.single().second)
+-        assertTrue(spoken.single().first in 2_000..2_500)
++        val policy = CoachPolicy()
++        assertNull(policy.update(pushing(0, PostureIssue.ELBOWS_BENT)))
++        assertNull(policy.update(pushing(999, PostureIssue.ELBOWS_BENT)))
++        assertEquals(Phrase.ELBOWS_STRAIGHT, policy.update(pushing(1_000, PostureIssue.ELBOWS_BENT)))
+     }
+ 
+     @Test
+@@ -78,8 +79,10 @@ class CoachAndMetricsTest {
+ 
+     @Test
+     fun `leaning says shoulders over hands`() {
+-        val spoken = run(CoachPolicy(), 0, 5_000) { pushing(it, PostureIssue.SHOULDERS_NOT_OVER_HANDS) }
+-        assertEquals(Phrase.SHOULDERS_OVER_HANDS, spoken.single().second)
++        val policy = CoachPolicy()
++        assertNull(policy.update(pushing(0, PostureIssue.SHOULDERS_NOT_OVER_HANDS)))
++        assertNull(policy.update(pushing(1_999, PostureIssue.SHOULDERS_NOT_OVER_HANDS)))
++        assertEquals(Phrase.SHOULDERS_OVER_HANDS, policy.update(pushing(2_000, PostureIssue.SHOULDERS_NOT_OVER_HANDS)))
+     }
+ 
+     @Test
+@@ -94,6 +97,36 @@ class CoachAndMetricsTest {
+         assertEquals(Phrase.PUSH_FASTER, rate.first().second)
+     }
+ 
++    @Test
++    fun `an interrupted elbow correction must become steady again`() {
++        val policy = CoachPolicy()
++        assertNull(policy.update(pushing(0, PostureIssue.ELBOWS_BENT)))
++        assertNull(policy.update(pushing(999, null)))
++        assertNull(policy.update(pushing(1_500, PostureIssue.ELBOWS_BENT)))
++        assertNull(policy.update(pushing(2_499, PostureIssue.ELBOWS_BENT)))
++        assertEquals(Phrase.ELBOWS_STRAIGHT, policy.update(pushing(2_500, PostureIssue.ELBOWS_BENT)))
++    }
++
++    @Test
++    fun `a short moving bent stretch is silent when movement stops`() {
++        val policy = CoachPolicy()
++        val moving = run(policy, 0, 1_000) { pushing(it, PostureIssue.ELBOWS_BENT) }
++        val stopped = run(policy, 1_000, 2_000) {
++            pushing(it, PostureIssue.ELBOWS_BENT).copy(moving = false)
++        }
++        assertTrue(moving.isEmpty())
++        assertTrue(stopped.isEmpty())
++    }
++
++    @Test
++    fun `faster elbow correction still waits for the six second cooldown`() {
++        val policy = CoachPolicy()
++        val rate = run(policy, 0, 4_000) { beating(it, 90) }
++        val elbow = run(policy, 4_000, 9_250) { pushing(it, PostureIssue.ELBOWS_BENT) }
++        assertEquals(listOf(3_000L to Phrase.PUSH_FASTER), rate)
++        assertEquals(listOf(9_000L to Phrase.ELBOWS_STRAIGHT), elbow)
++    }
++
+     @Test
+     fun `a pause with flickering movement still says keep going`() {
+         val policy = CoachPolicy()
+@@ -284,10 +317,8 @@ class CoachAndMetricsTest {
+     @Test
+     fun `elbows straight is coached again after fixing posture and bending again`() {
+         val policy = CoachPolicy()
+-        assertEquals(
+-            listOf(2_000L to Phrase.ELBOWS_STRAIGHT),
+-            run(policy, 0, 2_250) { pushing(it, PostureIssue.ELBOWS_BENT) },
+-        )
++        val first = run(policy, 0, 2_250) { pushing(it, PostureIssue.ELBOWS_BENT) }
++        assertEquals(listOf(Phrase.ELBOWS_STRAIGHT), first.map { it.second })
+         run(policy, 2_250, 10_000) { pushing(it, null) }
+         val relapsed = run(policy, 10_000, 20_000) { pushing(it, PostureIssue.ELBOWS_BENT) }
+         assertEquals(listOf(Phrase.ELBOWS_STRAIGHT), relapsed.map { it.second })
+diff --git a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/EngineFuzzTest.kt b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/EngineFuzzTest.kt
+index 780e462..e07ffbc 100644
+--- a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/EngineFuzzTest.kt
++++ b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/EngineFuzzTest.kt
+@@ -61,7 +61,7 @@ class EngineFuzzTest {
+             val policy = CoachPolicy()
+             val metrics = SessionMetrics()
+             var t = 1_000L
+-            var lastPhrase: Phrase? = null
++            var lastSpokenMs: Long? = null
+             repeat(300) {
+                 t = messyTime(r, t)
+                 analyzer.addFrame(messySample(r, t))
+@@ -71,9 +71,9 @@ class EngineFuzzTest {
+                 metrics.add(reading)
+                 val phrase = policy.update(reading)
+                 if (phrase != null) {
+-                    assertNotEquals("seed $seed repeated $phrase", lastPhrase, phrase)
++                    lastSpokenMs?.let { assertTrue("seed $seed broke cooldown", reading.timeMs - it >= 6_000) }
+                     assertNotEquals("seed $seed spoke while LOST", TrackingState.LOST, reading.tracking)
+-                    lastPhrase = phrase
++                    lastSpokenMs = reading.timeMs
+                 }
+                 checkCard(seed, metrics.scorecard())
+             }
+@@ -88,7 +88,7 @@ class EngineFuzzTest {
+             val policy = CoachPolicy()
+             val metrics = SessionMetrics()
+             var t = 0L
+-            var lastPhrase: Phrase? = null
++            var lastSpokenMs: Long? = null
+             repeat(400) {
+                 t = if (r.nextInt(30) == 0) t - r.nextInt(10_000) else t + r.nextInt(4000)
+                 val state = TrackingState.values()[r.nextInt(4)]
+@@ -99,9 +99,9 @@ class EngineFuzzTest {
+                 metrics.add(reading)
+                 val phrase = policy.update(reading)
+                 if (phrase != null) {
+-                    assertNotEquals("seed $seed repeated $phrase", lastPhrase, phrase)
++                    lastSpokenMs?.let { assertTrue("seed $seed broke cooldown", t - it >= 6_000) }
+                     assertNotEquals("seed $seed spoke while LOST", TrackingState.LOST, state)
+-                    lastPhrase = phrase
++                    lastSpokenMs = t
+                 }
+                 val c = metrics.scorecard()
+                 assertTrue("seed $seed $c", c.sessionSeconds >= 0 && c.measuredSeconds >= 0 && c.secondsInRange >= 0)
+@@ -173,7 +173,7 @@ class EngineFuzzTest {
+             val analyzer = LiveAnalyzer()
+             val metrics = SessionMetrics()
+             val policy = CoachPolicy()
+-            var lastPhrase: Phrase? = null
++            var lastSpokenMs: Long? = null
+             for ((i, s) in samples.withIndex()) {
+                 analyzer.addFrame(s)
+                 val reading = analyzer.read(s.timeMs)
+@@ -182,8 +182,8 @@ class EngineFuzzTest {
+                 metrics.add(reading)
+                 val p = policy.update(reading)
+                 if (p != null) {
+-                    assertNotEquals(lastPhrase, p)
+-                    lastPhrase = p
++                    lastSpokenMs?.let { assertTrue(s.timeMs - it >= 6_000) }
++                    lastSpokenMs = s.timeMs
+                 }
+             }
+             checkCard(pauseAt.toLong(), metrics.scorecard())
