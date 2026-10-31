@@ -1,127 +1,48 @@
-# Stage demo script: CPR Coach, 2 minutes
+# CPR Coach: two-minute demo
 
-**The safety line. Spoken verbatim at the start and at the end.**
+## Before the clock starts
 
-> CPR Coach is a practice tool. It is not a medical device. In a real emergency, call 112. Never delay care to use the app. We practise on a cushion, never on a person. We never call 112 on stage.
+- Use the demo build in English. Check that CPR guide, Emergency contact and Dashboard are there before going on stage.
+- Use a cushion, never a person. Clear space for the person who will push.
+- One person speaks. One pushes on the cushion. One holds the phone still at the side, with the arms in view, and taps the controls.
+- Turn media sound up. Disconnect headphones and Bluetooth audio. Keep the mic off so it does not mute the coach. Set the screen to stay on. Have a spare phone ready.
+- Check camera access and sound in a dry run, then leave the phone on the Android home screen. Start the live demo from the app icon, not a tool or a deep link.
+- Do not show private contact details. Show the Emergency contact form without saving or calling a contact.
+- For a lean, **push firm and steady, keep it short, and keep the phone still**. A known problem can make weak, uneven pushing read as a pause. This is not proof that the person stopped. Do not force a lean cue or hide a missed cue.
 
----
+## Live run: 0:00–2:00, 120 seconds total
 
-## Before walking on stage
+The quoted words are the presenter's lines. Leave the other time for taps and the app's own voice. Move on at each time mark; do not wait for a rate or a cue.
 
-- Two Android phones (Android 11 or newer): one demo phone, one backup phone.
-- Volume up on both phones. Verify no Bluetooth devices or headphones are connected.
-- Set screen timeout to stay awake for the demo duration.
-- Demo phone starts on Home in English (`AppLanguage.EN`). Backup phone starts on Home in English with volume up.
-- One cushion placed on stage for compressions. No manikin, no human subject.
-- Keep judges behind the holder; maintain a clear area behind the rescuer.
+| Time | Seconds | Screen and action | Say |
+|---|---:|---|---|
+| 0:00–0:16 | 16 | Tap the CPR Coach app icon on the Android home screen. Show the app Home screen. | “CPR Coach is a practice tool, not a medical device. In a real emergency, call 112. Never delay care for the app. We use a cushion, never a person. We will not make a call.” |
+| 0:16–0:28 | 12 | Open CPR guide. Show a step, tap Next once, then go back Home. Do not read the whole guide. | “The CPR guide gives short steps for adult CPR. It does not replace training or the dispatcher.” |
+| 0:28–0:40 | 12 | Open Emergency contact. Point to the name and number fields. Close the form and return Home; do not enter private data or call anyone. | “Emergency contact lets you save a name and number. We will leave the form blank. It is not a call to 112.” |
+| 0:40–0:52 | 12 | Open Dashboard. Point to both “Testing data” and “Synthetic data” tags. Return Home. | “These ‘Testing data’ and ‘Synthetic data’ tags matter. These are test and made-up data, not real users. They do not prove the app works in real care.” |
+| 0:52–1:14 | 22 | Tap Practise. Frame the arms from the side and start when ready. Push on the cushion. If time allows, make one short lean with firm, steady pushes; do not move the phone. Stop and return Home. | “Practise uses arm motion to estimate pace and spot cues. It does not measure depth or hand placement, and gives no overall CPR score. We show only what it sees.” |
+| 1:14–1:46 | 32 | Tap Emergency once. Keep the camera on and the phone still. Push on the cushion to the beat. Let the opening voice play; then speak in a gap. Leave time to hear a later cue if one occurs. In the last few seconds, tap Call 112 to show the dialer, then **cancel it with Back without pressing Call**. Return to the app. | “Emergency talks more: steps, cues and prompts to keep going. The beat and steps do not wait for the camera. This button opens the dialer; we cancel it. No call.” |
+| 1:46–1:52 | 6 | Hold Stop to end Emergency. Show “For the ambulance crew”. Do not read out or invent values. | “A dash means not measured, not zero.” |
+| 1:52–2:00 | 8 | Keep the summary in view. End at 2:00. | “Practice tool, not a medical device. In real danger, call 112 and follow the dispatcher. Never delay care.” |
 
----
+## If a cue or sound is missing
 
-## Stage roles & layout
+- If Practise loses the arms or shows no rate, say: “It cannot get a reading; we will not guess.” Keep to the clock. Do not claim a pause is real when pushes are still going.
+- If Emergency loses tracking, let its beat and spoken steps carry on. Say: “The beat and steps do not wait for the camera.” Do not promise a correction or a rate.
+- Emergency now has more voice prompts. Corrections and praise depend on the reading; some prompts need a quiet gap. Do not promise a set count, a fixed delay, or a cue on demand. A short demo will not reach all later reminders.
+- If sound fails, check media volume and that the mic is off. If needed, use the spare phone and keep to the clock. Say what failed; do not pretend a clip played.
+- If a screen is missing in the stage build, say so. Do not pass off another screen as that feature.
+- If the dialer opens at any point, cancel with Back. Never press Call or place any call in this demo.
 
-- **Rescuer:** Kneels at the cushion facing forward. Hands positioned on the cushion. Does not touch or watch the phone; listens only to spoken cues.
-- **Holder:** Stands at the rescuer's side (never in front). Holds the phone horizontally in landscape. Points camera at rescuer's upper body. Operates UI `ClayButton` controls (Start, Pause, Stop).
-- **Presenter:** Stands on the other side facing judges. Delivers timed commentary and safety lines. Does not handle the phone.
+## Limits for questions
 
----
+- No depth, force, chest recoil or hand-placement measurement. No overall CPR score, skill certificate or claim of clinical proof. A session card contains only that run's measured readings; it is not a clinical score.
+- Quote no accuracy or speed figure. Rate accuracy on a real person is not proven. The lean/pause problem is still open; steady staging does not fix it.
+- Guide pictures or spoken hand-placement steps are guidance, not a camera check of hand placement.
+- Use English for this demo. New non-English text, including guide text, has not had a full human review. Do not call all languages checked.
+- Dashboard data labelled “Testing data” or “Synthetic data” is not evidence of real users or lives saved.
+- In real care, call 112 and follow the dispatcher. Never delay care to set up the camera or use the app. Never push on a person for a demo.
 
-## Screen visual system & contract components
+## Source notes
 
-- `CoachColors.Coral` (Coral red): Emergency mode only (`home_emergency`, `em_call`).
-- `CoachColors.Teal` (Teal): In range (100–120 bpm), good status, ready guide (`frame_ready`, `live_elbows_straight`).
-- `CoachColors.Amber` (Amber): Adjustment required (`live_elbows_bent`, rate out of range, `live_paused`).
-- `ClayButton`: Dimensional tactile buttons (`home_emergency`, `home_practise`, `frame_start`, `em_call`).
-- `GlassPanel`: Frosted glass containers (walkthrough cards, scorecard dialog, language picker).
-- `CameraScrim`: Translucent flat overlay on camera feed with zero blur to ensure high frame rate.
-- `MicState`: OFF, LOADING (`mic_loading`), LISTENING (`mic_listening`). Kept OFF during demo so speech recognition does not mute spoken coaching.
-- `LocalStrings`: Every visible string maps to `assets/strings/en.json`.
-
----
-
-## Timed Two-Minute Timeline (0:00–2:00)
-
-| Time | Step | Who speaks | Spoken line | What they do | What the audience sees |
-|---|---|---|---|---|---|
-| **0:00–0:12** | **1. Open & safety** | Presenter | "CPR Coach is a practice tool. It is not a medical device. In a real emergency, call 112. Never delay care to use the app. We practise on a cushion, never on a person. We never call 112 on stage." | Presenter faces judges; rescuer kneels at cushion; holder stands at rescuer's side. | Home in English, with Emergency and Practise visible. |
-| **0:12–0:24** | **2. Practise** | Presenter | "Practise teaches you. Emergency talks you through it. Practise is calm, measured coaching for learning; the holder sees the camera feedback while the rescuer listens." | Holder taps Practise, frames the rescuer from the side, and starts when Ready appears. | Practise camera framing, then live feedback when available. |
-| **0:24–0:52** | **3. Practise & measured handover** | Presenter | "The app coaches from visible arm movement. It never guesses a number. A scorecard shows only this run's measured values; an unmeasured item stays blank or says 'Not measured'." | Rescuer practises on the cushion. Holder demonstrates one live correction if it occurs, then stops Practise and briefly shows its scorecard. | Actual live state and scorecard; do not invent readings or claim accuracy. |
-| **0:52–1:00** | **4. Back to Home** | Presenter | "Now the emergency path: no setup, no waiting for camera tracking." | Holder returns Home and places the phone for the side view or floor prop position. | Home, ready to demonstrate Emergency. |
-| **1:00–1:45** | **5. Emergency: one tap, beat, voice, one word, handover** | Presenter / App Voice | *Presenter:* "One tap. Practise teaches you. Emergency talks you through it. The camera opens in landscape; the beat and spoken steps start at once. CPR never waits for the camera."<br>*App Voice:* Let actual steps play; do not cue or invent text.<br>*Presenter:* "The camera adds spoken corrections when arms are visible. One large localized word, no numbers, keeps attention on the next instruction. Call 112 stays visible and opens only the dialer. Rate detection on a real person and this redesigned Emergency screen with a real person are not proven. A dash means not measured, not zero." | Holder taps Emergency once and leaves camera on. Rescuer pushes on the cushion to the beat. At a suitable point, holder deliberately holds Stop until it ends, then displays "For the ambulance crew". | Camera remains on; coral-red frame contains one word (FASTER, GOOD, SLOWER or STRAIGHTEN ARMS, localized), elapsed time in a corner, no numbers. Call 112 remains visible. Summary shows total CPR time, average rate and pauses from measured data only; unmeasured values are dashes. |
-| | **Setup hint** | | "Hold the phone from the side, or prop it on the floor facing the rescuer's side." | | Nonblocking on-screen hint only; it never blocks anything. |
-| **1:45–2:00** | **6. Close & safety** | Presenter | "CPR Coach is a practice tool. It is not a medical device. In a real emergency, call 112. Never delay care to use the app. We practise on a cushion, never on a person. We never call 112 on stage. Follow the dispatcher. Thank you." | Keep "For the ambulance crew" summary visible; do not open the dialer. | Summary, then end. Never press Call. |
-
-Emergency camera fallback: if tracking fails, the metronome and spoken steps continue; the word area says "Keep pushing with the beat". Do not expect a number. Never place a test call: if separately showing Call 112, tap only to open the dialer, then Back without pressing Call.
-
----
-
-## Fallback procedures during demo
-
-### Fallback if camera loses tracking in Practise
-- **On screen:** the rate number and elbow indicator disappear, "Can't see arms" appears, and the metronome keeps playing.
-- **Holder:** keep the phone level and step back slowly. If tracking does not return within a few seconds, tap Stop.
-- **Presenter:** "The app lost the arms and shows no number rather than guessing."
-
-### Fallback if camera tracking fails in Emergency
-- **What happens on screen:** The camera remains on; the instruction word says "Keep pushing with the beat". The metronome and spoken emergency steps continue without a guessed number. When arms are visible, camera analysis and coaching can add spoken corrections alongside emergency steps.
-- **What the holder does:** Keep the phone steady and continue CPR; do not pause waiting for tracking.
-- **What the presenter says:** "Emergency does not wait for the camera. The beat and spoken steps continue, and the screen shows no invented number."
-
-
-### Fallback if audio fails
-- **What happens:**
-  - Metronome or spoken clips are inaudible while the screen continues live visual updates.
-- **What the holder does:**
-  1. Checks mic button state: if "Listening" (`mic_listening`) in teal, taps it once to mute mic, un-muting coaching audio.
-  2. Presses hardware volume-up button to ensure media audio is unmuted.
-  3. If still silent, proceeds with visual feedback or transitions to the backup phone.
-- **What the presenter speaks (Practise fallback line):**
-  > "Audio has failed. The screen is still live. The holder reads the visual cues—teal for in range, amber to adjust—and the rescuer maintains rhythm."
-- **What the presenter speaks (Emergency fallback line):**
-  > "Audio has failed. The Call 112 button still works. In a real emergency, call 112 and follow the dispatcher."
-- **Continuation:** If switching to backup phone: *"We are switching to the backup phone."* Never stall to debug on stage.
-
----
-
-## Judge Q&A reference
-
-- **"Is this a medical device?"**
-  "No. It is a practice tool. It does not diagnose, certify, or replace dispatchers or instructors. In a real emergency, call 112."
-- **"How accurate is the rate?"**
-  "Counted accuracy runs are not done, and rate detection on a real person is not proven. We quote no accuracy figure."
-- **"How fast is the feedback?"**
-  "We quote no latency figure; anything not measured is reported as not measured."
-- **"Does it measure depth or hand position?"**
-  "No. A single 2D camera cannot measure depth or force reliably. It estimates rate, elbow angle, and pauses. It never guesses depth or hand placement."
-- **"Does it run offline?"**
-  "Yes. Pose landmarker, coaching clips, and speech run 100% on-device with zero network requests."
-- **"What about calling 112?"**
-  "The button opens Android's dialer with 112 filled in and never places a call. If demonstrating it, back out at the dialer without pressing Call. In a real emergency, call 112 and follow the dispatcher."
-- **"Which languages work?"**
-  "The picker lists ten languages. Spoken coaching clips are verified for a subset. English is what we demonstrated today."
-- **"What does the score mean?"**
-  "It reflects only this specific run's measured readings. It is neither a certification nor a clinical score."
-- **"Why practise on a cushion?"**
-  "We do not practise on a person. A cushion lets the rescuer rehearse compressions safely."
-- **"Why two modes?"** "Practise teaches calmly with measured feedback and a scorecard. Emergency talks you through it: one tap, no setup, immediate beat and spoken steps; camera coaching joins when arms are visible."
-- **"Why one word and no number in Emergency?"** "One large localized instruction keeps attention on the next action. Emergency never asks someone to interpret an unmeasured rate."
-- **"What does the handover summary show, and why can it show dashes?"** "Total CPR time, average rate and pauses, from measured values only. A dash means not measured, not zero."
-- **"What if the camera fails?"** "The beat and spoken steps continue, the word area says 'Keep pushing with the beat', and no number is invented. Rate detection on a real person and this redesigned screen with a real person are not proven."
-
----
-
-## Strict demo rules ("Do Not")
-
-- **NEVER call 112:** Only if demonstrating Call 112, stop at the dialer and press Back. Never place an actual emergency call.
-- **NEVER practise on a person:** Always practise on the cushion.
-- **NEVER turn mic on during demo:** Listening mutes the spoken coaching audio.
-- **NEVER invent numbers:** Quote no accuracy or latency figures; no invented rate, score or demo value.
-- **NEVER claim clinical validation:** Do not say "accurate", "clinically proven", "detects cardiac arrest", or "replaces an ambulance".
-- If Emergency camera tracking fails, its metronome and spoken steps continue; the word area says "Keep pushing with the beat".
-
----
-
-## Cue card (Stage pocket summary)
-
-`Cushion → Home → Practise → Frame → Start → Live coaching → Stop → Scorecard → Home → Emergency (one tap: beat + voice + camera) → One word → Hold to stop → "For the ambulance crew" summary → Close.`
-
-*Safety line verbatim at 0:00 and in the closing segment.*
+Read from `origin/cpr-coach` after `git fetch origin`: `cpr-coach/docs/DEMO_2MIN.md`, `JUDGE_QA.md`, `PLAN_0810.md`, `EMERGENCY_TALK.md`, `RECORDING_16.md` and `STRINGS_UNREVIEWED.md` (all under `cpr-coach/docs/`). Both the source demo and Q&A were present. This is a script, not proof of a phone run; rehearse it on the stage build before use.
