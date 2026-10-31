@@ -10,7 +10,7 @@ For build **270070e** (APK sha1 `2db874361b2f`). It includes everything in 32545
 | 4. 10 s | Tap Emergency | Hand picture during the opening lines only. Smaller button with the name beside Call 112, which stays bigger. Tap the name: dialer opens with the number, nothing dials | [ ] |
 | 5. 10 s | Push a few beats, hold Stop, then Practise until a scorecard | Scorecard says "Rate measured for X of Y s" | [ ] |
 
-The AED, Continue and Swap text only shows at about 2 and 4 minutes into Emergency, so check that if you have time.
+The AED text shows at 30 s into Emergency, Continue at 60 s and Swap at 2 minutes, so stay in step 4 past 30 s to see the first one.
 
 Clear the test contact afterwards: Emergency contact, Clear.
 
