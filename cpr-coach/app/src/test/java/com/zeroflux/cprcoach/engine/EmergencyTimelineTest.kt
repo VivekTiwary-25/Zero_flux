@@ -1,4 +1,5 @@
 // PowerShell: $env:CPR_TRACE='tools/testdata/real-cph2467-15.csv'
+// Optional: $env:CPR_CLIP_LANGUAGE='en,kn'; CPR_TRACE also accepts comma-separated CSV paths.
 // ./gradlew.bat testDebugUnitTest --tests '*EmergencyTimelineTest*' --rerun-tasks
 // Use the environment variable: Gradle does not forward -DCPR_TRACE by default.
 package com.zeroflux.cprcoach.engine
@@ -13,15 +14,34 @@ import java.util.Locale
 
 /** Opt-in diagnostic for any pose CSV. No recording-specific coaching expectations. */
 class EmergencyTimelineTest {
-    private data class Spoken(val timeMs: Long, val key: String)
-    private data class Snapshot(val reading: LiveReading, val word: EmergencyWord, val instructionKey: String)
+    private data class Spoken(
+        val timeMs: Long,
+        val key: String,
+        val durationMs: Long,
+        val endMs: Long,
+        val previousClipEndMs: Long?,
+    )
+    private data class Snapshot(
+        val reading: LiveReading,
+        val word: EmergencyWord,
+        val instructionKey: String,
+        val voiceIdle: Boolean,
+        val lastClipEndedMs: Long?,
+    )
 
     @Test
     fun `print what Emergency shows and says for a trace`() {
-        val path = System.getenv("CPR_TRACE")?.takeIf { it.isNotBlank() }
-            ?: System.getProperty("CPR_TRACE")?.takeIf { it.isNotBlank() }
-        assumeTrue("Set CPR_TRACE to a session CSV to run the Emergency timeline", path != null)
-        val requested = File(requireNotNull(path))
+        val paths = option("CPR_TRACE")
+        assumeTrue("Set CPR_TRACE to a session CSV to run the Emergency timeline", paths != null)
+        val languages = (option("CPR_CLIP_LANGUAGE") ?: "en").split(',').map { it.trim() }
+        for (path in requireNotNull(paths).split(',').map { it.trim() }) {
+            for (language in languages) printTimeline(path, language)
+        }
+    }
+
+    private fun printTimeline(path: String, language: String) {
+        require(language == "en" || language == "kn") { "Unsupported clip language: $language" }
+        val requested = File(path)
         // Gradle runs tests from app/. Also accept paths relative to the Android project.
         val trace = if (requested.isAbsolute || requested.isFile) requested else File(TestAssets.projectDir, path)
         require(trace.isFile) { "Trace does not exist: ${trace.absolutePath}" }
@@ -36,9 +56,9 @@ class EmergencyTimelineTest {
         // Consume the final frame on the next regular read, without an extra second of silence.
         val lastTickMs = startMs + ((durationMs + TICK_MS - 1) / TICK_MS) * TICK_MS
         val analyzer = LiveAnalyzer()
-        val coach = EmergencyCoach(startMs)
+        val coach = EmergencyCoach(startMs, rateHoldMs = 500)
         val spoken = ArrayList<Spoken>()
-        val playback = ReplayPlayback(spoken)
+        val playback = ReplayPlayback(spoken, language)
         playback.start(startMs)
         val snapshots = ArrayList<Snapshot>()
         var nextFrame = 0
@@ -54,7 +74,7 @@ class EmergencyTimelineTest {
             check(tickMs >= lastFrameMs) { "Read preceded the latest frame" }
             // Completion callbacks can drain the scripted queue between host polls.
             playback.advanceTo(tickMs)
-            // EmergencyHost: sequence tick, read, update, word, then correction only if voice idle.
+            // EmergencyHost: sequence tick, read, update, word, then observe policy even while voice is busy.
             if (lastSequenceTickMs?.let { tickMs - it >= 1_000L } != false) {
                 lastSequenceTickMs = tickMs
                 playback.tick(tickMs)
@@ -62,20 +82,30 @@ class EmergencyTimelineTest {
             val reading = analyzer.read(tickMs)
             coach.update(reading)
             val word = coach.word
-            if (playback.voiceIdle) {
-                coach.nextCorrection(reading)?.let { playback.speak(it.key, tickMs) }
+            val voiceIdle = playback.voiceIdle
+            val lastClipEndedMs = playback.lastClipEndedMs
+            coach.nextClip(reading, voiceIdle, lastClipEndedMs)?.let {
+                checkRateLine(it, reading)
+                playback.speak(it, tickMs)
             }
             val instructionKey = if (word == EmergencyWord.KEEP_PUSHING) playback.stepKey ?: word.key else word.key
-            snapshots.add(Snapshot(reading, word, instructionKey))
+            snapshots.add(Snapshot(reading, word, instructionKey, voiceIdle, lastClipEndedMs))
             tickMs += TICK_MS
         }
         check(nextFrame == frames.size) { "Replay did not consume every frame" }
+        check(spoken.zipWithNext().all { (a, b) -> a.endMs <= b.timeMs }) { "Voice clips overlapped" }
 
         val output = buildString {
-            appendLine("Trace: ${trace.name}; frames=${frames.size}; duration=${seconds(durationMs)}s")
+            appendLine("Trace: ${trace.name}; language=$language; frames=${frames.size}; duration=${seconds(durationMs)}s")
             appendLine("t is recording-relative [t,t+1); state is the last 250 ms read in that second.")
             appendLine("Final read=${seconds(lastTickMs - startMs)}s; word is the screen instruction key; coach_word is the held coach word.")
-            appendLine("English audio is ready at t=0; clip completion uses WAV duration, without device/loading latency.")
+            appendLine("$language audio is ready at t=0; clip completion uses WAV duration, without device/loading latency.")
+            appendLine(
+                "Summary: lines=${spoken.size}; lines_per_minute=" +
+                    String.format(Locale.ROOT, "%.3f", spoken.size * 60_000.0 / durationMs.coerceAtLeast(1)) +
+                    "; last_clip_end_ms=${playback.lastClipEndedMs?.minus(startMs) ?: "--"}; " +
+                    "stacked_lines=0; false_rate_lines=0",
+            )
             for ((second, snapshot) in snapshots.associateBy { (it.reading.timeMs - startMs) / 1_000L }) {
                 val reading = snapshot.reading
                 val keys = spoken.filter { (it.timeMs - startMs) in second * 1_000L until (second + 1) * 1_000L }
@@ -98,23 +128,40 @@ class EmergencyTimelineTest {
                 }
             }
             appendLine("${seconds(stretchStartMs - startMs)}-${seconds(lastTickMs - startMs)}s $instructionKey")
-            appendLine("Spoken keys (recording-relative clip start times; no playback beyond the final read):")
-            for (event in spoken) appendLine("${seconds(event.timeMs - startMs)}s ${event.key}")
+            appendLine("Spoken keys (recording-relative times; completion may be beyond the final read):")
+            for (event in spoken) {
+                appendLine(
+                    "VOICE t_ms=${event.timeMs - startMs} key=${event.key} duration_ms=${event.durationMs} " +
+                        "end_ms=${event.endMs - startMs} previous_clip_end_ms=${event.previousClipEndMs?.minus(startMs) ?: "--"} " +
+                        "silence_ms=${event.previousClipEndMs?.let { event.timeMs - it } ?: "--"}",
+                )
+            }
+            appendLine("Exact host reads (voice_idle and last_clip_end are before choosing this read's correction):")
+            for (snapshot in snapshots) {
+                appendLine(
+                    "READ t_ms=${snapshot.reading.timeMs - startMs} word=${snapshot.instructionKey} " +
+                        "coach_word=${snapshot.word} voice_idle=${snapshot.voiceIdle} " +
+                        "last_clip_end_ms=${snapshot.lastClipEndedMs?.minus(startMs) ?: "--"} ${snapshot.reading}",
+                )
+            }
         }
         print(output)
-        val destination = File(TestAssets.projectDir, "app/build/emergency-timeline.txt")
+        val destination = File(TestAssets.projectDir, "app/build/emergency-timeline-${trace.nameWithoutExtension}-$language.txt")
         requireNotNull(destination.parentFile).mkdirs()
         destination.writeText(output, Charsets.UTF_8)
+        File(destination.parentFile, "emergency-timeline.txt").writeText(output, Charsets.UTF_8)
     }
 
     /** EmergencyPlayback's single-clip queue, driven by clip durations instead of Android callbacks. */
-    private class ReplayPlayback(private val spoken: MutableList<Spoken>) {
+    private class ReplayPlayback(private val spoken: MutableList<Spoken>, private val language: String) {
         private val sequence = EmergencySequence()
         private val pending = ArrayDeque<String>()
         private val durationsMs = HashMap<String, Long>()
         private var currentKey: String? = null
         private var doneMs = 0L
         var stepKey: String? = null
+            private set
+        var lastClipEndedMs: Long? = null
             private set
         val voiceIdle: Boolean get() = currentKey == null && pending.isEmpty()
 
@@ -127,6 +174,7 @@ class EmergencyTimelineTest {
             while (currentKey != null && doneMs <= nowMs) {
                 val completedMs = doneMs
                 currentKey = null
+                lastClipEndedMs = completedMs
                 playNext(completedMs)
             }
         }
@@ -157,13 +205,26 @@ class EmergencyTimelineTest {
                 else -> null
             }
             val durationMs = durationsMs.getOrPut(key) {
-                val file = File(TestAssets.assetsDir, "clips/en/$key.wav")
-                require(file.isFile) { "Missing English clip: $file" }
+                val file = File(TestAssets.assetsDir, "clips/$language/$key.wav")
+                require(file.isFile) { "Missing $language clip: $file" }
                 val clip = WavClip.parse(file.readBytes())
                 (clip.samples.size * 1_000L + clip.sampleRate - 1) / clip.sampleRate
             }
             doneMs = nowMs + durationMs
-            spoken.add(Spoken(nowMs, key))
+            check(spoken.lastOrNull()?.let { it.endMs <= nowMs } != false) { "Voice clips overlapped at $nowMs" }
+            spoken.add(Spoken(nowMs, key, durationMs, doneMs, lastClipEndedMs))
+        }
+    }
+
+    private fun checkRateLine(key: String, reading: LiveReading) {
+        val rate = reading.ratePerMinute
+        when (key) {
+            Phrase.PUSH_FASTER.key -> check(
+                reading.tracking == TrackingState.BEATING && rate != null && rate < LiveReading.TARGET_MIN,
+            ) { "False faster line at $reading" }
+            Phrase.SLOW_DOWN.key -> check(
+                reading.tracking == TrackingState.BEATING && rate != null && rate > LiveReading.TARGET_MAX,
+            ) { "False slower line at $reading" }
         }
     }
 
@@ -215,6 +276,8 @@ class EmergencyTimelineTest {
     private companion object {
         const val ASPECT = 4f / 3f
         const val TICK_MS = 250L
+        fun option(name: String): String? = System.getenv(name)?.takeIf { it.isNotBlank() }
+            ?: System.getProperty(name)?.takeIf { it.isNotBlank() }
         fun seconds(timeMs: Long): String = String.format(Locale.ROOT, "%.2f", timeMs / 1_000.0)
     }
 }
