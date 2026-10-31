@@ -216,11 +216,11 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 48.dp)
-                    .clickable(role = Role.Button, onClick = onEmergencyContact)
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                    .clickable(role = Role.Button, onClick = onEmergencyContact),
                 shape = RoundedCornerShape(18.dp),
             ) {
                 Text(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     text = buildString {
