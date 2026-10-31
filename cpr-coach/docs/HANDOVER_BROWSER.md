@@ -44,8 +44,9 @@ Docs that matter, in `cpr-coach/docs/`: `TAKEOVER_LOG.md`, `PLAN_0810.md`, `DEMO
 - **Merge order still to do:** vivid colours, dashboard, AED, pictures.
 
 ## Current state
-Written 11:48 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 11:55 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
+b20cadd cpr-coach: handover files and log
 aa712ef cpr-coach: handover files and log
 a99cd63 cpr-coach: merge logo and Practice spelling
 3efcf10 cpr-coach: log
@@ -53,7 +54,6 @@ a99cd63 cpr-coach: merge logo and Practice spelling
 999b53b cpr-coach: look-only check list for a729293
 0a37fa7 cpr-coach: handover files and log
 a729293 cpr-coach: merge AED help button colour
-ce92452 cpr-coach: merge Button and panel depth, style only
 ```
 Takeover branches on GitHub:
 ```
@@ -64,6 +64,7 @@ origin/takeover/t1-emergency-talk 91785d2
 origin/takeover/t10-depth 61f6da7
 origin/takeover/t10b-colour a5caace
 origin/takeover/t11-brand 735cdeb
+origin/takeover/t12-docs 336fdeb
 origin/takeover/t2-snappy be51948
 origin/takeover/t3-small-additions 317dbaa
 origin/takeover/t4-cpr-guide b8f054c
@@ -83,9 +84,10 @@ origin/takeover/t9b-docs 71b13b9
 Swarm jobs:
 ```
 RUNNING
-  vivek-pc/codex-sol       t261031-1147-ab6d  Docs for the demo build  (8s)
+  pratham-pc/codex-luna    t261031-1152-9e2a  deck image: dawn  (2m)
 QUEUED
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
+  pratham-pc/codex-luna    t261031-1152-9e2a  deck image: dawn
 ```
 Workers:
 ```
@@ -95,13 +97,13 @@ prabal-pc/codex-luna openai-codex/gpt-6-luna  idle     -                        
 prabal-pc/codex-sol  openai-codex/gpt-6.1-sol idle     -                        36% Nov 04 12:10 (in
 pratham-pc/flash     opencode-go/deepseek-v4~ idle     -                        ?                   
 pratham-pc/muse      opencode-go/muse-spark-~ idle     -                        ?                   
-pratham-pc/codex-lu~ openai-codex/gpt-6-luna  idle     -                        62% Nov 05 10:25 (in
+pratham-pc/codex-lu~ openai-codex/gpt-6-luna  busy     t261031-1152-9e2a deck ~ 62% Nov 05 10:25 (in
 pratham-pc/codex-sol openai-codex/gpt-6.1-sol idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        62% Nov 05 10:25 (in
-vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        43% 14:11 (in 2h22m)
-vivek-pc/codex-sol   openai-codex/gpt-6.1-sol busy     t261031-1147-ab6d Docs ~ 43% 14:11 (in 2h22m)
+vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        32% 14:11 (in 2h15m)
+vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        32% 14:11 (in 2h15m)
 vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        35% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ idle     -                        82% 13:13 (in 1h24m)
+vivek-pc/antigravity google-antigravity/gemi~ idle     -                        82% 13:13 (in 1h17m)
 ```
 
 **Code freeze on. a99cd63 is the demo build and new golden, passed the team's phone tests. The phone has a99cd63.** Everything below is history.
