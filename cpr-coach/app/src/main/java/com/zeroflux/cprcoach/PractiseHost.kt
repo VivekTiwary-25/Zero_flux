@@ -60,7 +60,6 @@ import com.zeroflux.cprcoach.ui.WalkthroughScreen
 import com.zeroflux.cprcoach.voice.VoiceCommand
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.concurrent.thread
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -308,27 +307,12 @@ private fun PractiseCamera(
     DisposableEffect(session, cameraPermission, replaying) {
         val active = AtomicBoolean(true)
         if (!replaying && cameraPermission) {
-            // The model takes a moment to load, and the screen must not stall for it. Same as EmergencyHost.
-            thread(name = "PractisePoseLoad", isDaemon = true) {
-                try {
-                    val pose = PoseEngine(context.applicationContext) { frame ->
-                        overlayPose.push(overlayGuard.overlayFrame(frame), SystemClock.uptimeMillis())
-                        handler.post {
-                            if (active.get()) feedFrame(frame)
-                        }
-                    }
-                    if (active.get()) {
-                        capture.open(pose)
-                        // Disposed while opening: the engine still has exactly one owner.
-                        if (!active.get()) capture.close()
-                    } else {
-                        pose.close()
-                    }
-                } catch (error: Throwable) {
-                    // Includes native load errors: on this thread they would otherwise kill the app.
-                    Log.e("CPR_ENGINE", "practise pose engine unavailable", error)
+            capture.open(PoseEngine(context) { frame ->
+                overlayPose.push(overlayGuard.overlayFrame(frame), SystemClock.uptimeMillis())
+                handler.post {
+                    if (active.get()) feedFrame(frame)
                 }
-            }
+            })
         } else if (!replaying) {
             session.onFrame(PoseFrame(SystemClock.uptimeMillis(), null, null, 0L))
         }

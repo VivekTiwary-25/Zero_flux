@@ -30,6 +30,3 @@ Notes
 Not yet measured on the phone; due after install.
 
 Expected, not measured: Practise saves the library load part of the 0.85 s stall, likely 0.05 to 0.2 s. This is a small gain. The bulk (GPU delegate and model creation) stays. A bigger gain needs building the landmarker off the main thread or ahead of the tap, which means editing PoseEngine or PractiseHost and needs a decision. Cold open is unchanged.
-
-## Second change: Practise model load moved off the main thread
-The model load blocked the main thread for about 0.85 s after tapping Practise. `PractiseHost` now loads it on a background thread, the same way `EmergencyHost` already does. No protected file changed. The camera view should appear sooner, and the first pose result still comes about when it did. This is expected, not measured: the after time needs an install. Cold open is left as it is: at about 1.1 s it isn't worth an unprofiled change this close to the demo.
