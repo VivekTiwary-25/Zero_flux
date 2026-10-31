@@ -82,7 +82,7 @@ fun EmergencyHost(
     val appContext = context.applicationContext
     val startMs = remember { SystemClock.uptimeMillis() }
     val playback = remember(appContext) { EmergencyPlayback(appContext) }
-    val coach = remember { EmergencyCoach(startMs) }
+    val coach = remember { EmergencyCoach(startMs, rateHoldMs = 500) }
     val engine by MetronomeService.engine.collectAsState()
     val currentEngine by rememberUpdatedState(engine)
     val beat = remember { BeatSource.of { currentEngine } }
@@ -185,9 +185,7 @@ fun EmergencyHost(
                 // Not side-on means no judgement: the same hint says how to fix the view.
                 needsSetup = coach.needsSetup || coach.turnPhoneHint
                 posture = reading.posture
-                if (playback.voiceIdle) {
-                    coach.nextCorrection(reading)?.let { playback.speak(it.key) }
-                }
+                coach.nextClip(reading, playback.voiceIdle, playback.lastClipEndedMs)?.let { playback.speak(it) }
             } catch (error: RuntimeException) {
                 if (error is CancellationException) throw error
                 // The app and the beat share a process, so nothing here may escape and kill both.
@@ -327,6 +325,8 @@ private class EmergencyPlayback(private val context: Context) {
     private var sequenceStarted = false
     private var generation = 0L
     private var stopped = false
+    var lastClipEndedMs: Long? = null
+        private set
 
     /** Scripted steps always go first. A correction only ever fills silence, so it is never stale. */
     val voiceIdle: Boolean
@@ -391,6 +391,7 @@ private class EmergencyPlayback(private val context: Context) {
             // Always defer to main: even a synchronous/missing-clip callback cannot recurse.
             mainHandler.post {
                 if (!stopped && token == generation && engine === audio) {
+                    lastClipEndedMs = SystemClock.uptimeMillis()
                     currentKey = null
                     playNext()
                 }
