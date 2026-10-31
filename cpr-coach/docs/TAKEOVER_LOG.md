@@ -11,3 +11,4 @@ Practise replay is compared with ee682a1 by `tools/check_practise.ps1`. See `PLA
 | 08:42 | 3 Small additions | takeover/t3-small-additions | eae6c9d | 374 run, 0 failed, 5 skipped | Yes | - |
 | 08:42 | 4 CPR guide | takeover/t4-final | 270070e | 374 run, 0 failed, 5 skipped | Yes | `2db874361b2f24c03c104e87ee567f246092a545` |
 | 08:59 | Translation corrections, seven languages | takeover/t4b-strings | 0c30a81 | 374 run, 0 failed, 5 skipped | Yes | - |
+| 09:05 | 6 Re-skin, style only | takeover/t6-reskin | 7b396db | 374 run, 0 failed, 5 skipped | Yes | - |
