@@ -31,6 +31,8 @@ At 11:00: stop all new feature work, finish or drop half-done jobs (cut pictures
 13. Dashboard: Emergency sessions are not saved or shown. "Testing data" and "Synthetic data" tags on every row and chart that uses them. Never show depth, hand placement or an overall CPR quality score. A missing value shows as a dash, never 0.
 14. Don't change pace counting. Don't apply the held-back rate change or the lean Keep going rule: `docs/RECORDING_16.md` has the numbers.
 
+### Latest rule change from the user: no more approval waits
+"From now on, do NOT wait for my approval on anything. Just continue." Comparison pages: still make them and send the link, but don't wait. Merge as soon as the automatic checks pass. The checks stay mandatory: all tests pass and the Practise replay is identical to ee682a1. If a check fails, fix it or drop that change, and tell the user; don't merge it. Final build: as soon as everything is merged, verify its sha1 and copy it to `D:\projects\apk-builds\` named by hash. Install: automatically on the CPH2467, but only when the phone is plugged in by USB and the app is not in the middle of a session. Turn trace capture on, open the app once to check it starts, keep the golden folder and `D:\projects\apk-rollback\` untouched. Then tell the user: final build hash, sha1, installed yes/no, path of the final test sheet. Messages to the user: only merges, anything dropped or reverted, the final build, and problems you can't fix. This replaces the approval points and message list above.
 ### Approval points: wait for the user, keep everyone else busy
 - The colour before/after page, before vivid colours merge.
 - The picture comparison page, before any picture goes into the app.
@@ -58,8 +60,9 @@ Script for this: `python -I D:\projects\apk-builds\boss-tools\watch.py`, run in 
 ## Current state
 Auto-updated section, then the boss's notes.
 
-Written 10:13 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 10:14 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
+9dfd6ef cpr-coach: handover files and log
 52efc62 cpr-coach: merge polish from reviews
 ff7000a cpr-coach: log
 5d18d84 cpr-coach: dashboard tags keep whole words, three contrast fixes
@@ -67,7 +70,6 @@ ff7000a cpr-coach: log
 88fa66f cpr-coach: merge AED explained, keeping dashboard and AED strings
 0e362b1 cpr-coach: log
 12799d5 cpr-coach: merge 5 Dashboard
-ce82009 cpr-coach: log
 ```
 Takeover branches on GitHub:
 ```
@@ -92,7 +94,7 @@ origin/takeover/t9b-docs 71b13b9
 Swarm jobs:
 ```
 RUNNING
-  vivek-pc/codex-sol       t261031-1009-4db2  T7 swap approved pictures  (4m)
+  vivek-pc/codex-sol       t261031-1009-4db2  T7 swap approved pictures  (5m)
 QUEUED
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
 ```
@@ -110,7 +112,7 @@ pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        
 vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        51% Nov 04 18:34 (in
 vivek-pc/codex-sol   openai-codex/gpt-6.1-sol busy     t261031-1009-4db2 T7 sw~ 51% Nov 04 18:34 (in
 vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        37% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ idle     -                        86% 13:13 (in 2h59m)
+vivek-pc/antigravity google-antigravity/gemi~ idle     -                        86% 13:13 (in 2h58m)
 ```
 
 ### Tasks

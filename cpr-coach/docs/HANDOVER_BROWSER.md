@@ -44,8 +44,9 @@ Docs that matter, in `cpr-coach/docs/`: `TAKEOVER_LOG.md`, `PLAN_0810.md`, `DEMO
 - **Merge order still to do:** vivid colours, dashboard, AED, pictures.
 
 ## Current state
-Written 10:13 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 10:14 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
+9dfd6ef cpr-coach: handover files and log
 52efc62 cpr-coach: merge polish from reviews
 ff7000a cpr-coach: log
 5d18d84 cpr-coach: dashboard tags keep whole words, three contrast fixes
@@ -53,7 +54,6 @@ ff7000a cpr-coach: log
 88fa66f cpr-coach: merge AED explained, keeping dashboard and AED strings
 0e362b1 cpr-coach: log
 12799d5 cpr-coach: merge 5 Dashboard
-ce82009 cpr-coach: log
 ```
 Takeover branches on GitHub:
 ```
@@ -78,7 +78,7 @@ origin/takeover/t9b-docs 71b13b9
 Swarm jobs:
 ```
 RUNNING
-  vivek-pc/codex-sol       t261031-1009-4db2  T7 swap approved pictures  (4m)
+  vivek-pc/codex-sol       t261031-1009-4db2  T7 swap approved pictures  (5m)
 QUEUED
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
 ```
@@ -96,7 +96,7 @@ pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        
 vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        51% Nov 04 18:34 (in
 vivek-pc/codex-sol   openai-codex/gpt-6.1-sol busy     t261031-1009-4db2 T7 sw~ 51% Nov 04 18:34 (in
 vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        37% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ idle     -                        86% 13:13 (in 2h59m)
+vivek-pc/antigravity google-antigravity/gemi~ idle     -                        86% 13:13 (in 2h58m)
 ```
 
 ### Tasks
@@ -140,10 +140,9 @@ CPH2467 has 270070e (APK sha1 `2db874361b2f24c03c104e87ee567f246092a545`), insta
 The swarm's save step fails on some jobs, though no work is lost. During a weak uneven lean the app shows pause; demo with a steady firm lean, short, phone still. Translations are machine made and no person has checked them. Everything since ee682a1 has not been run through a real phone test.
 
 ## Still pending from me
-- The colour page: reply "colours approved", or say what to redo.
-- The pictures page: reply like "pictures: approve 1, 2, 3, 5; redo 4".
-- "install" for the final build, then the final phone test, under 4 minutes. Some steps need two people.
-- Decide on `be51948` and the dashboard save step after that test. Reverts will be ready.
+- The boss no longer waits for my approval: it merges when the checks pass, and installs the final build itself when the phone is plugged in and no session is running.
+- Run the final phone test, under 4 minutes, `docs/FINAL_TEST.md`. Some steps need two people.
+- Decide on `be51948` and the dashboard save step after that test. Reverts are ready on `takeover/revert-model-load` and `takeover/revert-dashboard-save`.
 - Kannada and Hindi listening, and teammates reading the Hindi and Kannada guide text.
 - Rehearse the 2-minute demo: its timing is an estimate.
 - I own "Person 4: Feedback & Emergency" for judge questions; `JUDGE_QA.md` has the answers.
