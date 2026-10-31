@@ -62,5 +62,17 @@
   "em_summary_pauses": "रुकावटें",
   "em_summary_measured": "रफ़्तार नापी गई",
   "em_summary_note": "रफ़्तार और रुकावटें तभी गिनी गई हैं जब कैमरे को हाथ दिख रहे थे।",
-  "live_detecting": "आपकी लय खोज रहे हैं…"
+  "live_detecting": "आपकी लय खोज रहे हैं…",
+  "adult_cpr_only": "सिर्फ़ वयस्कों के लिए CPR",
+  "score_rate_measured": "रफ़्तार नापी गई: %1$d / %2$d से",
+  "home_emergency_contact": "इमरजेंसी संपर्क",
+  "em_reminder_aed": "पास में AED हो तो किसी से उसे लाने को कहें।",
+  "em_reminder_continue": "मदद आने तक छाती दबाते रहें।",
+  "em_reminder_swap": "कोई और छाती दबा सकता हो तो अभी बदल लें।",
+  "em_hand_placement_desc": "छाती के बीच में एक हाथ, उसके ऊपर दूसरा हाथ।",
+  "contact_name": "नाम",
+  "contact_number": "फ़ोन नंबर",
+  "contact_pick": "संपर्कों से चुनें",
+  "contact_save": "सेव करें",
+  "contact_clear": "हटाएँ"
 }

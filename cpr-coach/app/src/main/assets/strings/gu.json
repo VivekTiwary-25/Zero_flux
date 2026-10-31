@@ -62,5 +62,17 @@
   "em_summary_pauses": "વિરામ",
   "em_summary_measured": "ઝડપ માપ્યાનો સમય",
   "em_summary_note": "કૅમેરાને હાથ દેખાતા હતા ત્યારે જ ઝડપ અને વિરામ ગણ્યા છે.",
-  "live_detecting": "તમારી લય શોધી રહ્યા છીએ…"
+  "live_detecting": "તમારી લય શોધી રહ્યા છીએ…",
+  "adult_cpr_only": "ફક્ત પુખ્ત વયના લોકો માટે CPR",
+  "score_rate_measured": "ઝડપ માપ્યાનો સમય: %1$d / %2$d સે",
+  "home_emergency_contact": "ઇમરજન્સી સંપર્ક",
+  "em_reminder_aed": "નજીકમાં AED હોય તો કોઈને તે લાવવા કહો.",
+  "em_reminder_continue": "મદદ આવે ત્યાં સુધી છાતી દબાવતા રહો.",
+  "em_reminder_swap": "બીજું કોઈ છાતી દબાવી શકે તેમ હોય તો હમણાં જ બદલો.",
+  "em_hand_placement_desc": "છાતીની વચ્ચે એક હાથ, તેના પર બીજો હાથ.",
+  "contact_name": "નામ",
+  "contact_number": "ફોન નંબર",
+  "contact_pick": "સંપર્કોમાંથી પસંદ કરો",
+  "contact_save": "સેવ કરો",
+  "contact_clear": "દૂર કરો"
 }
