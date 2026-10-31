@@ -54,3 +54,5 @@ Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copi
 | cprStep5Body | P | P | T | T | T | T | T | T | T |
 | cprStep5Tip | P | P | T | T | T | T | T | T | T |
 | cprStep5Visual | P | P | T | T | T | T | T | T | T |
+
+A second machine checked these and corrections were applied to ta, te, ml, mr, gu, bn and or; no person has checked them. The same review also flags hi and kn step 1 "lightly" for the shoulder tap, the hi "sternum" word, and kn "join" for interlock, left as the prototype has them.
