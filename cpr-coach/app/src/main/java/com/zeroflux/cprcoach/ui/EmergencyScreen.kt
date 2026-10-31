@@ -336,7 +336,7 @@ fun EmergencySummaryScreen(
             modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
             color = colors.CoralDeep,
             colorDeep = colors.CoralDeep,
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(20.dp),
             elevation = 2.dp,
             pressedScale = 0.96f,
         ) {

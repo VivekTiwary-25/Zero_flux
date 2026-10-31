@@ -164,7 +164,7 @@ fun GuideScreen(
         ) {
             for (i in 0..4) {
                 val selected = i == step
-                val shape = RoundedCornerShape(12.dp)
+                val shape = RoundedCornerShape(20.dp)
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -343,7 +343,7 @@ fun GuideScreen(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(20.dp),
                     elevation = 6.dp,
                 ) {
                     Row(
@@ -371,8 +371,8 @@ fun GuideScreen(
                         .weight(1f)
                         .heightIn(min = 48.dp),
                     color = colors.Teal,
-                    colorDeep = colors.Charcoal,
-                    shape = RoundedCornerShape(12.dp),
+                    colorDeep = colors.Teal,
+                    shape = RoundedCornerShape(20.dp),
                     elevation = 6.dp,
                 ) {
                     Row(
@@ -397,7 +397,7 @@ fun GuideScreen(
                         .heightIn(min = 48.dp),
                     color = colors.Coral,
                     colorDeep = colors.CoralDeep,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(20.dp),
                     elevation = 6.dp,
                 ) {
                     Row(
