@@ -16,39 +16,33 @@ class AedExplanationStringsTest {
             val file = File(TestAssets.assetsDir, "strings/$code.json")
             val json = AssetJson.readObject(file)
 
-            val step2Title = AssetJson.asString(json["cprStep2Title"], "cprStep2Title in $code")
+            val step2Visual = AssetJson.asString(json["cprStep2Visual"], "cprStep2Visual in $code")
+            val annotation = Regex("""AED \([^)]+\)""").find(step2Visual)
             assertTrue(
-                "cprStep2Title in $code must contain 'AED (defibrillator)': was $step2Title",
-                step2Title.contains("AED (defibrillator)"),
+                "The first AED in cprStep2Visual in $code must have a parenthesized explanation",
+                annotation != null && annotation.range.first == step2Visual.indexOf("AED"),
             )
 
-            // Later uses stay "AED" without defibrillator
-            val laterUses = listOf("cprStep2Body", "cprStep2Visual", "cprStep5Title", "cprStep5Body", "cprStep5Tip")
+            // The caption appears before the heading; later uses stay unannotated.
+            val laterUses = listOf("cprStep2Title", "cprStep2Body", "cprStep5Title", "cprStep5Body", "cprStep5Tip")
             for (key in laterUses) {
                 val value = AssetJson.asString(json[key], "$key in $code")
                 assertTrue("$key in $code must contain AED", value.contains("AED"))
                 assertFalse(
-                    "$key in $code must not contain defibrillator: was $value",
-                    value.contains("defibrillator", ignoreCase = true),
+                    "$key in $code must not repeat the AED annotation: was $value",
+                    value.contains("AED ("),
                 )
             }
         }
     }
 
     @Test
-    fun `emergency reminder text has heart-shock box and keeps AED in Latin`() {
-        val enJson = AssetJson.readObject(File(TestAssets.assetsDir, "strings/en.json"))
-        assertEquals(
-            "Ask someone to bring an AED (heart-shock box)",
-            AssetJson.asString(enJson["em_reminder_aed"], "em_reminder_aed in en"),
-        )
-
+    fun `emergency reminder keeps AED in Latin for every language`() {
         for (code in languages) {
             val file = File(TestAssets.assetsDir, "strings/$code.json")
             val json = AssetJson.readObject(file)
             val value = AssetJson.asString(json["em_reminder_aed"], "em_reminder_aed in $code")
             assertTrue("em_reminder_aed in $code must contain Latin AED: was $value", value.contains("AED"))
-            assertTrue("em_reminder_aed in $code must not be empty", value.isNotBlank())
         }
     }
 

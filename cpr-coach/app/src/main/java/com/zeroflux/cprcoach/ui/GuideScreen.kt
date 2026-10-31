@@ -250,53 +250,46 @@ fun GuideScreen(
                                 .fillMaxWidth()
                                 .height(180.dp),
                         )
-                        Text(
-                            text = visualDesc,
-                            color = Color(0xFF243C32),
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-
-                    if (currentStep == 1) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                         ) {
                             Text(
-                                text = strings.get("cprStep${currentStep + 1}Title"),
-                                color = colors.TextPrimary,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
+                                text = visualDesc,
+                                color = Color(0xFF243C32),
+                                fontSize = 13.sp,
+                                lineHeight = 18.sp,
+                                textAlign = TextAlign.Center,
                                 modifier = Modifier.weight(1f, fill = false),
                             )
-                            Box(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clip(CircleShape)
-                                    .background(colors.Teal.copy(alpha = 0.15f))
-                                    .border(1.dp, colors.Teal.copy(alpha = 0.45f), CircleShape)
-                                    .clickable { showAedPopup = true }
-                                    .semantics { role = Role.Button },
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = "?",
-                                    color = colors.Teal,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
+                            if (currentStep == 1) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(colors.Teal.copy(alpha = 0.15f))
+                                        .border(1.dp, colors.Teal.copy(alpha = 0.45f), CircleShape)
+                                        .clickable { showAedPopup = true }
+                                        .semantics { role = Role.Button },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = "?",
+                                        color = colors.Teal,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
                             }
                         }
-                    } else {
-                        Text(
-                            text = strings.get("cprStep${currentStep + 1}Title"),
-                            color = colors.TextPrimary,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                        )
                     }
+
+                    Text(
+                        text = strings.get("cprStep${currentStep + 1}Title"),
+                        color = colors.TextPrimary,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
 
                     Text(
                         text = strings.get("cprStep${currentStep + 1}Body"),
