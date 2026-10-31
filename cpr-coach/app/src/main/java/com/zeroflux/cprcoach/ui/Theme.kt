@@ -176,25 +176,26 @@ fun CameraChrome(content: @Composable () -> Unit) {
     }
 }
 
-/** Flat prototype actions outside the camera; preserve existing camera button treatment. */
+/** Raised actions outside camera chrome; camera buttons keep their established rendering. */
 @Composable
 fun ClayButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     color: Color = if (LocalCameraChrome.current) CoachColors.Raised else LocalCoachColors.current.Raised,
     colorDeep: Color = if (LocalCameraChrome.current) CoachColors.Charcoal else color,
-    shape: Shape = RoundedCornerShape(if (LocalCameraChrome.current) 32.dp else 12.dp),
-    elevation: Dp = if (LocalCameraChrome.current) 12.dp else 0.dp,
+    shape: Shape = RoundedCornerShape(if (LocalCameraChrome.current) 32.dp else 28.dp),
+    elevation: Dp = if (LocalCameraChrome.current) 12.dp else 8.dp,
     pressedScale: Float = 0.97f,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val camera = LocalCameraChrome.current
-    val colors = LocalCoachColors.current
+
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val motionEnabled = rememberCoachMotionEnabled()
-    val scale by animateFloatAsState(if (pressed) pressedScale else 1f, if (motionEnabled) spring() else snap(), label = "clayPress")
-    val lift by animateFloatAsState(if (pressed) 0.3f else 1f, if (motionEnabled) spring() else snap(), label = "clayLift")
+    val pressScale = if (camera || motionEnabled) pressedScale else 1f
+    val scale by animateFloatAsState(if (pressed) pressScale else 1f, if (motionEnabled) spring() else snap(), label = "clayPress")
+    val lift by animateFloatAsState(if (pressed && (camera || motionEnabled)) 0.3f else 1f, if (motionEnabled) spring() else snap(), label = "clayLift")
     Box(
         modifier
             .scale(scale)
@@ -204,7 +205,13 @@ fun ClayButton(
                 if (camera) Modifier
                     .background(Brush.verticalGradient(listOf(color, colorDeep)))
                     .border(1.dp, Brush.verticalGradient(listOf(Color(0x40FFFFFF), Color.Transparent)), shape)
-                else Modifier.background(color).border(1.dp, colors.GlassEdge, shape),
+                else Modifier
+                    .background(Brush.verticalGradient(listOf(color.lighter(0.06f), colorDeep.darker(0.08f))))
+                    .border(
+                        1.dp,
+                        Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.50f), Color.Transparent)),
+                        shape,
+                    ),
             )
             .clickable(interaction, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -212,18 +219,53 @@ fun ClayButton(
     )
 }
 
-/** Flat paper cards. Never placed over the camera preview. */
+/** Frosted dark glass and softly raised light paper; camera chrome retains its prior flat surface. */
 @Composable
 fun GlassPanel(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(20.dp),
+    shape: Shape = RoundedCornerShape(if (LocalCameraChrome.current) 20.dp else 28.dp),
     content: @Composable BoxScope.() -> Unit,
 ) {
-    Box(
+    val camera = LocalCameraChrome.current
+    val colors = LocalCoachColors.current
+    val dark = isSystemInDarkTheme()
+    val panelModifier = if (camera) {
         modifier
             .clip(shape)
-            .background(LocalCoachColors.current.GlassFill)
-            .border(1.dp, LocalCoachColors.current.GlassEdge, shape),
-        content = content,
-    )
+            .background(colors.GlassFill)
+            .border(1.dp, colors.GlassEdge, shape)
+    } else if (dark) {
+        modifier
+            .shadow(8.dp, shape, ambientColor = Color(0xFF141A17), spotColor = Color(0xFF080D0A))
+            .clip(shape)
+            .background(colors.GlassFill.copy(alpha = 0.84f))
+            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.07f), Color.Transparent)))
+            .border(1.dp, colors.GlassEdge.copy(alpha = 0.75f), shape)
+    } else {
+        modifier
+            .shadow(9.dp, shape, ambientColor = Color.White, spotColor = Color(0xFFB8C1B7))
+            .clip(shape)
+            .background(colors.GlassFill)
+            .background(
+                Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.32f), Color.Transparent, Color(0xFFB8C1B7).copy(alpha = 0.12f)),
+                ),
+            )
+            .border(1.dp, colors.GlassEdge, shape)
+    }
+    Box(panelModifier, content = content)
 }
+
+private fun Color.lighter(amount: Float) = Color(
+    red = red + (1f - red) * amount,
+    green = green + (1f - green) * amount,
+    blue = blue + (1f - blue) * amount,
+    alpha = alpha,
+)
+
+private fun Color.darker(amount: Float) = Color(
+    red = red * (1f - amount),
+    green = green * (1f - amount),
+    blue = blue * (1f - amount),
+    alpha = alpha,
+)

@@ -78,7 +78,7 @@ fun ScorecardScreen(
             ) {
                 GlassPanel(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(28.dp),
                 ) {
                     Column(
                         modifier = Modifier

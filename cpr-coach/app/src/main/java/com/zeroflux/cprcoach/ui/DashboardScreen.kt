@@ -367,7 +367,7 @@ private fun SummaryRow(stats: DashboardStats, missing: String, tags: Set<Session
     val colors = LocalCoachColors.current
     val best = stats.best
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        GlassPanel(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
+        GlassPanel(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(28.dp)) {
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -390,7 +390,7 @@ private fun SummaryRow(stats: DashboardStats, missing: String, tags: Set<Session
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            GlassPanel(modifier = Modifier.weight(1f), shape = RoundedCornerShape(20.dp)) {
+            GlassPanel(modifier = Modifier.weight(1f), shape = RoundedCornerShape(28.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text(strings.get("dash_streak"), color = colors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                     Text(
@@ -401,7 +401,7 @@ private fun SummaryRow(stats: DashboardStats, missing: String, tags: Set<Session
                     TagRow(tags)
                 }
             }
-            GlassPanel(modifier = Modifier.weight(1f), shape = RoundedCornerShape(20.dp)) {
+            GlassPanel(modifier = Modifier.weight(1f), shape = RoundedCornerShape(28.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text(strings.get("dash_compressions"), color = colors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                     Text(
