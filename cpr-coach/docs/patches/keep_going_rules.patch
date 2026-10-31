@@ -1,0 +1,238 @@
+diff --git a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/CoachPolicy.kt b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/CoachPolicy.kt
+index 6d7b7f5..5f73be2 100644
+--- a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/CoachPolicy.kt
++++ b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/CoachPolicy.kt
+@@ -91,8 +91,25 @@ class CoachPolicy(
+                 val now = reading.timeMs
+                 if (now - lastPausedReadMs > MIN_PAUSE_MS) pauseConfirmed = false
+                 lastPausedReadMs = now
++                // Credit a still beat tail only after a full second. A brief detector dropout
++                // before PAUSED must not bring a short reposition's cue forward.
++                if (pausedReads.isEmpty() && !pauseConfirmed &&
++                    pausedSinceMs?.let { now - it < STILL_NOW_MS } == true) pausedSinceMs = null
+                 pausedReads.addLast(now to reading.moving)
+                 while (now - pausedReads.first().first > MIN_PAUSE_MS) pausedReads.removeFirst()
++                // A sustained moving run ends the old stop, even while the window is mostly still.
++                if (reading.moving) {
++                    var movingSince = now
++                    for (i in pausedReads.lastIndex downTo 0) {
++                        if (!pausedReads[i].second) break
++                        movingSince = pausedReads[i].first
++                    }
++                    if (now - movingSince >= BREAK_PAUSE_MS) {
++                        pausedSinceMs = null
++                        pauseConfirmed = false
++                        while (pausedReads.first().first < movingSince) pausedReads.removeFirst()
++                    }
++                }
+                 val still = pausedReads.count { !it.second } * 2 >= pausedReads.size
+                 if (!still) {
+                     // Mostly moving: the rescuer is pushing without a locked rate, so there is no pause to time.
+@@ -119,20 +136,32 @@ class CoachPolicy(
+                 if (pendingRecovery) pauseConfirmed = true
+             }
+             TrackingState.BEATING -> {
+-                clearPause()
++                pendingRecovery = false
++                pausedReads.clear()
+                 pauseConfirmed = false
+                 pauseAcknowledged = false
+-                // Real pushing (moving hands under a locked rate) is what lets Keep going repeat.
++                // The beat can linger after the hands stop. Time that stillness without
++                // changing tracking or the rate, so an ordinary stop is coached promptly.
++                if (reading.moving) pausedSinceMs = null
++                else if (pausedSinceMs == null) pausedSinceMs = reading.timeMs
++                // A locked beat bridges movement-detector dropouts, but still needs moving hands
++                // at both ends before it can re-arm a second Keep going.
+                 val now = reading.timeMs
+-                if (!reading.moving) pushingSinceMs = null
+-                else {
++                if (reading.moving) {
+                     if (pushingSinceMs == null) pushingSinceMs = now
+                     if (now - pushingSinceMs!! >= MIN_PUSH_MS) pushedSinceCue = true
+                 }
+             }
+-            // We can't see the arms, so this time can't count as part of a pause.
+-            TrackingState.LOST -> clearPause()
+-            TrackingState.WARMING -> { clearPause(); pauseConfirmed = false }
++            // A confirmed stop survives a short visibility gap, not a new moving read.
++            TrackingState.LOST, TrackingState.WARMING -> {
++                val recentStop = pauseConfirmed && reading.timeMs - lastPausedReadMs in 0..STILL_NOW_MS
++                pendingRecovery = recentStop && !reading.moving && !pauseAcknowledged &&
++                    reading.tracking == TrackingState.WARMING
++                if (!recentStop || reading.moving) {
++                    clearPause()
++                    pauseConfirmed = false
++                }
++            }
+         }
+         if (reading.tracking != TrackingState.BEATING && reading.tracking != TrackingState.PAUSED) pushingSinceMs = null
+     }
+@@ -145,14 +174,20 @@ class CoachPolicy(
+ 
+     /** Phrases wanted right now, highest priority first. */
+     private fun wantedPhrases(reading: LiveReading, now: Long): List<Phrase> {
+-        if (reading.tracking == TrackingState.LOST || reading.tracking == TrackingState.WARMING) return emptyList()
+-        // Only real pushing since the last cue lets Keep going repeat; otherwise it never plays twice in a row.
+-        if (pendingRecovery) return if (lastPhrase != Phrase.KEEP_GOING || pushedSinceCue) listOf(Phrase.KEEP_GOING) else emptyList()
++        if (reading.tracking == TrackingState.LOST) return emptyList()
++        // Give short repositions time to reveal resumed movement before speaking.
++        if (pendingRecovery && pausedSinceMs?.let { now - it >= MIN_RECOVERY_MS } == true) {
++            return if (lastPhrase != Phrase.KEEP_GOING || pushedSinceCue) listOf(Phrase.KEEP_GOING) else emptyList()
++        }
++        if (reading.tracking == TrackingState.WARMING) return emptyList()
+         val beating = reading.tracking == TrackingState.BEATING
+         // Bent or leaning pushing often has no locked rate, so posture is also coached while PAUSED and moving.
+         if (!beating && !reading.moving) return emptyList()
+ 
+-        val rate = reading.ratePerMinute?.takeIf { beating }
++        // After a PAUSED gap, do not start a rate correction on the first relocking reads.
++        val rate = reading.ratePerMinute?.takeIf {
++            beating && (lastPausedReadMs == 0L || now - lastPausedReadMs >= STILL_NOW_MS)
++        }
+         val wanted = ArrayList<Phrase>(3)
+         if (rate != null && rate < LiveReading.TARGET_MIN) wanted.add(Phrase.PUSH_FASTER)
+         if (rate != null && rate > LiveReading.TARGET_MAX) wanted.add(Phrase.SLOW_DOWN)
+@@ -161,7 +196,8 @@ class CoachPolicy(
+         val elbowsBent = if (reading.posture != null) issue == PostureIssue.ELBOWS_BENT else reading.elbowsBent == true
+         if (elbowsBent) wanted.add(Phrase.ELBOWS_STRAIGHT)
+         if (issue == PostureIssue.SHOULDERS_NOT_OVER_HANDS) wanted.add(Phrase.SHOULDERS_OVER_HANDS)
+-        if (wanted.isEmpty() && beating && (lastSpokenMs?.let { now - it >= praiseEveryMs } ?: true)) wanted.add(Phrase.GOOD)
++        if (wanted.isEmpty() && beating && reading.inRange == true &&
++            (lastSpokenMs?.let { now - it >= praiseEveryMs } ?: true)) wanted.add(Phrase.GOOD)
+         // A phrase may repeat only after its condition has been gone for a while (it was fixed, then came back).
+         val last = lastPhrase
+         if (last == null || last in wanted) { absentSinceMs = null; absentReads = 0 }
+@@ -175,6 +211,8 @@ class CoachPolicy(
+ 
+     private companion object {
+         const val MIN_PAUSE_MS = 2_000L
++        const val MIN_RECOVERY_MS = 2_500L
++        const val BREAK_PAUSE_MS = 750L
+         const val STILL_NOW_MS = 1_000L
+         const val MIN_PUSH_MS = 3_000L
+         const val CLEAR_MS = 3_000L
+diff --git a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachAndMetricsTest.kt b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachAndMetricsTest.kt
+index 88517f5..e53c8ad 100644
+--- a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachAndMetricsTest.kt
++++ b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachAndMetricsTest.kt
+@@ -8,6 +8,71 @@ import org.junit.Test
+ 
+ class CoachAndMetricsTest {
+ 
++    @Test fun `brief moving dropouts during a locked beat do not lose next pause cue`() {
++        val policy = CoachPolicy()
++        fun paused(t: Long) = LiveReading(t, TrackingState.PAUSED, null, 170.0, false)
++        assertEquals(
++            Phrase.KEEP_GOING,
++            (0L..2_500L step 250L).mapNotNull { policy.update(paused(it)) }.single()
++        )
++        for (t in 2_750L until 9_000L step 250L) {
++            val moving = t !in setOf(2_750L, 4_750L, 6_750L, 8_750L)
++            policy.update(LiveReading(t, TrackingState.BEATING, 110, 170.0, false, moving))
++        }
++        val nextPause = (9_000L until 13_500L step 250L)
++            .mapNotNull { policy.update(paused(it)) }
++        assertEquals(listOf(Phrase.KEEP_GOING), nextPause)
++    }
++
++    @Test fun `sustained movement interrupts confirmed pause stillness`() {
++        val policy = CoachPolicy()
++        fun paused(t: Long, moving: Boolean = false) =
++            LiveReading(t, TrackingState.PAUSED, null, 170.0, false, moving)
++        for (t in 0L until 3_250L step 250L) {
++            policy.update(LiveReading(t, TrackingState.BEATING, 90, 170.0, false, true))
++        }
++        for (t in 3_250L until 7_750L step 250L) policy.update(paused(t))
++        for (t in 7_750L until 8_750L step 250L) policy.update(paused(t, true))
++        val afterMovement = (8_750L until 10_750L step 250L)
++            .mapNotNull { policy.update(paused(it)) }
++        assertTrue(
++            "A new two-second still period has not elapsed: $afterMovement",
++            afterMovement.none { it == Phrase.KEEP_GOING },
++        )
++        val newPause = (10_750L until 14_000L step 250L)
++            .mapNotNull { policy.update(paused(it)) }
++        assertEquals(listOf(Phrase.KEEP_GOING), newPause)
++    }
++
++    @Test
++    fun `warming can finish a recent confirmed stop but cannot invent one`() {
++        val policy = CoachPolicy()
++        run(policy, 0, 2_250) { paused(it) }
++        val cue = policy.update(paused(2_500).copy(tracking = TrackingState.WARMING))
++        assertEquals(Phrase.KEEP_GOING, cue)
++        assertNull(CoachPolicy().update(paused(2_500).copy(tracking = TrackingState.WARMING)))
++    }
++
++    @Test
++    fun `movement or a long visibility gap cancels a confirmed stop`() {
++        for (moving in listOf(false, true)) {
++            val policy = CoachPolicy()
++            run(policy, 0, 2_250) { paused(it) }
++            val time = if (moving) 2_500L else 3_500L
++            assertNull(policy.update(paused(time).copy(tracking = TrackingState.WARMING, moving = moving)))
++            val after = run(policy, time + 250, time + 2_250) { paused(it) }
++            assertTrue("Old confirmation survived moving=$moving: $after", after.none { it.second == Phrase.KEEP_GOING })
++        }
++    }
++
++    @Test
++    fun `rate correction resumes after the relock guard`() {
++        val policy = CoachPolicy()
++        run(policy, 0, 1_000) { paused(it) }
++        val established = run(policy, 1_000, 6_000) { beating(it, 90).copy(moving = true) }
++        assertEquals(listOf(Phrase.PUSH_FASTER), established.map { it.second })
++    }
++
+     private fun beating(t: Long, rate: Int, bent: Boolean = false) =
+         LiveReading(t, TrackingState.BEATING, rate, if (bent) 130.0 else 170.0, bent)
+ 
+@@ -263,20 +328,20 @@ class CoachAndMetricsTest {
+     @Test
+     fun `keep going plays again when the rescuer stops after pushing with bent elbows`() {
+         val policy = CoachPolicy()
+-        assertEquals(listOf(2_000L to Phrase.KEEP_GOING), run(policy, 0, 2_250) { paused(it) })
++        assertEquals(listOf(Phrase.KEEP_GOING), run(policy, 0, 3_250) { paused(it) }.map { it.second })
+         assertEquals(
+-            listOf(8_000L to Phrase.ELBOWS_STRAIGHT),
+-            run(policy, 2_250, 8_250) { pushing(it, PostureIssue.ELBOWS_BENT) },
++            listOf(Phrase.ELBOWS_STRAIGHT),
++            run(policy, 3_250, 10_250) { pushing(it, PostureIssue.ELBOWS_BENT) }.map { it.second },
+         )
+-        val secondPause = run(policy, 8_250, 18_000) { paused(it) }
++        val secondPause = run(policy, 10_250, 20_000) { paused(it) }
+         assertTrue("expected KEEP_GOING on the second pause, got $secondPause", secondPause.any { it.second == Phrase.KEEP_GOING })
+     }
+ 
+     @Test
+     fun `keep going plays on a second pause after resuming good compressions`() {
+         val policy = CoachPolicy()
+-        assertEquals(listOf(2_000L to Phrase.KEEP_GOING), run(policy, 0, 2_250) { paused(it) })
+-        run(policy, 2_250, 10_000) { t -> pushing(t, null, TrackingState.BEATING) }
++        assertEquals(listOf(Phrase.KEEP_GOING), run(policy, 0, 3_250) { paused(it) }.map { it.second })
++        run(policy, 3_250, 10_000) { t -> pushing(t, null, TrackingState.BEATING) }
+         val secondPause = run(policy, 10_000, 16_000) { paused(it) }
+         assertEquals(listOf(Phrase.KEEP_GOING), secondPause.map { it.second })
+     }
+diff --git a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachReplayTest.kt b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachReplayTest.kt
+index 75ab9be..27eca82 100644
+--- a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachReplayTest.kt
++++ b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/CoachReplayTest.kt
+@@ -68,6 +68,8 @@ class CoachReplayTest {
+     @Test
+     fun `recording 15 never says keep going while still pushing`() {
+         val spoken = replay("real-cph2467-15.csv")
++        assertTrue("straight pushing 3.5-32 s", !spoken.keepGoingIn(3.5, 32.0))
++        assertTrue("resumed pushing after reposition 34.5-37.3 s", !spoken.keepGoingIn(34.5, 37.3))
+         assertTrue("bent pushing 38-44 s", !spoken.keepGoingIn(38.0, 44.0))
+         assertTrue("bent pushing 54-62 s", !spoken.keepGoingIn(54.0, 62.0))
+         assertTrue("lean pushing 64-70 s", !spoken.keepGoingIn(64.0, 70.0))
+@@ -77,6 +79,7 @@ class CoachReplayTest {
+     fun `recording 13 never says keep going while pushing`() {
+         val spoken = replay("real-cph2467-13.csv")
+         assertTrue("pushing 4-36 s: $spoken", !spoken.keepGoingIn(4.0, 36.0))
++        assertTrue("real stop still needs its cue: $spoken", spoken.keepGoingIn(39.5, 44.5))
+     }
+ 
+     @Test
