@@ -29,6 +29,26 @@ class MainActivity : ComponentActivity() {
         permissionRequestInFlight = savedInstanceState?.getBoolean("permission_request_in_flight", false) ?: false
         refreshPermissions()
         setContent { AppRoot(this, cameraPermission) }
+        warmPoseLibrary()
+    }
+
+    /**
+     * Loads MediaPipe's native library on a low-priority thread once Home has been drawn, so the
+     * first Practise tap does not pay for it on the main thread. Loading twice is a no-op, and a
+     * failure here is ignored: PoseEngine loads the library itself and handles its own errors.
+     */
+    private fun warmPoseLibrary() {
+        window.decorView.post {
+            Thread({
+                try {
+                    System.loadLibrary("mediapipe_tasks_jni")
+                } catch (_: Throwable) {
+                }
+            }, "pose-lib-warm").apply {
+                priority = Thread.MIN_PRIORITY
+                isDaemon = true
+            }.start()
+        }
     }
 
     override fun onStop() {
