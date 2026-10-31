@@ -12,3 +12,4 @@ Practise replay is compared with ee682a1 by `tools/check_practise.ps1`. See `PLA
 | 08:42 | 4 CPR guide | takeover/t4-final | 270070e | 374 run, 0 failed, 5 skipped | Yes | `2db874361b2f24c03c104e87ee567f246092a545` |
 | 08:59 | Translation corrections, seven languages | takeover/t4b-strings | 0c30a81 | 374 run, 0 failed, 5 skipped | Yes | - |
 | 09:05 | 6 Re-skin, style only | takeover/t6-reskin | 7b396db | 374 run, 0 failed, 5 skipped | Yes | - |
+| 09:24 | Check. Busy: vivek-pc/codex-luna t261031-0922-5adb, vivek-pc/grok t261031-0922-77b7, vivek-pc/antigravity t261031-0922-0a16. Idle: moksh-pc/ag-argon, moksh-pc/antigravity, prabal-pc/codex-luna, prabal-pc/codex-sol, pratham-pc/flash, pratham-pc/muse, vivek-pc/codex-sol. Blocked, out of usage: pratham-pc/codex-lu~, pratham-pc/codex-sol, pratham-pc/codex-as~ | - | - | - | - | - |
