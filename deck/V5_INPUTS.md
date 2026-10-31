@@ -8,3 +8,8 @@
 - 596 commits: git rev-list --count origin/cpr-coach at 12:26. First commit 29 Oct 23:36, last 31 Oct 11:55.
 - 399 tests (0 failed, 5 skipped): cpr-coach/docs/TAKEOVER_LOG.md, last row (11:09, a99cd63).
 - Karnataka line: text and source (NewKerala, 10 July 2025) as given by the user.
+
+## v6
+- Screenshots and manikin photo: C:\Users\Arena\Downloads\deck-shots.zip (31 Oct 12:34), unzipped to assets4\deck-shots\ (not committed: it holds the unblurred contact name and the do-not-use shot).
+- Used: practise-rate-103-elbows-straight.jpg (as is), emergency-0019-tracking-good.jpg and emergency-0039-correction-amber.jpg (contact-name button blurred), home-made-manikin.png (cropped to the manikin, 3:4, not stretched).
+- Not used: practise-paused-do-not-use.jpg, emergency-0030-correction-amber.jpg.
