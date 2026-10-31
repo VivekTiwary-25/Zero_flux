@@ -27,38 +27,6 @@ internal object DashboardStore {
 
     fun samplesCleared(context: Context): Boolean = readStore(context).samplesCleared
 
-    /**
-     * Called only after the scorecard is already showing. A failure is ignored by the caller.
-     * Writes off the caller's thread; this method itself does the file work.
-     */
-    @Synchronized
-    fun savePractise(
-        context: Context,
-        id: String,
-        endedAtEpochMs: Long,
-        durationSeconds: Int,
-        averageRate: Int?,
-        secondsInRange: Int,
-        elbowsStraightPercent: Int?,
-        pauses: Int,
-        measuredSeconds: Int,
-        rates: List<Int?>,
-    ) {
-        val record = DashboardLogic.fromScorecard(
-            id = id,
-            endedAtEpochMs = endedAtEpochMs,
-            durationSeconds = durationSeconds,
-            averageRate = averageRate,
-            secondsInRange = secondsInRange,
-            elbowsStraightPercent = elbowsStraightPercent,
-            pauses = pauses,
-            measuredSeconds = measuredSeconds,
-            rates = rates,
-        )
-        val existing = readStore(context)
-        writeStore(context, existing.copy(sessions = existing.sessions + record))
-    }
-
     @Synchronized
     fun clearSamples(context: Context) {
         writeStore(context, DashboardLogic.clearSamples(readStore(context)))
