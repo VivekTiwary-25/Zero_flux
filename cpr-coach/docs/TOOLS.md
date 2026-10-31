@@ -16,6 +16,7 @@ Scripts live in `cpr-coach/tools/`; run Python from `cpr-coach`.
 - `make_test_trace.py` — Writes a synthetic replay CSV; its values are not measurements. Usage: `python3 tools/make_test_trace.py synthetic-replay.csv --rate 110`.
 - `phone_ui_test.py` — Exercises CPR Coach screens through adb without touching the dialer. No usage text; help: `phone_ui_test.py --serial SERIAL --out DIR [--adb ADB]`.
 - `posture_report.py` — Reports posture judge results, label agreement and fire/clear times. Usage: `python tools/posture_report.py [--replay DIR] [--labels FILE]`.
+- `rate_bent_lean.py` — Replays rate and display gates over recordings 1–15 and the nobody control, printing baseline and alternate JSON. Usage: `python3 cpr-coach/tools/rate_bent_lean.py --data-dir PATH/TO/testdata [--records] [--phantom-sensitivity]`.
 - `session_report.py` — Summarizes timing, pose availability, side and device metrics in a session trace. No usage text; help: `session_report.py trace [--logcat LOGCAT]`.
 
 ## PowerShell
