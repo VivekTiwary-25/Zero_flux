@@ -23,10 +23,11 @@ import com.zeroflux.cprcoach.ui.AppSettings
 import com.zeroflux.cprcoach.ui.AssetStrings
 import com.zeroflux.cprcoach.ui.CoachTheme
 import com.zeroflux.cprcoach.ui.HomeScreen
+import com.zeroflux.cprcoach.ui.DashboardScreen
 import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.voice.VoiceCommand
 
-private enum class Screen { HOME, PRACTISE, EMERGENCY }
+private enum class Screen { HOME, PRACTISE, EMERGENCY, DASHBOARD }
 
 @Composable
 fun AppRoot(activity: Activity, cameraPermission: Boolean) {
@@ -72,7 +73,7 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
     } else {
         ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     }
-    val keepScreenOn = screen != Screen.HOME
+    val keepScreenOn = screen == Screen.PRACTISE || screen == Screen.EMERGENCY
     SideEffect {
         activity.requestedOrientation = orientation
         if (!keepScreenOn) {
@@ -113,6 +114,7 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                             language = chosen
                         },
                         onMicTap = voice::toggle,
+                        onDashboard = { screen = Screen.DASHBOARD },
                     )
                 }
                 Screen.PRACTISE -> Box(Modifier.fillMaxSize().safeDrawingPadding()) {
@@ -134,6 +136,9 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         onCameraVisibleChange = { cameraVisible = it },
                         onHome = goHome,
                     )
+                }
+                Screen.DASHBOARD -> Box(Modifier.fillMaxSize().safeDrawingPadding()) {
+                    DashboardScreen(onHome = goHome)
                 }
             }
         }

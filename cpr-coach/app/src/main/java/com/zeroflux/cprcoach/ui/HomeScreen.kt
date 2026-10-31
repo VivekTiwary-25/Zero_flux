@@ -65,6 +65,7 @@ fun HomeScreen(
     onPractise: () -> Unit,
     onLanguageChosen: (AppLanguage) -> Unit,
     onMicTap: () -> Unit,
+    onDashboard: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val strings = LocalStrings.current
@@ -193,6 +194,25 @@ fun HomeScreen(
                     modifier = Modifier.padding(24.dp),
                     color = CoachColors.TextPrimary,
                     style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            GlassPanel(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(role = Role.Button, onClick = onDashboard)
+                    .semantics { role = Role.Button },
+                shape = RoundedCornerShape(24.dp),
+            ) {
+                Text(
+                    text = strings.get("home_dashboard"),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    color = CoachColors.TextPrimary,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                 )
