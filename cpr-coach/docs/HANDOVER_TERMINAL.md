@@ -58,16 +58,16 @@ Script for this: `python -I D:\projects\apk-builds\boss-tools\watch.py`, run in 
 ## Current state
 Auto-updated section, then the boss's notes.
 
-Written 09:53 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 09:56 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
+6ca1b17 cpr-coach: merge final test sheet and docs
+b351cf5 cpr-coach: log
+71b13b9 cpr-coach: final test sheet, demo and judge docs updated
+7e70536 cpr-coach: handover files and log
 a8e0c08 cpr-coach: merge demo script and judge answers
 d1bf758 cpr-coach: demo script and judge answers for the new features
 d56a4a4 cpr-coach: log
 1ee5299 cpr-coach: log
-7b396db cpr-coach: merge Task 6, re-skin style only
-5868dd3 cpr-coach: merge cpr-coach into re-skin
-3821faa cpr-coach: Emergency contact pill no longer clips its text
-501d68a cpr-coach: re-skin, style only: prototype colours light and dark, bottom bar
 ```
 Takeover branches on GitHub:
 ```
@@ -81,21 +81,20 @@ origin/takeover/t4b-strings 30193d9
 origin/takeover/t5-dashboard db95ba5
 origin/takeover/t5-final 0e8b329
 origin/takeover/t6-reskin 5868dd3
+origin/takeover/t6b-vivid af421fa
 origin/takeover/t8-aed 5c559d7
 origin/takeover/t9-docs d1bf758
+origin/takeover/t9b-docs 71b13b9
 ```
 Swarm jobs:
 ```
 RUNNING
-  vivek-pc/grok            t261031-0922-77b7  Vivid colours  (31m)
-  vivek-pc/antigravity     t261031-0943-5f51  Check dashboard screenshots  (9m)
-  vivek-pc/codex-sol       t261031-0951-52b2  AED wording  (52s)
-  vivek-pc/codex-luna      t261031-0951-ef1f  T7 pictures last remake  (1m)
+  vivek-pc/antigravity     t261031-0943-5f51  Check dashboard screenshots  (12m)
+  vivek-pc/codex-luna      t261031-0951-ef1f  T7 pictures last remake  (4m)
 QUEUED
+  prabal-pc/codex-sol      t261031-0955-4dbc  Contrast check
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
-  pratham-pc/codex-sol     t261031-0945-9fa3  Final test sheet update
-  prabal-pc/codex-luna     t261031-0946-f184  Demo and judge docs update
-  vivek-pc/codex-sol       t261031-0947-431e  AED fixes
+  vivek-pc/codex-sol       t261031-0951-52b2  AED wording
 ```
 Workers:
 ```
@@ -109,9 +108,9 @@ pratham-pc/codex-lu~ openai-codex/gpt-6-luna  idle     -                        
 pratham-pc/codex-sol openai-codex/gpt-6.1-sol idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        62% Nov 05 10:25 (in
 vivek-pc/codex-luna  openai-codex/gpt-6-luna  busy     t261031-0951-ef1f T7 pi~ 52% Nov 04 18:34 (in
-vivek-pc/codex-sol   openai-codex/gpt-6.1-sol busy     t261031-0951-52b2 AED w~ 52% Nov 04 18:34 (in
-vivek-pc/grok        xai-oauth/grok-4.7       busy     t261031-0922-77b7 Vivid~ 42% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ busy     t261031-0943-5f51 Check~ 87% 13:13 (in 3h19m)
+vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        52% Nov 04 18:34 (in
+vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        42% Nov 06 23:38 (in
+vivek-pc/antigravity google-antigravity/gemi~ busy     t261031-0943-5f51 Check~ 87% 13:13 (in 3h16m)
 ```
 
 ### Tasks
@@ -123,19 +122,19 @@ vivek-pc/antigravity google-antigravity/gemi~ busy     t261031-0943-5f51 Check~ 
 | 3. Small additions | Merged | `eae6c9d` |
 | 4. CPR guide | Merged | `270070e`; translation corrections `0c30a81` |
 | 6. Re-skin, style only | Merged | `7b396db`. Merged before the vivid colour request came |
-| 6b. Vivid colours | In progress, vivek-pc/grok | Uncommitted in `C:\Users\Arena\.swarm\work\wt-t6b-vivid`, branch `takeover/t6b-vivid`. Screenshots in `D:\projects\apk-builds\screens\vivid\`. Needs a before/after page, then the user's "colours approved", before merging |
+| 6b. Vivid colours | Done, waiting for the user's "colours approved" | Branch `takeover/t6b-vivid`, `af421fa6`, on GitHub. Page: https://claude.ai/artifact/P63RE6eRdDMqJgksdwJ1bM |
 | 5. Dashboard | Done, waiting to merge after 6b | Branch `takeover/t5-final`, `0e8b329`, on GitHub. Includes review fixes. Screenshots in `D:\projects\apk-builds\screens\final\`. Needs merging cpr-coach after 6b, and the reverts below |
 | 8. AED explained | In progress, vivek-pc/codex-sol | Pushed `takeover/t8-aed` at `5c559d7`. Newer uncommitted work in `C:\Users\Arena\.swarm\work\wt-t8-aed`: the (?) moved beside the first AED in the guide step 2 caption, Gujarati "shock" and Tamil "electric" fixes, and the new wording "Ask someone to bring an AED (the box that can restart the heart)" in all 10 languages. Merge after the dashboard |
 | 7. Pictures | In progress, vivek-pc/codex-luna, last remake round | Files only: `D:\projects\apk-builds\pictures\new\` and `current\`. Nothing in the app. Failed items being remade: guide-1 (a hand at the neck), role-holder (different rescuer), guide-4 (bare chest), guide-2 (AED box should match guide-5). Check them yourself, then make the page. Branch `takeover/t7-pictures` doesn't exist yet |
-| 9. Demo script and judge answers | First version merged `a8e0c08` | prabal-pc update waiting in swarm review |
-| Final test sheet | Update waiting in swarm review from pratham-pc | Read it from `origin/task/t261031-0945-9fa3:swarm-notes/FINAL_TEST.md`; commit it to `docs/` |
+| 9. Demo script and judge answers | Merged | `6ca1b17` |
+| Final test sheet | Merged, needs a final check at build time | `docs/FINAL_TEST.md`, `6ca1b17` |
 | Debug banner | Answered, no code change | Shows only if the app is started by a command with a replay setting. Tapping the icon never does. Don't change the replay tool |
 
 ### Reverts to prepare once the dashboard is merged
 One ready-to-merge revert branch for `be51948` (Practise loads the pose model on a background thread), and one for the dashboard save step in `PractiseHost.kt`, so either can be undone alone if the final phone test shows a Practise problem. Not made yet, because both touch the same file.
 
 ### Approval pages
-- Colour page: not made yet. Build it from `D:\projects\apk-builds\screens\vivid\before` and `after`.
+- Colour page: https://claude.ai/artifact/P63RE6eRdDMqJgksdwJ1bM . Published from Vachana's account; if the user can't open it, republish `D:\projects\apk-builds\screens\vivid\` images from the user's account.
 - Pictures page: not made yet. One row per slot: current next to new, light and dark.
 - Each page must show at the top what the user is approving and how to reply, such as "colours approved", or "pictures: approve 1, 2, 3, 5; redo 4". Open the page for the user and give its exact link.
 - The earlier re-skin page, https://claude.ai/artifact/8RgEWwPV6Yo2MtRECEBxCW, is on Vachana's account. It's private, so the user's own account can't open it unless it's shared. Publish new pages from the user's account. All its images are in `D:\projects\apk-builds\screens\before` and `after`.
