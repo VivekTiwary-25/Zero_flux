@@ -47,3 +47,7 @@ HARD RULES for every image: 16:9 landscape, 1920x1080 or larger, photographic fi
 - Slide 6 stays EVIDENCE: it is the only slide that shows the app, so the labelled illustration stays.
 - Evidence slides stay on plain ink (no image behind data) so charts and tables stay crisp.
 - Swarm image workers only push to their own deck/img-<worker> branch; I copy files across by hand and never run swarm merge.
+- Swarm image workers had no image tool (both jobs came back empty), so all six stills were made with Luna on vivek-pc.
+- Film slides use a full-slide ink veil (50-65% opaque) rather than a left panel: the v3 layouts span the full width and stay untouched.
+- Slide 8 on film keeps headline, both mode names and the "ran on a phone" tags; its bullets moved to the speaker notes (they were already there).
+- The cover's line-art rescuer is hidden when the film still is present; it still appears in v3 and on slide 9's technique diagram.

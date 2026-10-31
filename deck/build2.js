@@ -269,8 +269,8 @@ async function line(file, w, h, segs) {
 
   // 7 SPLIT COMPARISON
   {
-    const s = slide("Practise teaches you; Emergency starts the beat in one tap", "Solution", "INK", { shot: "kneel", veil: 40 });
-    hair(s, 6.67, 2.5, 0, 4.0);
+    const s = slide("Practise teaches you; Emergency starts the beat in one tap", "Solution", "INK", { shot: "kneel", veil: 50 });
+    hair(s, 6.67, 2.5, 0, s.film ? 1.7 : 4.0);
     const cols = [
       { x: M, c: TEAL, k: "PRACTISE", h: "Learn with feedback", pts: ["2-minute session, live readings", "One spoken correction at a time", "Scorecard shows how long rate was really measured"], tag: "Ran on a phone: 7 real recordings" },
       { x: 7.2, c: RED, k: "EMERGENCY", h: "Act in seconds", pts: ["Beat and spoken steps start at once", "Never waits for the camera", "Call 112 opens the dialer; AED reminder at 30 s"], tag: "Ran on a phone: steps, beat, dialer" },
@@ -278,10 +278,11 @@ async function line(file, w, h, segs) {
     cols.forEach((c) => {
       tb(s, c.k, { x: c.x, y: 2.5, w: 5, h: 0.35, fontFace: MONO, fontSize: 16, bold: true, color: c.c, charSpacing: 3 });
       tb(s, c.h, { x: c.x, y: 2.9, w: 5.4, h: 0.6, fontFace: HEAD, fontSize: 30, bold: true });
-      tb(s, c.pts.map((p, i) => ({ text: p, options: { breakLine: i < c.pts.length - 1 } })), { x: c.x, y: 3.75, w: 5.2, h: 2.1, fontSize: 21, paraSpaceAfter: 14 });
-      tb(s, c.tag, { x: c.x, y: 6.1, w: 5.4, h: 0.38, fontFace: MONO, fontSize: 16, color: c.c });
+      // On the film version the bullet detail lives in the speaker notes; the still carries the moment.
+      if (!s.film) tb(s, c.pts.map((p, i) => ({ text: p, options: { breakLine: i < c.pts.length - 1 } })), { x: c.x, y: 3.75, w: 5.2, h: 2.1, fontSize: 21, paraSpaceAfter: 14 });
+      tb(s, c.tag, { x: c.x, y: s.film ? 3.75 : 6.1, w: 5.4, h: 0.38, fontFace: MONO, fontSize: 16, color: c.c });
     });
-    s.addNotes("Practise is where you learn: a two-minute session with live readings, one spoken correction at a time, and a scorecard that says how long the rate was actually measured. Emergency is one tap: the beat and spoken steps start immediately and never wait for the camera. Call 112 only opens the dialer, and there's an AED reminder at 30 seconds.");
+    s.addNotes("Practise is where you learn: a two-minute session with live readings, one spoken correction at a time, and a scorecard that says how long the rate was actually measured. Emergency is one tap: the beat and spoken steps start immediately and never wait for the camera. Call 112 only opens the dialer, and there's an AED reminder at 30 seconds. Both modes have run on a real phone: Practise on 7 real recordings, Emergency for steps, beat and dialer.");
   }
 
   // 7b LABELLED ILLUSTRATION: technique
@@ -311,7 +312,7 @@ async function line(file, w, h, segs) {
     langs.forEach((l, i) => {
       tb(s, l, { x: M + (i % 5) * cw, y: 2.55 + Math.floor(i / 5) * 1.35, w: cw, h: 0.9, fontSize: 32, wrap: false, fontFace: i === 0 ? HEAD : INDIC, bold: i === 0, color: i === 0 ? TEAL : TEXT, fit: "none" });
     });
-    tb(s, "English is checked. The other nine are machine-translated and need native-speaker review.", { x: M, y: 5.6, w: CW, h: 0.45, fontSize: 20, color: MUTED });
+    tb(s, "English is checked. The other nine are machine-translated and need native-speaker review.", { x: M, y: 5.6, w: CW, h: 0.45, fontSize: 20, color: s.film ? TEXT : MUTED });
     s.addNotes("The picker lists ten languages, each in its own script, and coaching clips exist for all ten. English is the language we've checked; the other nine were machine-translated and still need native-speaker review before we'd call them ready.");
   }
 
