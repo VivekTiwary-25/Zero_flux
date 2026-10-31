@@ -454,7 +454,7 @@ private fun HoldToStopButton(
             text,
             modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp, vertical = 4.dp).wrapContentHeight(Alignment.CenterVertically),
             style = TextStyle(
-                color = CoachColors.TextPrimary,
+                color = Color.White,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             ),
