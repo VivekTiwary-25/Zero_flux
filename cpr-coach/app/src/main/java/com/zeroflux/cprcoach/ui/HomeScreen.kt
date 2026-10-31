@@ -2,6 +2,7 @@ package com.zeroflux.cprcoach.ui
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -48,14 +50,20 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.zeroflux.cprcoach.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +112,36 @@ fun HomeScreen(
                 .padding(bottom = 80.dp), // Scroll clear of tabs without shrinking the original cards.
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f).heightIn(max = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(9.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.home_brand_mark),
+                        contentDescription = null,
+                        modifier = Modifier.size(38.dp),
+                    )
+                    Text(
+                        text = remember {
+                            buildAnnotatedString {
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("CPR") }
+                                append(" coach")
+                            }
+                        },
+                        color = colors.TextPrimary,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = (-0.5).sp,
+                        maxLines = 1,
+                    )
+                }
                 GlassPanel(
                     modifier = Modifier
                         .semantics(mergeDescendants = true) {
