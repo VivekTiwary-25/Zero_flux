@@ -1,5 +1,6 @@
 package com.zeroflux.cprcoach.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,6 +28,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,7 +66,7 @@ fun DashboardScreen(
     val zone = remember { ZoneId.systemDefault() }
     val scope = rememberCoroutineScope()
     var sessions by remember { mutableStateOf<List<DatedSession>?>(null) }
-    var selectedId by remember { mutableStateOf<String?>(null) }
+    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var generation by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(generation) {
@@ -82,6 +84,7 @@ fun DashboardScreen(
 
     val selected = sessions?.find { it.record.id == selectedId }
     if (selected != null) {
+        BackHandler { selectedId = null }
         SessionDetail(selected, zone, onBack = { selectedId = null }, modifier = modifier)
         return
     }

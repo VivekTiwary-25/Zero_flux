@@ -136,18 +136,20 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         labelKey = "score_home",
                         icon = { HomeNavigationIcon() },
                     ) {
-                        DisposableEffect(voice) {
-                            val unbind = voice.bind(
-                                setOf(VoiceCommand.EMERGENCY, VoiceCommand.PRACTISE),
-                                allowLanguages = true,
-                            ) { command ->
-                                screen = when (command) {
-                                    VoiceCommand.EMERGENCY -> Screen.EMERGENCY
-                                    VoiceCommand.PRACTISE -> Screen.PRACTISE
-                                    else -> Screen.HOME
+                        DisposableEffect(voice, showContactDialog) {
+                            val unbind = if (!showContactDialog) {
+                                voice.bind(
+                                    setOf(VoiceCommand.EMERGENCY, VoiceCommand.PRACTISE),
+                                    allowLanguages = true,
+                                ) { command ->
+                                    screen = when (command) {
+                                        VoiceCommand.EMERGENCY -> Screen.EMERGENCY
+                                        VoiceCommand.PRACTISE -> Screen.PRACTISE
+                                        else -> Screen.HOME
+                                    }
                                 }
-                            }
-                            onDispose { unbind() }
+                            } else null
+                            onDispose { unbind?.invoke() }
                         }
                         HomeScreen(
                             language = language,
