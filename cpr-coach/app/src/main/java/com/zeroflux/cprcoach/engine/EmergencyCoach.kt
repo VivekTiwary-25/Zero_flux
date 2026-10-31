@@ -72,8 +72,9 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
             candidate = wanted
             candidateSinceMs = reading.timeMs
         }
-        // A posture word ends with the judge's issue; new corrections still need the hold.
-        val leavingPosture = word.isPostureWord() && !wanted.isPostureWord()
+        // A posture word ends soon after the judge's issue, but not on one stray read; new corrections need the full hold.
+        val leavingPosture = word.isPostureWord() && !wanted.isPostureWord() &&
+            reading.timeMs - candidateSinceMs >= LEAVE_POSTURE_MS
         if (wanted == EmergencyWord.KEEP_PUSHING || leavingPosture || reading.timeMs - candidateSinceMs >= holdMs) {
             word = wanted
         }
@@ -138,5 +139,6 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
         const val KEEP_WORD_MS = 3_000L
         const val ESTABLISHED_BEAT_MS = 3_000L
         const val SETUP_AFTER_LOST_MS = 3_000L
+        const val LEAVE_POSTURE_MS = 500L
     }
 }
