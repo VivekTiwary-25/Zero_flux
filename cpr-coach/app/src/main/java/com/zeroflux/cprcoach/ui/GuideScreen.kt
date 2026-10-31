@@ -268,15 +268,15 @@ fun GuideScreen(
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clip(CircleShape)
-                                        .background(colors.Teal.copy(alpha = 0.15f))
-                                        .border(1.dp, colors.Teal.copy(alpha = 0.45f), CircleShape)
+                                        .background(Color(0xFF243C32).copy(alpha = 0.15f))
+                                        .border(1.dp, Color(0xFF243C32), CircleShape)
                                         .clickable { showAedPopup = true }
                                         .semantics { role = Role.Button },
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
                                         text = "?",
-                                        color = colors.Teal,
+                                        color = Color(0xFF243C32),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                     )
