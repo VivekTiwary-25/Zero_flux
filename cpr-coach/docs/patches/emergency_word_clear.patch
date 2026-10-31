@@ -1,0 +1,50 @@
+diff --git a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/EmergencyCoach.kt b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/EmergencyCoach.kt
+index 84cc525..891a605 100644
+--- a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/EmergencyCoach.kt
++++ b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/engine/EmergencyCoach.kt
+@@ -72,8 +72,11 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
+             candidate = wanted
+             candidateSinceMs = reading.timeMs
+         }
+-        // An instruction must not outlive the reading behind it, but a new one has to hold or it flickers.
+-        if (wanted == EmergencyWord.KEEP_PUSHING || reading.timeMs - candidateSinceMs >= holdMs) word = wanted
++        // A posture word ends with the judge's issue; new corrections still need the hold.
++        val leavingPosture = word.isPostureWord() && !wanted.isPostureWord()
++        if (wanted == EmergencyWord.KEEP_PUSHING || leavingPosture || reading.timeMs - candidateSinceMs >= holdMs) {
++            word = wanted
++        }
+     }
+ 
+     /** Ask only when no voice clip is playing or waiting, so a correction is never stale when heard. */
+@@ -125,6 +128,11 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
+         else -> null
+     }
+ 
++    private fun EmergencyWord.isPostureWord() =
++        this == EmergencyWord.STRAIGHTEN_ARMS ||
++            this == EmergencyWord.SHOULDERS_OVER_HANDS ||
++            this == EmergencyWord.STRAIGHTEN
++
+     private companion object {
+         const val MIN_MEASURED_SECONDS = 10
+         const val KEEP_WORD_MS = 3_000L
+
+diff --git a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/EmergencyCoachTest.kt b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/EmergencyCoachTest.kt
+index cbb7f75..3b23889 100644
+--- a/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/EmergencyCoachTest.kt
++++ b/cpr-coach/app/src/test/java/com/zeroflux/cprcoach/engine/EmergencyCoachTest.kt
+@@ -52,6 +52,14 @@ class EmergencyCoachTest {
+         assertEquals(EmergencyWord.FASTER, slow.word)
+     }
+ 
++    @Test fun `posture word clears as soon as posture is good`() {
++        val coach = EmergencyCoach(0)
++        coach.feed(0, 1_500) { beating(it, 110, bent = true) }
++        assertEquals(EmergencyWord.STRAIGHTEN, coach.word)
++        coach.update(beating(1_750, 110))
++        assertEquals(EmergencyWord.GOOD, coach.word)
++    }
++
+     @Test fun `a word that flickers does not show`() {
+         val coach = EmergencyCoach(0)
+         coach.feed(0, 2_500) { beating(it, 110) }

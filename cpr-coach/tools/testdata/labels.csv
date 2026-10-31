@@ -18,11 +18,12 @@ real-cph2467-15.csv,38.2,43.4,bent,pictures
 real-cph2467-15.csv,44,53.4,straight,pictures
 real-cph2467-15.csv,54,61.5,bent,pictures
 real-cph2467-15.csv,65,69.5,leaning,team_unconfirmed
-# Recording 16: phone test of build e1b489f, 31 Oct 2026 ~05:37. See docs/RECORDING_16.md. The lean differs from the tester's account.
+# Recording 16: phone test of build e1b489f, 31 Oct 2026 ~05:37. See docs/RECORDING_16.md. Trace time is about 3.3 s after stopwatch time.
+# Lean and last straight are the tester's account (lean ~85-100 s stopwatch; firm and weak pushing in turn; straight from ~100 s).
 real-cph2467-16.csv,5,30.5,straight,pictures
 real-cph2467-16.csv,30.5,44.5,bent,pictures
 real-cph2467-16.csv,45,58.5,straight,pictures
-real-cph2467-16.csv,79,92,straight,pictures
-real-cph2467-16.csv,93,104,unknown,none
-real-cph2467-16.csv,104.5,123,leaning,team_unconfirmed
+real-cph2467-16.csv,79,88,straight,pictures
+real-cph2467-16.csv,88.3,103.3,leaning,team_unconfirmed
+real-cph2467-16.csv,103.3,123,straight,team_unconfirmed
 real-cph2467-14.csv,3,24,straight,pictures

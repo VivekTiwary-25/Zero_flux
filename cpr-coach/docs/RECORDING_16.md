@@ -3,17 +3,19 @@
 `tools/testdata/real-cph2467-16.csv`. CPH2467, 31 Oct 2026, 05:36:50-05:38:59, one 2-minute Practise session, 2,692 frames, 236 pictures. Picture sheets are in `tools/traces/run-1031b/sheets`. Times are seconds from the first CSV row. Live time is about 3.3 s less.
 
 ## Labels
-Read from the saved pictures by the coding assistant, not checked by a person. The tester's account gives the lean as 85-100 s live, then straight to the end. The pictures show the arms clearly slanted from about 104 s (trace) to the end, with no straight block after it. The tester should confirm this.
+The lean and the last straight block are the tester's account: lean about 85-100 s on the stopwatch (trace 88.3-103.3), firm and weak pushing in turn during it, straight again from about 100 s (trace 103.3). The tester saw the lean on screen about 3 s in, then the app paused. The other blocks were read from the saved pictures by the coding assistant.
 
-| Trace time | What the pictures show | Replay |
+| Trace time | Label | Replay |
 |---|---|---|
 | 5-30.5 | Straight | BEATING, about 104/min |
 | 30.5-44.5 | Bent; a short straight dip near 40 | ELBOWS_BENT 32-39 |
 | 45-58.5 | Straight | BEATING, about 108/min |
 | 59-78 | Stopped | PAUSED, no rate |
-| 79-92 | Straight | BEATING, about 110/min |
-| 93-104 | Arms changing, not clear | PAUSED most of the time, no posture issue |
-| 104.5-123 | Slanted arms | Lean flagged from 105, PAUSED from 108 |
+| 79-88 | Straight | BEATING, about 110/min |
+| 88.3-103.3 | Lean | BEATING to 92, then PAUSED most of the time, **no lean flagged** |
+| 103.3-123 | Straight | **Lean flagged 105-119**, PAUSED from 108 |
+
+**Unexplained:** the replay's lean and the tester's lean are about 15 s apart. The pictures also show the arms more slanted from about 104 s to the end than before it. The replay uses the same code as the phone, except for the camera's real aspect. So either the replay differs from the phone here or the stopwatch times are off. Don't use this recording's lean blocks to tune posture until this is settled.
 
 The phone was moved sharply at about 102-108 s: the background shifts and the pictures blur.
 
