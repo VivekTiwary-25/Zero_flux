@@ -139,7 +139,7 @@ private fun FramingOverlay(ready: Boolean, hintKey: String?, showStart: Boolean,
                     ClayButton(
                         onClick = onStart,
                         color = CoachColors.Teal,
-                        colorDeep = CoachColors.Charcoal,
+                        colorDeep = CoachColors.Teal,
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                     ) {
                         Text(strings.get("frame_start"), color = CoachColors.Navy, fontSize = 22.sp, fontWeight = FontWeight.Bold)
