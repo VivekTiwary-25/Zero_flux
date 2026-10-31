@@ -44,16 +44,16 @@ Docs that matter, in `cpr-coach/docs/`: `TAKEOVER_LOG.md`, `PLAN_0810.md`, `DEMO
 - **Merge order still to do:** vivid colours, dashboard, AED, pictures.
 
 ## Current state
-Written 09:56 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 10:01 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
-6ca1b17 cpr-coach: merge final test sheet and docs
-b351cf5 cpr-coach: log
-71b13b9 cpr-coach: final test sheet, demo and judge docs updated
-7e70536 cpr-coach: handover files and log
-a8e0c08 cpr-coach: merge demo script and judge answers
-d1bf758 cpr-coach: demo script and judge answers for the new features
-d56a4a4 cpr-coach: log
-1ee5299 cpr-coach: log
+88fa66f cpr-coach: merge AED explained, keeping dashboard and AED strings
+0e362b1 cpr-coach: log
+12799d5 cpr-coach: merge 5 Dashboard
+ce82009 cpr-coach: log
+032a232 cpr-coach: merge Vivid colours, approved by the user
+e076540 cpr-coach: log
+70fb804 cpr-coach: AED help beside the first AED, new Emergency wording, Gujarati and Tamil fixes
+8a3531c cpr-coach: handover files and log
 ```
 Takeover branches on GitHub:
 ```
@@ -68,35 +68,34 @@ origin/takeover/t5-dashboard db95ba5
 origin/takeover/t5-final 0e8b329
 origin/takeover/t6-reskin 5868dd3
 origin/takeover/t6b-vivid af421fa
-origin/takeover/t8-aed 5c559d7
+origin/takeover/t8-aed 70fb804
 origin/takeover/t9-docs d1bf758
 origin/takeover/t9b-docs 71b13b9
 ```
 Swarm jobs:
 ```
 RUNNING
-  vivek-pc/antigravity     t261031-0943-5f51  Check dashboard screenshots  (12m)
-  vivek-pc/codex-luna      t261031-0951-ef1f  T7 pictures last remake  (4m)
+  prabal-pc/codex-sol      t261031-0955-4dbc  Contrast check  (5m)
+  vivek-pc/codex-luna      t261031-0959-e135  T7 two pictures remake  (2m)
 QUEUED
-  prabal-pc/codex-sol      t261031-0955-4dbc  Contrast check
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
-  vivek-pc/codex-sol       t261031-0951-52b2  AED wording
+  vivek-pc/antigravity     t261031-0943-5f51  Check dashboard screenshots
 ```
 Workers:
 ```
 moksh-pc/ag-argon    google-antigravity/gemi~ idle     -                        13% Nov 05 15:47 (in
 moksh-pc/antigravity google-antigravity/gemi~ idle     -                        13% Nov 05 15:47 (in
-prabal-pc/codex-luna openai-codex/gpt-6-luna  idle     -                        37% Nov 04 12:10 (in
-prabal-pc/codex-sol  openai-codex/gpt-6.1-sol idle     -                        37% Nov 04 12:10 (in
+prabal-pc/codex-luna openai-codex/gpt-6-luna  idle     -                        36% Nov 04 12:10 (in
+prabal-pc/codex-sol  openai-codex/gpt-6.1-sol busy     t261031-0955-4dbc Contr~ 36% Nov 04 12:10 (in
 pratham-pc/flash     opencode-go/deepseek-v4~ idle     -                        ?                   
 pratham-pc/muse      opencode-go/muse-spark-~ idle     -                        ?                   
 pratham-pc/codex-lu~ openai-codex/gpt-6-luna  idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-sol openai-codex/gpt-6.1-sol idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        62% Nov 05 10:25 (in
-vivek-pc/codex-luna  openai-codex/gpt-6-luna  busy     t261031-0951-ef1f T7 pi~ 52% Nov 04 18:34 (in
-vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        52% Nov 04 18:34 (in
-vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        42% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ busy     t261031-0943-5f51 Check~ 87% 13:13 (in 3h16m)
+vivek-pc/codex-luna  openai-codex/gpt-6-luna  busy     t261031-0959-e135 T7 tw~ 51% Nov 04 18:34 (in
+vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        51% Nov 04 18:34 (in
+vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        39% Nov 06 23:38 (in
+vivek-pc/antigravity google-antigravity/gemi~ idle     -                        86% 13:13 (in 3h11m)
 ```
 
 ### Tasks
@@ -108,10 +107,10 @@ vivek-pc/antigravity google-antigravity/gemi~ busy     t261031-0943-5f51 Check~ 
 | 3. Small additions | Merged | `eae6c9d` |
 | 4. CPR guide | Merged | `270070e`; translation corrections `0c30a81` |
 | 6. Re-skin, style only | Merged | `7b396db`. Merged before the vivid colour request came |
-| 6b. Vivid colours | Done, waiting for the user's "colours approved" | Branch `takeover/t6b-vivid`, `af421fa6`, on GitHub. Page: https://claude.ai/artifact/P63RE6eRdDMqJgksdwJ1bM |
-| 5. Dashboard | Done, waiting to merge after 6b | Branch `takeover/t5-final`, `0e8b329`, on GitHub. Includes review fixes. Screenshots in `D:\projects\apk-builds\screens\final\`. Needs merging cpr-coach after 6b, and the reverts below |
-| 8. AED explained | In progress, vivek-pc/codex-sol | Pushed `takeover/t8-aed` at `5c559d7`. Newer uncommitted work in `C:\Users\Arena\.swarm\work\wt-t8-aed`: the (?) moved beside the first AED in the guide step 2 caption, Gujarati "shock" and Tamil "electric" fixes, and the new wording "Ask someone to bring an AED (the box that can restart the heart)" in all 10 languages. Merge after the dashboard |
-| 7. Pictures | In progress, vivek-pc/codex-luna, last remake round | Files only: `D:\projects\apk-builds\pictures\new\` and `current\`. Nothing in the app. Failed items being remade: guide-1 (a hand at the neck), role-holder (different rescuer), guide-4 (bare chest), guide-2 (AED box should match guide-5). Check them yourself, then make the page. Branch `takeover/t7-pictures` doesn't exist yet |
+| 6b. Vivid colours | Merged, approved by the user | `032a232` |
+| 5. Dashboard | Merged | `12799d5` |
+| 8. AED explained | Merged | `88fa66f` |
+| 7. Pictures | Page published, waiting for the user's reply; rows 1 and 2 being remade by vivek-pc/codex-luna as guide-1-v2.png and guide-2-v2.png | Files only: `D:\projects\apk-builds\pictures\new\`. Page: https://claude.ai/artifact/VCRrK1CFovjSHD8Zqp1rjs . After approval: branch `takeover/t7-pictures`, swap pictures only, no logic changes, before/after screenshots, then gate and merge |
 | 9. Demo script and judge answers | Merged | `6ca1b17` |
 | Final test sheet | Merged, needs a final check at build time | `docs/FINAL_TEST.md`, `6ca1b17` |
 | Debug banner | Answered, no code change | Shows only if the app is started by a command with a replay setting. Tapping the icon never does. Don't change the replay tool |
@@ -121,12 +120,12 @@ One ready-to-merge revert branch for `be51948` (Practise loads the pose model on
 
 ### Approval pages
 - Colour page: https://claude.ai/artifact/P63RE6eRdDMqJgksdwJ1bM . Published from Vachana's account; if the user can't open it, republish `D:\projects\apk-builds\screens\vivid\` images from the user's account.
-- Pictures page: not made yet. One row per slot: current next to new, light and dark.
+- Pictures page: https://claude.ai/artifact/VCRrK1CFovjSHD8Zqp1rjs , published from Vachana's account. Waiting for the reply.
 - Each page must show at the top what the user is approving and how to reply, such as "colours approved", or "pictures: approve 1, 2, 3, 5; redo 4". Open the page for the user and give its exact link.
 - The earlier re-skin page, https://claude.ai/artifact/8RgEWwPV6Yo2MtRECEBxCW, is on Vachana's account. It's private, so the user's own account can't open it unless it's shared. Publish new pages from the user's account. All its images are in `D:\projects\apk-builds\screens\before` and `after`.
 
 ### Merge order still to do
-Task 6 vivid colours (after the user sees the colour page), then Task 5 dashboard, then AED, then pictures (after the user approves them).
+Only pictures remain, after the user approves them.
 Cut order if time runs out: pictures first, then dashboard.
 Final build expected about 10:30 with pictures, about 10:15 without.
 
