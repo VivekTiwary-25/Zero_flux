@@ -253,7 +253,7 @@ private fun RoleCard(
 @Composable
 private fun RoleIcon(rescuer: Boolean) {
     Box(
-        modifier = Modifier.size(width = 54.dp, height = 58.dp),
+        modifier = Modifier.fillMaxWidth().height(100.dp),
         contentAlignment = Alignment.Center,
     ) {
         Image(
