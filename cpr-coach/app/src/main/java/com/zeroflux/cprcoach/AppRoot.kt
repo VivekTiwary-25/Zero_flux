@@ -29,10 +29,11 @@ import com.zeroflux.cprcoach.ui.CoachTheme
 import com.zeroflux.cprcoach.ui.EmergencyContact
 import com.zeroflux.cprcoach.ui.EmergencyContactDialog
 import com.zeroflux.cprcoach.ui.HomeScreen
+import com.zeroflux.cprcoach.ui.GuideScreen
 import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.voice.VoiceCommand
 
-private enum class Screen { HOME, PRACTISE, EMERGENCY }
+private enum class Screen { HOME, PRACTISE, EMERGENCY, GUIDE }
 
 @Composable
 fun AppRoot(activity: Activity, cameraPermission: Boolean) {
@@ -137,6 +138,7 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         micState = micState,
                         onEmergency = { screen = Screen.EMERGENCY },
                         onPractise = { screen = Screen.PRACTISE },
+                        onGuide = { screen = Screen.GUIDE },
                         onLanguageChosen = { chosen ->
                             voice.setLanguage(chosen)
                             settings.language = chosen
@@ -189,6 +191,12 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         onCameraVisibleChange = { cameraVisible = it },
                         onHome = goHome,
                         emergencyContact = emergencyContact,
+                    )
+                }
+                Screen.GUIDE -> Box(Modifier.fillMaxSize()) {
+                    GuideScreen(
+                        onBack = goHome,
+                        onEmergency = { screen = Screen.EMERGENCY },
                     )
                 }
             }

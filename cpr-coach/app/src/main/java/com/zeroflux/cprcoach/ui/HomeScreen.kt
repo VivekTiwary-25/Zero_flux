@@ -64,6 +64,7 @@ fun HomeScreen(
     micState: MicState,
     onEmergency: () -> Unit,
     onPractise: () -> Unit,
+    onGuide: () -> Unit,
     onLanguageChosen: (AppLanguage) -> Unit,
     onMicTap: () -> Unit,
     emergencyContactName: String?,
@@ -227,6 +228,24 @@ fun HomeScreen(
                     },
                     color = CoachColors.TextPrimary,
                     style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+
+            ClayButton(
+                onClick = onGuide,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .semantics { role = Role.Button },
+                pressedScale = if (motionEnabled) 0.97f else 1f,
+            ) {
+                Text(
+                    text = strings.get("cprGuideNav"),
+                    modifier = Modifier.padding(14.dp),
+                    color = CoachColors.TextPrimary,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
                 )
             }
 
