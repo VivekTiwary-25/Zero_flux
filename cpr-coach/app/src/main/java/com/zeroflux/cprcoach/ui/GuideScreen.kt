@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -233,7 +234,6 @@ fun GuideScreen(
                     }
                     val visualDesc = strings.get("cprStep${currentStep + 1}Visual")
 
-                    // Keep the vectors' dark green outlines on a neutral light surface in both themes.
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -249,6 +249,7 @@ fun GuideScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(180.dp),
+                            contentScale = ContentScale.Fit,
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

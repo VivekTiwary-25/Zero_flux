@@ -7,9 +7,9 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,16 +37,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun WalkthroughScreen(
@@ -113,11 +113,18 @@ fun WalkthroughScreen(
                                 textAlign = TextAlign.Center,
                             )
                             Spacer(Modifier.height(12.dp))
-                            Image(
-                                painter = painterResource(com.zeroflux.cprcoach.R.drawable.hand_placement),
-                                contentDescription = null,
+                            Box(
                                 modifier = Modifier.size(width = 240.dp, height = 140.dp),
-                            )
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Image(
+                                    painter = painterResource(com.zeroflux.cprcoach.R.drawable.hand_placement),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(width = 210.dp, height = 140.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Fit,
+                                )
+                            }
                         }
                         1 -> {
                             Text(
@@ -245,31 +252,19 @@ private fun RoleCard(
 
 @Composable
 private fun RoleIcon(rescuer: Boolean) {
-    val colors = LocalCoachColors.current
-    Canvas(Modifier.size(width = 54.dp, height = 58.dp)) {
-        val ink = colors.Teal
-        val stroke = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
-        val head = Offset(size.width * 0.5f, size.height * 0.19f)
-        drawCircle(ink, radius = size.width * 0.12f, center = head)
-        if (rescuer) {
-            drawLine(ink, Offset(size.width * 0.48f, size.height * 0.34f), Offset(size.width * 0.39f, size.height * 0.66f), strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-            drawLine(ink, Offset(size.width * 0.39f, size.height * 0.66f), Offset(size.width * 0.69f, size.height * 0.68f), strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-            drawLine(ink, Offset(size.width * 0.69f, size.height * 0.68f), Offset(size.width * 0.79f, size.height * 0.9f), strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-            drawLine(ink, Offset(size.width * 0.39f, size.height * 0.66f), Offset(size.width * 0.21f, size.height * 0.9f), strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-            drawLine(ink, Offset(size.width * 0.46f, size.height * 0.42f), Offset(size.width * 0.74f, size.height * 0.39f), strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-            drawLine(ink, Offset(size.width * 0.74f, size.height * 0.39f), Offset(size.width * 0.81f, size.height * 0.57f), strokeWidth = 3.dp.toPx(), cap = StrokeCap.Round)
-            drawLine(ink, Offset(size.width * 0.25f, size.height * 0.93f), Offset(size.width * 0.82f, size.height * 0.93f), strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
-        } else {
-            drawRoundRect(
-                color = ink,
-                topLeft = Offset(size.width * 0.34f, size.height * 0.38f),
-                size = androidx.compose.ui.geometry.Size(size.width * 0.34f, size.height * 0.52f),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()),
-                style = stroke,
-            )
-            drawLine(ink, Offset(size.width * 0.42f, size.height * 0.78f), Offset(size.width * 0.59f, size.height * 0.78f), strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
-            drawLine(ink, Offset(size.width * 0.5f, size.height * 0.48f), Offset(size.width * 0.5f, size.height * 0.68f), strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
-        }
+    Box(
+        modifier = Modifier.size(width = 54.dp, height = 58.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            painter = painterResource(
+                if (rescuer) com.zeroflux.cprcoach.R.drawable.role_rescuer
+                else com.zeroflux.cprcoach.R.drawable.role_holder,
+            ),
+            contentDescription = null,
+            modifier = Modifier.fillMaxWidth().aspectRatio(1.5f).clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Fit,
+        )
     }
 }
 
