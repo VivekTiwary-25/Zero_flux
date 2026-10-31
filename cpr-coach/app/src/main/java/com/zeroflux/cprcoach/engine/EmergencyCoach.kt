@@ -25,8 +25,23 @@ data class HandoverSummary(
  * Emergency coaching never depends on this: with no readings the word stays on keep pushing.
  * Call [update] about four times a second with one clock. All calls must come from one thread.
  */
-class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000) {
-    private val policy = CoachPolicy()
+class EmergencyCoach(
+    private val startMs: Long,
+    private val holdMs: Long = 1_000,
+    private val rateHoldMs: Long = holdMs,
+) {
+    private var voiceReady = true
+    private var lastLineMs: Long? = null
+    private var pushFillerNext = false
+    private val policy = CoachPolicy(
+        steadyMs = 1_500,
+        cooldownMs = 4_000,
+        praiseEveryMs = 10_000,
+        canSpeak = { voiceReady },
+        praiseOnCorrection = true,
+        repeatPraise = true,
+        rateRelockWithinSteady = true,
+    )
     private val metrics = SessionMetrics()
     private var armsSeen = false
     private var lostSinceMs: Long? = null
@@ -75,13 +90,30 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
         // A posture word ends soon after the judge's issue, but not on one stray read; new corrections need the full hold.
         val leavingPosture = word.isPostureWord() && !wanted.isPostureWord() &&
             reading.timeMs - candidateSinceMs >= LEAVE_POSTURE_MS
-        if (wanted == EmergencyWord.KEEP_PUSHING || leavingPosture || reading.timeMs - candidateSinceMs >= holdMs) {
+        val wordHoldMs = if (wanted == EmergencyWord.FASTER || wanted == EmergencyWord.SLOWER) rateHoldMs else holdMs
+        if (wanted == EmergencyWord.KEEP_PUSHING || leavingPosture || reading.timeMs - candidateSinceMs >= wordHoldMs) {
             word = wanted
         }
     }
 
-    /** Ask only when no voice clip is playing or waiting, so a correction is never stale when heard. */
-    fun nextCorrection(reading: LiveReading): Phrase? = policy.update(reading)
+    /** Observe every read, including during clips; only emission waits for playback. */
+    fun nextCorrection(reading: LiveReading, voiceIdle: Boolean = true): Phrase? {
+        voiceReady = voiceIdle && lastLineMs?.let { reading.timeMs - it >= LINE_COOLDOWN_MS } != false
+        return policy.update(reading)?.also { lastLineMs = reading.timeMs }
+    }
+
+    /** Fill real silence after a completed clip, without acknowledging a recovery cue. */
+    fun nextClip(reading: LiveReading, voiceIdle: Boolean, lastClipEndedMs: Long?): String? {
+        nextCorrection(reading, voiceIdle)?.let { return it.key }
+        val pushing = reading.moving &&
+            (reading.tracking == TrackingState.BEATING || reading.tracking == TrackingState.PAUSED)
+        if (!voiceReady || !pushing || lastClipEndedMs == null ||
+            reading.timeMs - lastClipEndedMs < FILLER_SILENCE_MS) return null
+        val key = if (pushFillerNext) "em_push" else "keep_going"
+        pushFillerNext = !pushFillerNext
+        lastLineMs = reading.timeMs
+        return key
+    }
 
     fun summary(nowMs: Long): HandoverSummary {
         val card = metrics.scorecard()
@@ -136,6 +168,8 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
 
     private companion object {
         const val MIN_MEASURED_SECONDS = 10
+        const val LINE_COOLDOWN_MS = 4_000L
+        const val FILLER_SILENCE_MS = 8_000L
         const val KEEP_WORD_MS = 3_000L
         const val ESTABLISHED_BEAT_MS = 3_000L
         const val SETUP_AFTER_LOST_MS = 3_000L
