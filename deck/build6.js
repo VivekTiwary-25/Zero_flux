@@ -212,6 +212,23 @@ async function line(file, w, h, segs) {
     s.addNotes("These are screenshots from the real app on a phone this morning. In Practise it has counted 103 pushes a minute and says elbows straight; the line on the arm is the elbow angle it measured. In Emergency the joints are teal while posture is fine and turn amber when it needs fixing, with Call 112 always on screen. All you need is a phone and a home-made manikin: ours is a T-shirt over a padded bundle. It counts the push rate, elbow angle and pauses, checks shoulders over hands, and says one correction at a time. One camera can't measure depth, force or exact hand placement, and when it loses the arms it shows a dash instead of guessing. Coaching clips exist in ten languages; English is checked and the other nine are machine-translated and still need native-speaker review. Everything runs on the phone with no internet.");
   }
 
+  // 3b FLOW ON THE RHYTHM LINE (v4 slide 7)
+  {
+    const s = slide("Camera to voice, every step runs on the phone", "Solution");
+    img(s, "assets2/pipeline.png", M, 3.45, CW, 0.8, "A steady push rhythm line joining the five stages");
+    const nodes = [["Camera", "phone held side-on"], ["Pose", "MediaPipe finds the joints"], ["Rhythm", "rate, elbow angle, pauses"], ["Rules", "one correction at a time"], ["Voice", "recorded clips and a 110/min beat"]];
+    const step = CW / 5;
+    nodes.forEach(([h, d], i) => {
+      const x = M + i * step;
+      s.addShape(pres.shapes.OVAL, { x: x + 0.02, y: 3.73, w: 0.24, h: 0.24, fill: { color: TEAL }, line: { color: TEAL, width: 0 } });
+      tb(s, h, { x, y: 2.75, w: step - 0.2, h: 0.55, fontFace: HEAD, fontSize: 28, bold: true });
+      tb(s, d, { x, y: 4.45, w: step - 0.35, h: 0.8, fontSize: 18, color: MUTED });
+    });
+    tb(s, "No internet permission. Nothing is uploaded.", { x: M, y: 5.75, w: CW, h: 0.45, fontSize: 22, bold: true, color: TEAL });
+    tb(s, "Kotlin · Jetpack Compose · CameraX · MediaPipe Pose · sherpa-onnx (Whisper, IndicConformer) · Silero VAD", { x: M, y: 6.3, w: 6.0, h: 0.45, fontFace: MONO, fontSize: 12, color: MUTED });
+    s.addNotes("Five stages, all on the phone. CameraX frames go to MediaPipe's pose model. Our Kotlin code turns the wrist's up-and-down motion into a rate, and works out elbow angle and pauses. Rules wait for a steady reading, then play one pre-recorded clip over a 110 a minute beat. The app has no internet permission.");
+  }
+
   // 4 PROOF
   pres.addSection({ title: "Evidence" });
   {
@@ -241,7 +258,7 @@ async function line(file, w, h, segs) {
     s.addNotes("Demo: Practise on the manikin so you can hear the corrections, then Emergency: one tap, beat and spoken steps, Call 112 opens the dialer and we cancel it. Manikin only, never a person; no real call is placed. Next we count it by hand to get a real accuracy number, then put it in front of certified CPR trainers, then pilot it in colleges. This is not a medical device: in a real emergency, call 112 or 108 and start CPR.");
   }
 
-  const out = "CPR_Coach_Anvathon_2026_v6.pptx";
+  const out = process.env.DECK_OUT || "CPR_Coach_Anvathon_2026_v6.pptx";
   await pres.writeFile({ fileName: out });
   await applyTheme(out, THEME);
   console.log("wrote", out);
