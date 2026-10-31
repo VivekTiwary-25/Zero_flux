@@ -60,5 +60,17 @@ Settings as in `RATE_BENT_LEAN.md`. "Peak pace" is wrist peaks over the previous
 
 It shows more rates, but more of them are wrong, and the app would give more false Faster and Slower lines. It also reports a stop later and spikes on restart. The condition was that pace counting stays correct on all recordings, and it does not, so it stays out.
 
+## Small fix tried: no Keep going while a posture issue shows: not applied
+Replay on recordings 10-16, build ee682a1 plus this one rule.
+
+| Recording | Keep going now | With the rule |
+|---|---|---|
+| 16, false cue | 103.25 s | Still 103.25 s: no posture issue shows at that moment |
+| 14, real rest | 28.00 s | **Lost**, in both modes; two replay tests fail |
+| 12 | 33.25, 44.75 s (Emergency 44.75 s) | 33.25 s (Emergency none) |
+| 10, 11, 13, 15 | Unchanged | Unchanged |
+
+It misses the false cue and loses a real one, because a resting rescuer's arms can read as a posture issue. The pause on screen is the rate estimator's result, so changing it would change pace counting. Both stay as they are. For the demo: lean with steady, firm pushing, keep it short, and keep the phone still.
+
 ## Coach voice on this recording
 With the elbow patch, the elbow line is due 3.25 s after the bend starts, in replay; it was 4.25 s. The tester heard about 3 s on the phone.
