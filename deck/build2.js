@@ -269,7 +269,7 @@ async function line(file, w, h, segs) {
 
   // 7 SPLIT COMPARISON
   {
-    const s = slide("Practise teaches you; Emergency starts the beat in one tap", "Solution", "INK", { shot: "kneel", veil: 30 });
+    const s = slide("Practise teaches you; Emergency starts the beat in one tap", "Solution", "INK", { shot: "kneel", veil: 40 });
     hair(s, 6.67, 2.5, 0, 4.0);
     const cols = [
       { x: M, c: TEAL, k: "PRACTISE", h: "Learn with feedback", pts: ["2-minute session, live readings", "One spoken correction at a time", "Scorecard shows how long rate was really measured"], tag: "Ran on a phone: 7 real recordings" },
