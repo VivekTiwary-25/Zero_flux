@@ -131,6 +131,12 @@ fun ScorecardScreen(
                             label = strings.get("score_pauses"),
                             value = card.pauses.toString(),
                         )
+                        Text(
+                            text = strings.get("score_rate_measured")
+                                .format(card.measuredSeconds, card.sessionSeconds),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = CoachColors.TextSecondary,
+                        )
                     }
                 }
                 Spacer(Modifier.height(16.dp))

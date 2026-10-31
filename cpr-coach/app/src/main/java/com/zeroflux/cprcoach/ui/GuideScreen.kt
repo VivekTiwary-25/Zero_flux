@@ -96,7 +96,7 @@ fun GuideScreen(
                 BackArrowIcon(tint = CoachColors.TextSecondary)
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = strings.get("walk_back"),
+                    text = strings.get("cprGuideBack"),
                     color = CoachColors.TextSecondary,
                     style = MaterialTheme.typography.titleSmall,
                 )
@@ -230,7 +230,7 @@ fun GuideScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFE9EEE4))
+                            .background(CoachColors.TextPrimary)
                             .padding(horizontal = 14.dp, vertical = 12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -244,7 +244,7 @@ fun GuideScreen(
                         )
                         Text(
                             text = visualDesc,
-                            color = Color(0xFF68756D),
+                            color = CoachColors.Charcoal,
                             fontSize = 13.sp,
                             lineHeight = 18.sp,
                             textAlign = TextAlign.Center,
@@ -297,7 +297,7 @@ fun GuideScreen(
             }
         }
 
-        // Pager buttons: Previous / Next / Open emergency guidance
+        // Pager buttons: Previous / Next / Open Emergency
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -318,6 +318,7 @@ fun GuideScreen(
                     ) {
                         BackArrowIcon(tint = CoachColors.TextPrimary)
                         Text(
+                            modifier = Modifier.weight(1f, fill = false),
                             text = strings.get("cprGuidePrevious"),
                             color = CoachColors.TextPrimary,
                             style = MaterialTheme.typography.titleSmall,
@@ -336,7 +337,7 @@ fun GuideScreen(
                         .weight(1f)
                         .heightIn(min = 48.dp),
                     color = CoachColors.Teal,
-                    colorDeep = Color(0xFF159E91),
+                    colorDeep = CoachColors.Charcoal,
                     shape = RoundedCornerShape(14.dp),
                     elevation = 6.dp,
                 ) {
@@ -345,6 +346,7 @@ fun GuideScreen(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Text(
+                            modifier = Modifier.weight(1f, fill = false),
                             text = strings.get("cprGuideNext"),
                             color = CoachColors.Navy,
                             style = MaterialTheme.typography.titleSmall,
@@ -371,6 +373,7 @@ fun GuideScreen(
                     ) {
                         PhoneIcon(tint = CoachColors.Navy)
                         Text(
+                            modifier = Modifier.weight(1f, fill = false),
                             text = strings.get("cprGuideEmergency"),
                             color = CoachColors.Navy,
                             style = MaterialTheme.typography.titleSmall,

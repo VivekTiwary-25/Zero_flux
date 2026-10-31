@@ -39,6 +39,7 @@ import com.zeroflux.cprcoach.engine.TrackingState
 import com.zeroflux.cprcoach.ui.AppLanguage
 import com.zeroflux.cprcoach.ui.CoachColors
 import com.zeroflux.cprcoach.ui.BeatSource
+import com.zeroflux.cprcoach.ui.EmergencyContact
 import com.zeroflux.cprcoach.ui.EmergencyScreen
 import com.zeroflux.cprcoach.ui.EmergencySummaryScreen
 import com.zeroflux.cprcoach.ui.EmergencyUiState
@@ -66,6 +67,18 @@ internal fun openEmergencyDialer(context: Context) {
     }
 }
 
+private val OPENING_HAND_KEYS = setOf("em_call", "em_hands", "em_push")
+
+internal fun openEmergencyContactDialer(context: Context, number: String) {
+    val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number, null))
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+        context.startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+        // A device without a dialer must still be able to provide CPR coaching.
+    }
+}
+
 /**
  * One tap starts everything. Audio starts first and depends on nothing else: the camera only ever
  * adds corrections on top, and if it never works the rescuer still has the beat and the steps.
@@ -77,6 +90,7 @@ fun EmergencyHost(
     cameraPermission: Boolean,
     onCameraVisibleChange: (Boolean) -> Unit,
     onHome: () -> Unit,
+    emergencyContact: EmergencyContact?,
 ) {
     val context = LocalContext.current
     val appContext = context.applicationContext
@@ -207,12 +221,22 @@ fun EmergencyHost(
     EmergencyScreen(
         state = EmergencyUiState(
             // The opening steps say what to do first, until the camera has something better.
-            instructionKey = if (word == EmergencyWord.KEEP_PUSHING) playback.stepKey ?: word.key else word.key,
+            instructionKey = when (playback.spokenKey) {
+                "em_aed" -> "em_reminder_aed"
+                "em_continue" -> "em_reminder_continue"
+                "em_swap" -> "em_reminder_swap"
+                else -> if (word == EmergencyWord.KEEP_PUSHING) playback.stepKey ?: word.key else word.key
+            },
             elapsedSeconds = elapsedSeconds,
             showSetupHint = needsSetup && cameraPermission,
+            showHandPlacement = playback.showHandPlacement,
         ),
         micState = micState,
         onCall112 = { openEmergencyDialer(context) },
+        onContact = emergencyContact?.let { contact ->
+            { openEmergencyContactDialer(context, contact.phoneNumber) }
+        },
+        contactName = emergencyContact?.name,
         onStopConfirmed = finish,
         onMicTap = { voice.toggle() },
         beat = beat,
@@ -315,6 +339,14 @@ private class EmergencyCapture {
 private class EmergencyPlayback(private val context: Context) {
     var stepKey by mutableStateOf<String?>(null)
         private set
+    var spokenKey by mutableStateOf<String?>(null)
+        private set
+
+    /** The hand picture shows only for the scripted opening clips, never a filler that reuses em_push. */
+    val showHandPlacement: Boolean
+        get() = !fillerPlaying && spokenKey in OPENING_HAND_KEYS
+    private var fillerPlaying by mutableStateOf(false)
+    private var nextIsFiller = false
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val sequence = EmergencySequence()
@@ -368,6 +400,7 @@ private class EmergencyPlayback(private val context: Context) {
     fun speak(key: String) {
         if (!voiceIdle) return
         pending.add(key)
+        nextIsFiller = true
         playNext()
     }
 
@@ -375,11 +408,16 @@ private class EmergencyPlayback(private val context: Context) {
         if (stopped || !compressing || currentKey != null) return
         if (pending.isEmpty()) {
             stepKey = null
+            spokenKey = null
+            fillerPlaying = false
             return
         }
         val audio = engine ?: return
         val key = pending.removeFirst()
         currentKey = key
+        spokenKey = key
+        fillerPlaying = nextIsFiller
+        nextIsFiller = false
         stepKey = when (key) {
             "em_call" -> "em_step_call"
             "em_hands" -> "em_step_hands"
@@ -391,6 +429,8 @@ private class EmergencyPlayback(private val context: Context) {
             // Always defer to main: even a synchronous/missing-clip callback cannot recurse.
             mainHandler.post {
                 if (!stopped && token == generation && engine === audio) {
+                    spokenKey = null
+                    fillerPlaying = false
                     lastClipEndedMs = SystemClock.uptimeMillis()
                     currentKey = null
                     playNext()
@@ -405,6 +445,8 @@ private class EmergencyPlayback(private val context: Context) {
         stopped = true
         generation += 1
         pending.clear()
+        spokenKey = null
+        fillerPlaying = false
         currentKey = null
         compressing = false
         engine?.stopClips()
