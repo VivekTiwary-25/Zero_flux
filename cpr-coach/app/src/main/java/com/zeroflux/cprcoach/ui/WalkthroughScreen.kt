@@ -44,6 +44,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun WalkthroughScreen(
@@ -101,6 +103,19 @@ fun WalkthroughScreen(
                                 fontSize = 18.sp,
                                 lineHeight = 26.sp,
                                 textAlign = TextAlign.Center,
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                strings.get("adult_cpr_only"),
+                                color = CoachColors.TextSecondary,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center,
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Image(
+                                painter = painterResource(com.zeroflux.cprcoach.R.drawable.hand_placement),
+                                contentDescription = null,
+                                modifier = Modifier.size(width = 240.dp, height = 140.dp),
                             )
                         }
                         1 -> {

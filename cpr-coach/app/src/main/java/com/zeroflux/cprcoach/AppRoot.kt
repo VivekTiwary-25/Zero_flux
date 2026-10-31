@@ -1,9 +1,13 @@
 package com.zeroflux.cprcoach
 
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.provider.ContactsContract
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -22,17 +26,44 @@ import com.zeroflux.cprcoach.audio.MetronomeService
 import com.zeroflux.cprcoach.ui.AppSettings
 import com.zeroflux.cprcoach.ui.AssetStrings
 import com.zeroflux.cprcoach.ui.CoachTheme
+import com.zeroflux.cprcoach.ui.EmergencyContact
+import com.zeroflux.cprcoach.ui.EmergencyContactDialog
 import com.zeroflux.cprcoach.ui.HomeScreen
 import com.zeroflux.cprcoach.ui.DashboardScreen
+import com.zeroflux.cprcoach.ui.GuideScreen
 import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.voice.VoiceCommand
 
-private enum class Screen { HOME, PRACTISE, EMERGENCY, DASHBOARD }
+private enum class Screen { HOME, PRACTISE, EMERGENCY, GUIDE, DASHBOARD }
 
 @Composable
 fun AppRoot(activity: Activity, cameraPermission: Boolean) {
     val settings = remember { AppSettings(activity.applicationContext) }
     var language by remember { mutableStateOf(settings.language) }
+    var emergencyContact by remember { mutableStateOf(settings.emergencyContact) }
+    var showContactDialog by remember { mutableStateOf(false) }
+    val contactPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val uri = result.data?.data ?: return@rememberLauncherForActivityResult
+        val contact = activity.contentResolver.query(
+            uri,
+            arrayOf(
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ),
+            null,
+            null,
+            null,
+        )?.use { cursor ->
+            if (!cursor.moveToFirst()) return@use null
+            val name = cursor.getString(0)?.trim().orEmpty()
+            val number = cursor.getString(1)?.trim().orEmpty()
+            if (name.isNotBlank() && number.isNotBlank()) EmergencyContact(name, number) else null
+        }
+        if (contact != null) {
+            settings.emergencyContact = contact
+            emergencyContact = contact
+        }
+    }
     var screen by remember { mutableStateOf(Screen.HOME) }
     var cameraVisible by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -108,6 +139,7 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         micState = micState,
                         onEmergency = { screen = Screen.EMERGENCY },
                         onPractise = { screen = Screen.PRACTISE },
+                        onGuide = { screen = Screen.GUIDE },
                         onLanguageChosen = { chosen ->
                             voice.setLanguage(chosen)
                             settings.language = chosen
@@ -115,7 +147,32 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         },
                         onMicTap = voice::toggle,
                         onDashboard = { screen = Screen.DASHBOARD },
+                        emergencyContactName = emergencyContact?.name,
+                        onEmergencyContact = { showContactDialog = true },
                     )
+                    if (showContactDialog) {
+                        EmergencyContactDialog(
+                            current = emergencyContact,
+                            onSave = { typed ->
+                                // A blank name or number clears the contact (the store enforces it).
+                                settings.emergencyContact = typed
+                                emergencyContact = settings.emergencyContact
+                                showContactDialog = false
+                            },
+                            onPick = {
+                                showContactDialog = false
+                                contactPicker.launch(
+                                    Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI),
+                                )
+                            },
+                            onClear = {
+                                settings.emergencyContact = null
+                                emergencyContact = null
+                                showContactDialog = false
+                            },
+                            onDismiss = { showContactDialog = false },
+                        )
+                    }
                 }
                 Screen.PRACTISE -> Box(Modifier.fillMaxSize().safeDrawingPadding()) {
                     PractiseHost(
@@ -135,6 +192,13 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         cameraPermission = cameraPermission,
                         onCameraVisibleChange = { cameraVisible = it },
                         onHome = goHome,
+                        emergencyContact = emergencyContact,
+                    )
+                }
+                Screen.GUIDE -> Box(Modifier.fillMaxSize()) {
+                    GuideScreen(
+                        onBack = goHome,
+                        onEmergency = { screen = Screen.EMERGENCY },
                     )
                 }
                 Screen.DASHBOARD -> Box(Modifier.fillMaxSize().safeDrawingPadding()) {

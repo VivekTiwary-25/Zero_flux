@@ -1,6 +1,7 @@
 package com.zeroflux.cprcoach.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -48,6 +50,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -58,6 +62,8 @@ data class EmergencyUiState(
     val instructionKey: String,
     val elapsedSeconds: Int,
     val showSetupHint: Boolean,
+    /** True only while one of the opening clips (call, hands, push) is playing. */
+    val showHandPlacement: Boolean = false,
 )
 
 private val FrameWidth = 10.dp
@@ -78,6 +84,8 @@ fun EmergencyScreen(
     state: EmergencyUiState,
     micState: MicState,
     onCall112: () -> Unit,
+    onContact: (() -> Unit)?,
+    contactName: String?,
     onStopConfirmed: () -> Unit,
     onMicTap: () -> Unit,
     modifier: Modifier = Modifier,
@@ -124,7 +132,16 @@ fun EmergencyScreen(
                 }
 
                 // Leave the top of the picture clear: the holder has to see the rescuer's arms.
-                Spacer(Modifier.weight(0.8f))
+                // The hand picture lives in this same empty slot, so it takes no extra space and moves nothing.
+                Box(Modifier.weight(0.8f).fillMaxWidth()) {
+                    if (state.showHandPlacement) {
+                        Image(
+                            painter = painterResource(com.zeroflux.cprcoach.R.drawable.hand_placement),
+                            contentDescription = strings.get("em_hand_placement_desc"),
+                            modifier = Modifier.align(Alignment.CenterStart).sizeIn(maxHeight = 76.dp).fillMaxHeight(),
+                        )
+                    }
+                }
                 Box(
                     modifier = Modifier
                         .weight(1.2f)
@@ -169,25 +186,54 @@ fun EmergencyScreen(
                 modifier = Modifier.width(ControlsWidth).fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                ClayButton(
-                    onClick = onCall112,
-                    modifier = Modifier.weight(1f).fillMaxWidth().heightIn(min = 96.dp),
-                    color = CoachColors.Coral,
-                    colorDeep = CoachColors.CoralDeep,
-                    shape = RoundedCornerShape(28.dp),
-                    elevation = 16.dp,
-                    pressedScale = 0.96f,
+                Row(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    BasicText(
-                        strings.get("em_call"),
-                        modifier = Modifier.fillMaxSize().padding(8.dp).wrapContentHeight(Alignment.CenterVertically),
-                        style = TextStyle(
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                        ),
-                        autoSize = TextAutoSize.StepBased(minFontSize = 14.sp, maxFontSize = 26.sp, stepSize = 1.sp),
-                    )
+                    ClayButton(
+                        onClick = onCall112,
+                        modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 96.dp),
+                        color = CoachColors.Coral,
+                        colorDeep = CoachColors.CoralDeep,
+                        shape = RoundedCornerShape(28.dp),
+                        elevation = 16.dp,
+                        pressedScale = 0.96f,
+                    ) {
+                        BasicText(
+                            strings.get("em_call"),
+                            modifier = Modifier.fillMaxSize().padding(8.dp).wrapContentHeight(Alignment.CenterVertically),
+                            style = TextStyle(
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                            ),
+                            autoSize = TextAutoSize.StepBased(minFontSize = 14.sp, maxFontSize = 26.sp, stepSize = 1.sp),
+                        )
+                    }
+                    if (contactName != null && onContact != null) {
+                        ClayButton(
+                            onClick = onContact,
+                            modifier = Modifier.width(68.dp).fillMaxHeight(),
+                            color = CoachColors.Charcoal,
+                            colorDeep = CoachColors.Charcoal,
+                            shape = RoundedCornerShape(20.dp),
+                            elevation = 4.dp,
+                            pressedScale = 0.96f,
+                        ) {
+                            BasicText(
+                                contactName,
+                                modifier = Modifier.fillMaxSize().padding(4.dp).wrapContentHeight(Alignment.CenterVertically),
+                                style = TextStyle(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.SemiBold,
+                                    textAlign = TextAlign.Center,
+                                ),
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                                autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = 16.sp, stepSize = 1.sp),
+                            )
+                        }
+                    }
                 }
                 // The mic sits above the button so the label gets the whole column width.
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {

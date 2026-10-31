@@ -87,6 +87,7 @@ fun DashboardScreen(
 
     val stats = sessions?.let { DashboardLogic.stats(it, System.currentTimeMillis(), zone) }
     val missing = strings.get("dash_missing")
+    val allTags = sessions?.let { DashboardLogic.tagsOf(it) }.orEmpty()
     Column(
         modifier
             .fillMaxSize()
@@ -114,7 +115,7 @@ fun DashboardScreen(
             sessions!!.isEmpty() -> EmptyHistory()
             stats != null -> {
                 Spacer(Modifier.height(16.dp))
-                OverviewGrid(stats, missing)
+                OverviewGrid(stats, missing, allTags)
                 Text(
                     text = strings.get("dash_basis"),
                     modifier = Modifier.padding(top = 8.dp),
@@ -150,7 +151,7 @@ fun DashboardScreen(
                     zone = zone,
                 )
                 Spacer(Modifier.height(12.dp))
-                SummaryRow(stats, missing, onOpen = { selectedId = it })
+                SummaryRow(stats, missing, allTags, onOpen = { selectedId = it })
                 Spacer(Modifier.height(18.dp))
                 Text(
                     text = strings.get("dash_sessions"),
@@ -203,10 +204,11 @@ private fun EmptyHistory() {
 }
 
 @Composable
-private fun OverviewGrid(stats: DashboardStats, missing: String) {
+private fun OverviewGrid(stats: DashboardStats, missing: String, tags: Set<SessionTag>) {
     val strings = LocalStrings.current
     GlassPanel(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(28.dp)) {
         Column(Modifier.fillMaxWidth().padding(8.dp)) {
+            Box(Modifier.padding(horizontal = 12.dp)) { TagRow(tags) }
             Row(Modifier.fillMaxWidth()) {
                 StatTile(strings.get("dash_sessions"), stats.sessionCount.toString(), Modifier.weight(1f))
                 StatTile(strings.get("dash_time"), formatElapsed(stats.totalSeconds), Modifier.weight(1f))
@@ -279,7 +281,7 @@ private fun DonutCard(stats: DashboardStats, missing: String) {
                         val parts = listOf(
                             split.tooSlowSeconds to CoachColors.Amber,
                             split.inRangeSeconds to CoachColors.Teal,
-                            split.tooFastSeconds to CoachColors.Amber.copy(alpha = 0.45f),
+                            split.tooFastSeconds to CoachColors.Coral,
                         )
                         for ((seconds, color) in parts) {
                             if (seconds <= 0) continue
@@ -294,7 +296,7 @@ private fun DonutCard(stats: DashboardStats, missing: String) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 LegendLine(CoachColors.Amber, strings.get("dash_too_slow"), split?.tooSlowSeconds, missing)
                 LegendLine(CoachColors.Teal, strings.get("dash_band"), split?.inRangeSeconds, missing)
-                LegendLine(CoachColors.Amber.copy(alpha = 0.45f), strings.get("dash_too_fast"), split?.tooFastSeconds, missing)
+                LegendLine(CoachColors.Coral, strings.get("dash_too_fast"), split?.tooFastSeconds, missing)
             }
         }
         if (stats.leftOutOfDonut > 0) {
@@ -348,7 +350,7 @@ private fun BarCard(points: List<ChartPoint>, missing: String, zone: ZoneId) {
 }
 
 @Composable
-private fun SummaryRow(stats: DashboardStats, missing: String, onOpen: (String) -> Unit) {
+private fun SummaryRow(stats: DashboardStats, missing: String, tags: Set<SessionTag>, onOpen: (String) -> Unit) {
     val strings = LocalStrings.current
     val best = stats.best
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -383,6 +385,7 @@ private fun SummaryRow(stats: DashboardStats, missing: String, onOpen: (String) 
                         color = CoachColors.TextPrimary,
                         style = MaterialTheme.typography.headlineSmall,
                     )
+                    TagRow(tags)
                 }
             }
             GlassPanel(modifier = Modifier.weight(1f), shape = RoundedCornerShape(20.dp)) {
@@ -393,6 +396,7 @@ private fun SummaryRow(stats: DashboardStats, missing: String, onOpen: (String) 
                         color = CoachColors.TextPrimary,
                         style = MaterialTheme.typography.headlineSmall,
                     )
+                    TagRow(tags)
                 }
             }
         }
@@ -493,7 +497,7 @@ private fun SessionDetail(
             if (!DashboardLogic.hasMeasuredRates(record)) {
                 Text(strings.get("dash_no_rates"), color = CoachColors.TextSecondary)
             } else {
-                RateTimeline(record.rates.orEmpty(), missing)
+                RateTimeline(record.rates.orEmpty(), strings.get("dash_rate_chart"))
                 Text(
                     text = strings.get("dash_gaps"),
                     modifier = Modifier.padding(top = 8.dp),
@@ -559,7 +563,7 @@ private fun SeriesChart(
 ) {
     val measurer = rememberTextMeasurer()
     val labelStyle = TextStyle(color = CoachColors.TextSecondary, fontSize = 10.sp)
-    if (points.isEmpty()) {
+    if (points.none { it.value != null }) {
         Text(missing, color = CoachColors.TextSecondary)
         return
     }
@@ -613,7 +617,7 @@ private fun SeriesChart(
 private fun BarChart(points: List<ChartPoint>, missing: String, zone: ZoneId) {
     val measurer = rememberTextMeasurer()
     val labelStyle = TextStyle(color = CoachColors.TextSecondary, fontSize = 10.sp)
-    if (points.isEmpty()) {
+    if (points.none { it.value != null }) {
         Text(missing, color = CoachColors.TextSecondary)
         return
     }
@@ -642,14 +646,14 @@ private fun BarChart(points: List<ChartPoint>, missing: String, zone: ZoneId) {
 }
 
 @Composable
-private fun RateTimeline(rates: List<Int?>, missing: String) {
+private fun RateTimeline(rates: List<Int?>, chartLabel: String) {
     val measurer = rememberTextMeasurer()
     val labelStyle = TextStyle(color = CoachColors.TextSecondary, fontSize = 10.sp)
     Canvas(
         Modifier
             .fillMaxWidth()
             .height(160.dp)
-            .semantics { contentDescription = missing },
+            .semantics { contentDescription = chartLabel },
     ) {
         val known = rates.mapNotNull { it }
         val minY = minOf(60, known.minOrNull() ?: 60)
@@ -678,6 +682,10 @@ private fun RateTimeline(rates: List<Int?>, missing: String) {
                     penDown = true
                 } else {
                     path.lineTo(x, y)
+                }
+                // A lone sample between gaps has no line to carry it, so it gets a dot.
+                if (rates.getOrNull(index - 1) == null && rates.getOrNull(index + 1) == null) {
+                    drawCircle(CoachColors.Teal, 3.dp.toPx(), Offset(x, y))
                 }
             }
         }

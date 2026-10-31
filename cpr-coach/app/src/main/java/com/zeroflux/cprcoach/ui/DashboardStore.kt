@@ -27,6 +27,7 @@ internal object DashboardStore {
      * Called only after the scorecard is already showing. A failure is ignored by the caller.
      * Writes off the caller's thread; this method itself does the file work.
      */
+    @Synchronized
     fun savePractise(
         context: Context,
         id: String,
@@ -54,6 +55,7 @@ internal object DashboardStore {
         writeStore(context, existing.copy(sessions = existing.sessions + record))
     }
 
+    @Synchronized
     fun clearSamples(context: Context) {
         writeStore(context, DashboardLogic.clearSamples(readStore(context)))
     }

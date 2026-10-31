@@ -49,6 +49,7 @@ import com.zeroflux.cprcoach.ui.PushLog
 import com.zeroflux.cprcoach.ui.CameraUiState
 import com.zeroflux.cprcoach.ui.CoachColors
 import com.zeroflux.cprcoach.ui.LocalStrings
+import com.zeroflux.cprcoach.engine.TrackingState
 import com.zeroflux.cprcoach.ui.DashboardStore
 import com.zeroflux.cprcoach.ui.MicButton
 import com.zeroflux.cprcoach.ui.PoseCameraView
@@ -59,6 +60,9 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Dispatchers
@@ -93,37 +97,12 @@ fun PractiseHost(
     // VoiceRouter applies the current language to the attached audio engine.
     var walkthrough by remember { mutableStateOf(!settings.walkthroughSeen) }
     var scorecard by remember { mutableStateOf<Scorecard?>(null) }
-    var pendingSave by remember { mutableStateOf<PendingSave?>(null) }
-    val saveOnce = remember { AtomicBoolean(false) }
     val cameraVisible = !walkthrough && scorecard == null
     val reportCameraVisible by rememberUpdatedState(onCameraVisibleChange)
 
     DisposableEffect(cameraVisible) {
         reportCameraVisible(cameraVisible)
         onDispose { reportCameraVisible(false) }
-    }
-
-    LaunchedEffect(pendingSave) {
-        val request = pendingSave ?: return@LaunchedEffect
-        val app = context.applicationContext
-        withContext(Dispatchers.IO) {
-            try {
-                DashboardStore.savePractise(
-                    context = app,
-                    id = request.id,
-                    endedAtEpochMs = request.endedAtEpochMs,
-                    durationSeconds = request.card.sessionSeconds,
-                    averageRate = request.card.averageRate,
-                    secondsInRange = request.card.secondsInRange,
-                    elbowsStraightPercent = request.card.elbowsStraightPercent,
-                    pauses = request.card.pauses,
-                    measuredSeconds = request.card.measuredSeconds,
-                    rates = request.rates,
-                )
-            } catch (_: Exception) {
-                // A failed save must not affect the scorecard already on screen.
-            }
-        }
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -167,13 +146,34 @@ fun PractiseHost(
                     },
                     onScorecard = { card, rates ->
                         scorecard = card
-                        if (replayName == null && saveOnce.compareAndSet(false, true)) {
-                            pendingSave = PendingSave(
+                        // PractiseCamera reports each session once, so one call is one session to save.
+                        if (replayName == null) {
+                            val request = PendingSave(
                                 id = "p-${System.currentTimeMillis()}",
                                 endedAtEpochMs = System.currentTimeMillis(),
                                 card = card,
                                 rates = rates,
                             )
+                            val app = context.applicationContext
+                            // Own scope: leaving the screen right after the scorecard must not cancel the save.
+                            saveScope.launch {
+                                try {
+                                    DashboardStore.savePractise(
+                                        context = app,
+                                        id = request.id,
+                                        endedAtEpochMs = request.endedAtEpochMs,
+                                        durationSeconds = request.card.sessionSeconds,
+                                        averageRate = request.card.averageRate,
+                                        secondsInRange = request.card.secondsInRange,
+                                        elbowsStraightPercent = request.card.elbowsStraightPercent,
+                                        pauses = request.card.pauses,
+                                        measuredSeconds = request.card.measuredSeconds,
+                                        rates = request.rates,
+                                    )
+                                } catch (_: Exception) {
+                                    // A failed save must not affect the session or the scorecard.
+                                }
+                            }
                         }
                     },
                     onHome = onHome,
@@ -228,7 +228,9 @@ private fun PractiseCamera(
     // The skeleton keeps the last plausible arm instead of flickering onto a wrong wrist.
     val overlayGuard = remember { LandmarkGuard() }
     val pushLog = remember { PushLog() }
+    // Remembered here, so a new PractiseCamera (a new session) starts with its own rates and flag.
     val rateSamples = remember { mutableListOf<Int?>() }
+    val reported = remember { AtomicBoolean(false) }
     val beat = remember { BeatSource.of { audio.engine } }
     // Real and replayed frames both pass here, so the dots always come from detected pushes.
     val feedFrame: (PoseFrame) -> Unit = remember(session, pushLog) {
@@ -255,7 +257,8 @@ private fun PractiseCamera(
         while (isActive) {
             val live = session.ui.value as? CameraUiState.Live
             if (live != null) {
-                rateSamples.add(live.ratePerMinute)
+                // A paused second has no rate: missing, not zero.
+                rateSamples.add(if (live.isPaused || live.tracking != TrackingState.BEATING) null else live.ratePerMinute)
                 delay(1_000)
             } else {
                 delay(250)
@@ -276,7 +279,9 @@ private fun PractiseCamera(
         capture.stopTrace()
         audio.engine?.stopClips()
         val card = session.scorecard.value
-        if (card != null) showScorecard(card, rateSamples.toList()) else goHome()
+        if (card != null) {
+            if (reported.compareAndSet(false, true)) showScorecard(card, rateSamples.toList())
+        } else goHome()
     }
     val startCurrent by rememberUpdatedState(startSession)
     val stopCurrent by rememberUpdatedState(stopSession)
@@ -354,7 +359,7 @@ private fun PractiseCamera(
             val card = session.scorecard.value
             if (card != null) {
                 capture.stopTrace()
-                showScorecard(card, rateSamples.toList())
+                if (reported.compareAndSet(false, true)) showScorecard(card, rateSamples.toList())
                 break
             }
             delay(250L)
@@ -439,6 +444,8 @@ private class PractiseCapture {
         pose?.close()
     }
 }
+
+private val saveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 private data class PendingSave(
     val id: String,

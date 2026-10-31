@@ -54,6 +54,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,9 +64,12 @@ fun HomeScreen(
     micState: MicState,
     onEmergency: () -> Unit,
     onPractise: () -> Unit,
+    onGuide: () -> Unit,
     onLanguageChosen: (AppLanguage) -> Unit,
     onMicTap: () -> Unit,
     onDashboard: () -> Unit,
+    emergencyContactName: String?,
+    onEmergencyContact: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val strings = LocalStrings.current
@@ -170,14 +174,24 @@ fun HomeScreen(
                     elevation = 16.dp,
                     pressedScale = if (motionEnabled) 0.94f else 1f,
                 ) {
-                    Text(
-                        text = strings.get("home_emergency"),
+                    Column(
                         modifier = Modifier.padding(28.dp),
-                        color = CoachColors.Navy,
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = strings.get("home_emergency"),
+                            color = CoachColors.Navy,
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                        )
+                        Text(
+                            text = strings.get("adult_cpr_only"),
+                            color = CoachColors.Navy,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
 
@@ -194,6 +208,43 @@ fun HomeScreen(
                     modifier = Modifier.padding(24.dp),
                     color = CoachColors.TextPrimary,
                     style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            GlassPanel(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .clickable(role = Role.Button, onClick = onEmergencyContact)
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                shape = RoundedCornerShape(18.dp),
+            ) {
+                Text(
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    text = buildString {
+                        append(strings.get("home_emergency_contact"))
+                        if (!emergencyContactName.isNullOrBlank()) append(": $emergencyContactName")
+                    },
+                    color = CoachColors.TextPrimary,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+
+            ClayButton(
+                onClick = onGuide,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .semantics { role = Role.Button },
+                pressedScale = if (motionEnabled) 0.97f else 1f,
+            ) {
+                Text(
+                    text = strings.get("cprGuideNav"),
+                    modifier = Modifier.padding(14.dp),
+                    color = CoachColors.TextPrimary,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                 )

@@ -33,6 +33,10 @@ class DashboardSamplesTest {
         assertTrue(parsed.any { it.tag == SessionTag.TESTING })
         assertTrue(parsed.any { it.tag == SessionTag.SYNTHETIC })
         assertTrue(parsed.any { it.rates == null })
+        val synthetic = parsed.filter { it.tag == SessionTag.SYNTHETIC }
+        assertTrue(synthetic.any { it.elbowsStraightPercent == null })
+        assertTrue(synthetic.flatMap { it.rates.orEmpty() }.filterNotNull().all { it in 92..128 })
+        assertTrue(synthetic.flatMap { it.rates.orEmpty() }.filterNotNull().distinct().size > 10)
     }
 
     private fun testingSessions(): List<PractiseRecord> =
@@ -108,55 +112,40 @@ private fun syntheticSessions(): List<PractiseRecord> = listOf(
         id = "synthetic-1",
         daysAgo = 0,
         minuteOfDay = 9 * 60 + 40,
-        averageRate = 112,
-        secondsInRange = 90,
         elbows = 88,
         pauses = 1,
-        measured = 108,
         spans = listOf(8 to null, 70 to 112, 10 to 96, 20 to 118, 12 to null),
     ),
     synthetic(
         id = "synthetic-2",
         daysAgo = 1,
         minuteOfDay = 18 * 60 + 10,
-        averageRate = 104,
-        secondsInRange = 62,
         elbows = 91,
         pauses = 0,
-        measured = 80,
-        spans = listOf(6 to null, 50 to 104, 8 to 130, 16 to 108, 10 to null),
+        spans = listOf(6 to null, 50 to 104, 8 to 126, 16 to 108, 10 to null),
     ),
     synthetic(
         id = "synthetic-3",
         daysAgo = 2,
         minuteOfDay = 7 * 60 + 50,
-        averageRate = 118,
-        secondsInRange = 48,
-        elbows = 76,
+        elbows = null,
         pauses = 2,
-        measured = 70,
         spans = listOf(12 to 125, 40 to 116, 8 to 98, 15 to null),
     ),
     synthetic(
         id = "synthetic-4",
         daysAgo = 3,
         minuteOfDay = 20 * 60 + 5,
-        averageRate = 96,
-        secondsInRange = 18,
         elbows = 70,
         pauses = 3,
-        measured = 55,
-        spans = listOf(20 to 92, 15 to 108, 10 to 88, 15 to null),
+        spans = listOf(20 to 94, 15 to 108, 10 to 93, 15 to null),
     ),
     synthetic(
         id = "synthetic-5",
         daysAgo = 5,
         minuteOfDay = 11 * 60 + 20,
-        averageRate = 109,
-        secondsInRange = 80,
         elbows = 94,
         pauses = 1,
-        measured = 95,
         spans = listOf(10 to null, 80 to 109, 10 to 114),
     ),
     PractiseRecord(
@@ -170,23 +159,17 @@ private fun syntheticSessions(): List<PractiseRecord> = listOf(
         id = "synthetic-7",
         daysAgo = 10,
         minuteOfDay = 13 * 60 + 30,
-        averageRate = 121,
-        secondsInRange = 36,
-        elbows = 80,
+        elbows = null,
         pauses = 1,
-        measured = 90,
         spans = listOf(20 to 128, 30 to 112, 16 to 124, 24 to 108),
     ),
     synthetic(
         id = "synthetic-8",
         daysAgo = 13,
         minuteOfDay = 8 * 60 + 15,
-        averageRate = 111,
-        secondsInRange = 44,
         elbows = 85,
         pauses = 0,
-        measured = 60,
-        spans = listOf(16 to null, 40 to 111, 8 to 140, 16 to 106),
+        spans = listOf(16 to null, 40 to 111, 8 to 127, 16 to 106),
     ),
 )
 
@@ -194,25 +177,31 @@ private fun synthetic(
     id: String,
     daysAgo: Int,
     minuteOfDay: Int,
-    averageRate: Int,
-    secondsInRange: Int,
-    elbows: Int,
+    elbows: Int?,
     pauses: Int,
-    measured: Int,
     spans: List<Pair<Int, Int?>>,
 ): PractiseRecord {
-    val rates = spans.flatMap { (seconds, rate) -> List(seconds) { rate } }
+    // Each span is a steady pace with a small fixed wobble, so every run gives the same file.
+    var second = 0
+    val rates = spans.flatMap { (seconds, rate) ->
+        List(seconds) {
+            val wobble = (second * 7 + id.length * 3) % 9 - 4
+            second++
+            rate?.let { (it + wobble).coerceIn(92, 128) }
+        }
+    }
+    val known = rates.filterNotNull()
     return PractiseRecord(
         id = id,
         tag = SessionTag.SYNTHETIC,
         daysAgo = daysAgo,
         minuteOfDay = minuteOfDay,
         durationSeconds = rates.size,
-        averageRate = averageRate,
-        secondsInRange = secondsInRange,
+        averageRate = known.takeIf { it.isNotEmpty() }?.average()?.let { Math.round(it).toInt() },
+        secondsInRange = known.count { it in DashboardLogic.TARGET_MIN..DashboardLogic.TARGET_MAX },
         elbowsStraightPercent = elbows,
         pauses = pauses,
-        measuredSeconds = measured,
+        measuredSeconds = known.size,
         rates = rates,
     )
 }
