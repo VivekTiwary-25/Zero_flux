@@ -52,6 +52,14 @@ class EmergencyCoachTest {
         assertEquals(EmergencyWord.FASTER, slow.word)
     }
 
+    @Test fun `posture word clears as soon as posture is good`() {
+        val coach = EmergencyCoach(0)
+        coach.feed(0, 1_500) { beating(it, 110, bent = true) }
+        assertEquals(EmergencyWord.STRAIGHTEN, coach.word)
+        coach.update(beating(1_750, 110))
+        assertEquals(EmergencyWord.GOOD, coach.word)
+    }
+
     @Test fun `a word that flickers does not show`() {
         val coach = EmergencyCoach(0)
         coach.feed(0, 2_500) { beating(it, 110) }

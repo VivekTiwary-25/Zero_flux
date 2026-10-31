@@ -61,7 +61,7 @@ class EngineFuzzTest {
             val policy = CoachPolicy()
             val metrics = SessionMetrics()
             var t = 1_000L
-            var lastPhrase: Phrase? = null
+            var lastSpokenMs: Long? = null
             repeat(300) {
                 t = messyTime(r, t)
                 analyzer.addFrame(messySample(r, t))
@@ -71,9 +71,9 @@ class EngineFuzzTest {
                 metrics.add(reading)
                 val phrase = policy.update(reading)
                 if (phrase != null) {
-                    assertNotEquals("seed $seed repeated $phrase", lastPhrase, phrase)
+                    lastSpokenMs?.let { assertTrue("seed $seed broke cooldown", reading.timeMs - it >= 6_000) }
                     assertNotEquals("seed $seed spoke while LOST", TrackingState.LOST, reading.tracking)
-                    lastPhrase = phrase
+                    lastSpokenMs = reading.timeMs
                 }
                 checkCard(seed, metrics.scorecard())
             }
@@ -88,7 +88,7 @@ class EngineFuzzTest {
             val policy = CoachPolicy()
             val metrics = SessionMetrics()
             var t = 0L
-            var lastPhrase: Phrase? = null
+            var lastSpokenMs: Long? = null
             repeat(400) {
                 t = if (r.nextInt(30) == 0) t - r.nextInt(10_000) else t + r.nextInt(4000)
                 val state = TrackingState.values()[r.nextInt(4)]
@@ -99,9 +99,9 @@ class EngineFuzzTest {
                 metrics.add(reading)
                 val phrase = policy.update(reading)
                 if (phrase != null) {
-                    assertNotEquals("seed $seed repeated $phrase", lastPhrase, phrase)
+                    lastSpokenMs?.let { assertTrue("seed $seed broke cooldown", t - it >= 6_000) }
                     assertNotEquals("seed $seed spoke while LOST", TrackingState.LOST, state)
-                    lastPhrase = phrase
+                    lastSpokenMs = t
                 }
                 val c = metrics.scorecard()
                 assertTrue("seed $seed $c", c.sessionSeconds >= 0 && c.measuredSeconds >= 0 && c.secondsInRange >= 0)
@@ -173,7 +173,7 @@ class EngineFuzzTest {
             val analyzer = LiveAnalyzer()
             val metrics = SessionMetrics()
             val policy = CoachPolicy()
-            var lastPhrase: Phrase? = null
+            var lastSpokenMs: Long? = null
             for ((i, s) in samples.withIndex()) {
                 analyzer.addFrame(s)
                 val reading = analyzer.read(s.timeMs)
@@ -182,8 +182,8 @@ class EngineFuzzTest {
                 metrics.add(reading)
                 val p = policy.update(reading)
                 if (p != null) {
-                    assertNotEquals(lastPhrase, p)
-                    lastPhrase = p
+                    lastSpokenMs?.let { assertTrue(s.timeMs - it >= 6_000) }
+                    lastSpokenMs = s.timeMs
                 }
             }
             checkCard(pauseAt.toLong(), metrics.scorecard())

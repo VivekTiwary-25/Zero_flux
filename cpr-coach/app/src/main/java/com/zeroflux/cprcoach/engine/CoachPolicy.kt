@@ -20,6 +20,7 @@ class CoachPolicy(
     private val postureSteadyMs: Long = 2_000,
     private val cooldownMs: Long = 6_000,
     private val praiseEveryMs: Long = 20_000,
+    private val elbowSteadyMs: Long = 1_000,
 ) {
     // When each currently wanted phrase started to be wanted without a break; a phrase that drops out loses its time.
     private val wantedSinceMs = java.util.EnumMap<Phrase, Long>(Phrase::class.java)
@@ -76,8 +77,9 @@ class CoachPolicy(
     // Recovering from a pause should be acknowledged quickly, everything else must be steady.
     private fun requiredMs(phrase: Phrase) = when (phrase) {
         Phrase.KEEP_GOING -> 0
-        // The posture judge already waits about a second, so the voice follows the amber screen promptly.
-        Phrase.ELBOWS_STRAIGHT, Phrase.SHOULDERS_OVER_HANDS -> postureSteadyMs
+        // Elbows are already sustained by the judge; keep the shoulder voice timing unchanged.
+        Phrase.ELBOWS_STRAIGHT -> elbowSteadyMs
+        Phrase.SHOULDERS_OVER_HANDS -> postureSteadyMs
         else -> steadyMs
     }
 

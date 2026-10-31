@@ -65,9 +65,10 @@ class CoachAndMetricsTest {
 
     @Test
     fun `posture is corrected while pushing without a locked rate`() {
-        val spoken = run(CoachPolicy(), 0, 5_000) { pushing(it, PostureIssue.ELBOWS_BENT) }
-        assertEquals(Phrase.ELBOWS_STRAIGHT, spoken.single().second)
-        assertTrue(spoken.single().first in 2_000..2_500)
+        val policy = CoachPolicy()
+        assertNull(policy.update(pushing(0, PostureIssue.ELBOWS_BENT)))
+        assertNull(policy.update(pushing(999, PostureIssue.ELBOWS_BENT)))
+        assertEquals(Phrase.ELBOWS_STRAIGHT, policy.update(pushing(1_000, PostureIssue.ELBOWS_BENT)))
     }
 
     @Test
@@ -78,8 +79,10 @@ class CoachAndMetricsTest {
 
     @Test
     fun `leaning says shoulders over hands`() {
-        val spoken = run(CoachPolicy(), 0, 5_000) { pushing(it, PostureIssue.SHOULDERS_NOT_OVER_HANDS) }
-        assertEquals(Phrase.SHOULDERS_OVER_HANDS, spoken.single().second)
+        val policy = CoachPolicy()
+        assertNull(policy.update(pushing(0, PostureIssue.SHOULDERS_NOT_OVER_HANDS)))
+        assertNull(policy.update(pushing(1_999, PostureIssue.SHOULDERS_NOT_OVER_HANDS)))
+        assertEquals(Phrase.SHOULDERS_OVER_HANDS, policy.update(pushing(2_000, PostureIssue.SHOULDERS_NOT_OVER_HANDS)))
     }
 
     @Test
@@ -92,6 +95,36 @@ class CoachAndMetricsTest {
             pushing(t, PostureIssue.SHOULDERS_NOT_OVER_HANDS, TrackingState.BEATING).copy(ratePerMinute = 90)
         }
         assertEquals(Phrase.PUSH_FASTER, rate.first().second)
+    }
+
+    @Test
+    fun `an interrupted elbow correction must become steady again`() {
+        val policy = CoachPolicy()
+        assertNull(policy.update(pushing(0, PostureIssue.ELBOWS_BENT)))
+        assertNull(policy.update(pushing(999, null)))
+        assertNull(policy.update(pushing(1_500, PostureIssue.ELBOWS_BENT)))
+        assertNull(policy.update(pushing(2_499, PostureIssue.ELBOWS_BENT)))
+        assertEquals(Phrase.ELBOWS_STRAIGHT, policy.update(pushing(2_500, PostureIssue.ELBOWS_BENT)))
+    }
+
+    @Test
+    fun `a short moving bent stretch is silent when movement stops`() {
+        val policy = CoachPolicy()
+        val moving = run(policy, 0, 1_000) { pushing(it, PostureIssue.ELBOWS_BENT) }
+        val stopped = run(policy, 1_000, 2_000) {
+            pushing(it, PostureIssue.ELBOWS_BENT).copy(moving = false)
+        }
+        assertTrue(moving.isEmpty())
+        assertTrue(stopped.isEmpty())
+    }
+
+    @Test
+    fun `faster elbow correction still waits for the six second cooldown`() {
+        val policy = CoachPolicy()
+        val rate = run(policy, 0, 4_000) { beating(it, 90) }
+        val elbow = run(policy, 4_000, 9_250) { pushing(it, PostureIssue.ELBOWS_BENT) }
+        assertEquals(listOf(3_000L to Phrase.PUSH_FASTER), rate)
+        assertEquals(listOf(9_000L to Phrase.ELBOWS_STRAIGHT), elbow)
     }
 
     @Test
@@ -284,10 +317,8 @@ class CoachAndMetricsTest {
     @Test
     fun `elbows straight is coached again after fixing posture and bending again`() {
         val policy = CoachPolicy()
-        assertEquals(
-            listOf(2_000L to Phrase.ELBOWS_STRAIGHT),
-            run(policy, 0, 2_250) { pushing(it, PostureIssue.ELBOWS_BENT) },
-        )
+        val first = run(policy, 0, 2_250) { pushing(it, PostureIssue.ELBOWS_BENT) }
+        assertEquals(listOf(Phrase.ELBOWS_STRAIGHT), first.map { it.second })
         run(policy, 2_250, 10_000) { pushing(it, null) }
         val relapsed = run(policy, 10_000, 20_000) { pushing(it, PostureIssue.ELBOWS_BENT) }
         assertEquals(listOf(Phrase.ELBOWS_STRAIGHT), relapsed.map { it.second })

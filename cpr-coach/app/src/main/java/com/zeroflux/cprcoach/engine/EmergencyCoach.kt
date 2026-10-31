@@ -72,8 +72,11 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
             candidate = wanted
             candidateSinceMs = reading.timeMs
         }
-        // An instruction must not outlive the reading behind it, but a new one has to hold or it flickers.
-        if (wanted == EmergencyWord.KEEP_PUSHING || reading.timeMs - candidateSinceMs >= holdMs) word = wanted
+        // A posture word ends with the judge's issue; new corrections still need the hold.
+        val leavingPosture = word.isPostureWord() && !wanted.isPostureWord()
+        if (wanted == EmergencyWord.KEEP_PUSHING || leavingPosture || reading.timeMs - candidateSinceMs >= holdMs) {
+            word = wanted
+        }
     }
 
     /** Ask only when no voice clip is playing or waiting, so a correction is never stale when heard. */
@@ -124,6 +127,11 @@ class EmergencyCoach(private val startMs: Long, private val holdMs: Long = 1_000
         reading.posture == null && reading.elbowsBent == true -> EmergencyWord.STRAIGHTEN
         else -> null
     }
+
+    private fun EmergencyWord.isPostureWord() =
+        this == EmergencyWord.STRAIGHTEN_ARMS ||
+            this == EmergencyWord.SHOULDERS_OVER_HANDS ||
+            this == EmergencyWord.STRAIGHTEN
 
     private companion object {
         const val MIN_MEASURED_SECONDS = 10
