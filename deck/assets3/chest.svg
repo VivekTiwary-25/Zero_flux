@@ -1,0 +1,11 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'>
+    <g fill='none' stroke-linecap='round' stroke-linejoin='round'>
+      <path d='M210 50 L210 95 Q160 100 110 120 Q85 135 85 170 L95 330 Q100 400 150 440 M350 440 Q400 400 405 330 L415 170 Q415 135 390 120 Q340 100 290 95 L290 50' stroke='#EEF2F5' stroke-width='3'/>
+      <path d='M235 170 Q180 172 125 195 M265 170 Q320 172 375 195 M235 210 Q180 214 120 240 M265 210 Q320 214 380 240' stroke='#93A3B5' stroke-width='3' stroke-opacity='0.5'/>
+      <path d='M250 120 L250 225' stroke='#EEF2F5' stroke-width='3'/>
+      <path d='M250 225 L250 330' stroke='#2DD4BF' stroke-width='4'/>
+      <path d='M232 225 L268 225' stroke='#2DD4BF' stroke-width='3'/>
+      <ellipse cx='250' cy='277' rx='44' ry='54' stroke='#EEF2F5' stroke-width='4'/>
+      <ellipse cx='255' cy='270' rx='39' ry='49' stroke='#EEF2F5' stroke-width='3' stroke-opacity='0.7'/>
+    </g>
+  </svg>

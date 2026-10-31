@@ -63,6 +63,42 @@ async function line(file, w, h, segs) {
     { type: "wave", len: 770, color: HEX.teal, period: 66, amp: 0.8 },
   ]);
 
+  // ---------- v3 line art: flat strokes, teal/white on transparent, no faces ----------
+  // Side view, kneeling rescuer: shoulder, elbow and wrist stacked on one vertical (x = 400).
+  // The teal dots are the three joints the app tracks.
+  const rescuerSvg = (guide) => `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'>
+    <g fill='none' stroke-linecap='round' stroke-linejoin='round'>
+      <path d='M40 362 L560 362' stroke='#${HEX.muted}' stroke-width='3' stroke-opacity='0.6'/>
+      <rect x='335' y='322' width='180' height='40' stroke='#${HEX.text}' stroke-width='3'/>
+      ${guide ? `<path d='M400 92 L400 352' stroke='#${HEX.text}' stroke-width='3' stroke-dasharray='6 10' stroke-opacity='0.55'/>` : ""}
+      <path d='M192 344 L210 356 L325 352 L285 235 L400 160' stroke='#${HEX.text}' stroke-width='4'/>
+      <path d='M400 160 L414 147' stroke='#${HEX.text}' stroke-width='4'/>
+      <circle cx='426' cy='126' r='24' stroke='#${HEX.text}' stroke-width='4'/>
+      <path d='M400 160 L400 316' stroke='#${HEX.teal}' stroke-width='4'/>
+      <path d='M384 318 L420 318 M388 311 L414 311' stroke='#${HEX.teal}' stroke-width='4'/>
+    </g>
+    <g fill='#${HEX.teal}'><circle cx='400' cy='160' r='7'/><circle cx='400' cy='238' r='7'/><circle cx='400' cy='308' r='7'/></g>
+  </svg>`;
+  // Top view of a chest: breastbone from the notch (y 120) to its lower tip (y 330); the lower half (y 225-330) is teal
+  // and the stacked hands are centred on it (y 277).
+  const chestSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'>
+    <g fill='none' stroke-linecap='round' stroke-linejoin='round'>
+      <path d='M210 50 L210 95 Q160 100 110 120 Q85 135 85 170 L95 330 Q100 400 150 440 M350 440 Q400 400 405 330 L415 170 Q415 135 390 120 Q340 100 290 95 L290 50' stroke='#${HEX.text}' stroke-width='3'/>
+      <path d='M235 170 Q180 172 125 195 M265 170 Q320 172 375 195 M235 210 Q180 214 120 240 M265 210 Q320 214 380 240' stroke='#${HEX.muted}' stroke-width='3' stroke-opacity='0.5'/>
+      <path d='M250 120 L250 225' stroke='#${HEX.text}' stroke-width='3'/>
+      <path d='M250 225 L250 330' stroke='#${HEX.teal}' stroke-width='4'/>
+      <path d='M232 225 L268 225' stroke='#${HEX.teal}' stroke-width='3'/>
+      <ellipse cx='250' cy='277' rx='44' ry='54' stroke='#${HEX.text}' stroke-width='4'/>
+      <ellipse cx='255' cy='270' rx='39' ry='49' stroke='#${HEX.text}' stroke-width='3' stroke-opacity='0.7'/>
+    </g>
+  </svg>`;
+  const art = (file, svg) => sharp(Buffer.from(svg), { density: 144 }).png().toFile(file); // 2x
+  fs.mkdirSync("assets3", { recursive: true });
+  for (const [f, s] of [["rescuer.svg", rescuerSvg(false)], ["rescuer_guide.svg", rescuerSvg(true)], ["chest.svg", chestSvg]]) {
+    fs.writeFileSync(`assets3/${f}`, s);
+    await art(`assets3/${f.replace(".svg", ".png")}`, s);
+  }
+
   const pres = new pptxgen();
   pres.layout = "LAYOUT_WIDE";
   pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
@@ -98,6 +134,8 @@ async function line(file, w, h, segs) {
     tb(s, "A phone that watches your CPR and tells you what to fix.", { x: M, y: 2.75, w: 7.6, h: 1.0, fontSize: 28, color: MUTED });
     img(s, "assets2/cover.png", 0, 4.1, W, 1.0, "A flat line that turns into a steady push rhythm");
     tb(s, "110 /min", { x: 11.1, y: 3.65, w: 1.5, h: 0.35, fontFace: MONO, fontSize: 16, bold: true, color: TEAL, align: "right" });
+    img(s, "assets3/rescuer.png", 9.0, 1.05, 3.6, 2.4, "Line drawing: a rescuer kneels and pushes a cushion with straight arms, shoulders over hands");
+    tb(s, "Illustration", { x: 9.0, y: 3.5, w: 1.8, h: 0.3, fontSize: 12, color: MUTED, italic: true });
     tb(s, [{ text: "Team Zero Flux", options: { bold: true, color: TEXT } }, { text: "   Vivek · Pratham · Prabal · Moksh", options: { color: MUTED } }], { x: M, y: 6.3, w: 7.0, h: 0.4, fontSize: 18 });
     tb(s, "ANVATHON 2026 · OPEN INNOVATION", { x: 8.0, y: 6.34, w: 4.58, h: 0.35, fontFace: MONO, fontSize: 14, color: MUTED, align: "right" });
     s.addNotes("CPR Coach is a phone app that watches you do CPR on a practice cushion and tells you, out loud, what to fix. The line on screen is the push rhythm the app reads: flat when nobody is pushing, steady at 110 a minute when someone is.");
@@ -118,6 +156,37 @@ async function line(file, w, h, segs) {
     tb(s, "0 /min", { x: 11.3, y: 5.02, w: 1.28, h: 0.35, fontFace: MONO, fontSize: 16, bold: true, color: MUTED, align: "right" });
     source(s, "Bhat et al., Indian Heart Journal, 2021 · one tertiary hospital, 205 patients");
     s.addNotes("In a 2021 Indian Heart Journal study of 205 cardiac-arrest patients at one hospital, fewer than one in ten got CPR from anyone nearby, and 1.4 percent left hospital alive. The American Heart Association says immediate CPR can double or triple the chance of survival. The flat line is what most of these patients got.");
+  }
+
+  // 2b CHART: native, editable
+  {
+    const s = slide("India's bystander CPR rate is a quarter of the US rate", "Problem");
+    s.addChart(pres.charts.BAR, [
+      { name: "India", labels: ["Bystander CPR", "Survival to hospital discharge"], values: [9.8, 1.4] },
+      { name: "US", labels: ["Bystander CPR", "Survival to hospital discharge"], values: [40.2, 9.1] },
+    ], {
+      x: M - 0.1, y: 2.0, w: 8.4, h: 4.4, barDir: "col", barGrouping: "clustered", barGapWidthPct: 70, barOverlapPct: -10,
+      chartColors: [HEX.amber, HEX.muted], showLegend: false,
+      showValue: true, showSerName: true, dataLabelFormatCode: '0.0"%"', dataLabelPosition: "outEnd",
+      dataLabelFontFace: "+mn-lt", dataLabelFontSize: 18, dataLabelColor: HEX.text, dataLabelFontBold: true,
+      catAxisLabelFontFace: "+mn-lt", catAxisLabelFontSize: 18, catAxisLabelColor: HEX.text, catAxisLineShow: true, catAxisLineColor: HEX.hair,
+      valAxisHidden: true, valAxisMaxVal: 46, valAxisMinVal: 0, valGridLine: { style: "none" }, catGridLine: { style: "none" },
+      plotArea: { fill: { color: HEX.ink } }, fill: HEX.ink,
+      altText: "Bar chart. Bystander CPR: India 9.8%, US 40.2%. Survival to hospital discharge: India 1.4%, US 9.1%.",
+    });
+    tb(s, [
+      { text: "India", options: { bold: true, color: AMBER, breakLine: true } }, { text: "one hospital, 205 patients", options: { color: MUTED, breakLine: true } },
+      { text: " ", options: { breakLine: true, fontSize: 8 } },
+      { text: "US", options: { bold: true, color: MUTED, breakLine: true } }, { text: "national registry", options: { color: MUTED, breakLine: true } },
+      { text: " ", options: { breakLine: true, fontSize: 10 } },
+      { text: "Fewer people nearby start CPR, and fewer patients leave hospital alive.", options: { color: TEXT } },
+    ], { x: 9.35, y: 2.4, w: 3.23, h: 3.4, fontSize: 20 });
+    tb(s, [
+      { text: "India: Bhat et al., Indian Heart Journal 2021, one tertiary hospital, 205 patients.", options: { breakLine: true } },
+      { text: "The two sources are not measured the same way: one hospital vs a national registry." },
+    ], { x: M, y: 6.55, w: 5.4, h: 0.65, fontSize: 12, color: MUTED });
+    tb(s, "US: American Heart Association, Heart Disease and Stroke Statistics 2023. Bystander CPR: over 356,000 out-of-hospital arrests. Survival: 2021 US data, EMS-treated adult non-traumatic arrests.", { x: 6.45, y: 6.55, w: 5.4, h: 0.65, fontSize: 12, color: MUTED });
+    s.addNotes("Put next to the US numbers, the gap is stark: in the Indian hospital study under 10 percent got bystander CPR, against about 40 percent in the American Heart Association's US figures, and survival to discharge was 1.4 percent against 9.1. These two sources aren't measured the same way, one hospital against a national registry, so read it as a gap, not a precise ratio.");
   }
 
   // 3 TWO NUMBERS
@@ -199,6 +268,25 @@ async function line(file, w, h, segs) {
     s.addNotes("Practise is where you learn: a two-minute session with live readings, one spoken correction at a time, and a scorecard that says how long the rate was actually measured. Emergency is one tap: the beat and spoken steps start immediately and never wait for the camera. Call 112 only opens the dialer, and there's an AED reminder at 30 seconds.");
   }
 
+  // 7b LABELLED ILLUSTRATION: technique
+  {
+    const s = slide("Push on the lower breastbone, arms straight, shoulders over hands", "Solution");
+    img(s, "assets3/chest.png", M, 2.3, 3.4, 3.4, "Line drawing, top view of a chest: two stacked hands on the lower half of the breastbone");
+    img(s, "assets3/rescuer_guide.png", 4.3, 2.75, 4.5, 3.0, "Line drawing, side view: arms straight, shoulders directly over hands, on a vertical guide line");
+    tb(s, "1", { x: 2.85, y: 4.0, w: 0.4, h: 0.4, fontFace: MONO, fontSize: 20, bold: true, color: TEAL });
+    tb(s, "2", { x: 7.45, y: 4.33, w: 0.4, h: 0.4, fontFace: MONO, fontSize: 20, bold: true, color: TEAL });
+    tb(s, "3", { x: 6.95, y: 3.55, w: 0.3, h: 0.4, fontFace: MONO, fontSize: 20, bold: true, color: TEAL });
+    tb(s, "Illustration", { x: M, y: 5.95, w: 3, h: 0.3, fontSize: 12, color: MUTED, italic: true });
+    const pts = [["1", "Hands on the lower half of the breastbone", "One camera can't see this"], ["2", "Arms straight", "The app measures this"], ["3", "Shoulders over hands", "Not measured by the app"]];
+    pts.forEach(([n, h, d], i) => {
+      const y = 2.3 + i * 1.45;
+      tb(s, n, { x: 9.2, y: y + 0.02, w: 0.4, h: 0.35, fontFace: MONO, fontSize: 18, bold: true, color: TEAL });
+      tb(s, h, { x: 9.6, y, w: 3.0, h: 0.62, fontSize: 18, bold: true });
+      tb(s, d, { x: 9.6, y: y + 0.68, w: 3.0, h: 0.4, fontSize: 18, color: i === 1 ? TEAL : MUTED });
+    });
+    s.addNotes("These are the three things a CPR trainer checks: hands on the lower half of the breastbone, arms straight, and shoulders directly over the hands. The app measures elbow bend, so it can tell you to straighten your arms. One camera can't see exact hand placement, and it doesn't measure shoulder position, so those are still on you.");
+  }
+
   // 8 TYPOGRAPHIC
   {
     const s = slide("It coaches in ten Indian languages, each in its own script", "Solution");
@@ -273,7 +361,7 @@ async function line(file, w, h, segs) {
     s.addNotes("Next, we count it by hand to get a real accuracy number, then put it in front of certified CPR trainers, then pilot it with NSS units, first-aid clubs and schools. The code and our test records are open: scan the code. And the line that matters most: this is not a medical device. In a real emergency, call 112 or 108 and start CPR. Thank you.");
   }
 
-  const out = "CPR_Coach_Anvathon_2026_v2.pptx";
+  const out = "CPR_Coach_Anvathon_2026_v3.pptx";
   await pres.writeFile({ fileName: out });
   await applyTheme(out, THEME);
   console.log("wrote", out);
