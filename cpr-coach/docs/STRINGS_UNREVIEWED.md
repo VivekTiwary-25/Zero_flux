@@ -56,3 +56,12 @@ Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copi
 | cprStep5Visual | P | P | T | T | T | T | T | T | T |
 
 A second machine checked these and corrections were applied to ta, te, ml, mr, gu, bn and or; no person has checked them. The same review also flags hi and kn step 1 "lightly" for the shoulder tap, the hi "sternum" word, and kn "join" for interlock, left as the prototype has them.
+
+## Task 8: AED explained
+
+| Key | hi | kn | ta | te | ml | mr | gu | bn | or |
+|---|---|---|---|---|---|---|---|---|---|
+| em_reminder_aed | T | T | T | T | T | T | T | T | T |
+| cprStep2Title | T | T | T | T | T | T | T | T | T |
+| aed_explanation | T | T | T | T | T | T | T | T | T |
+| aed_close | T | T | T | T | T | T | T | T | T |
