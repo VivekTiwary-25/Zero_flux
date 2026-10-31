@@ -43,20 +43,28 @@ object CoachColors {
     val TextSecondary = Color(0xFF9FB0C8)
 
     /** Emergency only. */
-    val Coral = Color(0xFFFF5A5F)
-    val CoralDeep = Color(0xFFD63B45)
+    val Coral = Color(0xFFDC2626)
+    val CoralDeep = Color(0xFFB91C1C)
 
-    /** Good, in range, ready. */
-    val Teal = Color(0xFFAAC8B1)
+    /** Good, in range, ready. Vivid in either phone theme. */
+    val Teal = Color(0xFF2DD4BF)
 
-    /** Needs correcting. */
-    val Amber = Color(0xFFDFC18A)
+    /** Needs correcting. Vivid in either phone theme. */
+    val Amber = Color(0xFFFBBF24)
 
     val GlassFill = Color(0x1FFFFFFF)
     val GlassEdge = Color(0x33FFFFFF)
 
     /** Camera overlays are flat and translucent, with no blur, so pose tracking stays smooth. */
     val CameraScrim = Color(0x99101827)
+
+    /** Big camera word. Good and corrections stay vivid in either phone theme. */
+    fun wordColor(instructionKey: String): Color = when (instructionKey) {
+        "em_word_good" -> Teal
+        "em_word_faster", "em_word_slower", "em_word_straighten",
+        "posture_straighten_arms", "posture_shoulders_over_hands" -> Amber
+        else -> Color.White
+    }
 }
 
 /** Prototype tokens; legacy field names keep screen changes small during parallel merges. */
@@ -87,8 +95,8 @@ private val LightColors = CoachPalette(
 private val DarkColors = CoachPalette(
     Navy = Color(0xFF171E1B), Charcoal = Color(0xFF202A24), Raised = Color(0xFF202A24),
     TextPrimary = Color(0xFFE3EAE4), TextSecondary = Color(0xFFA3AFA6),
-    Coral = Color(0xFFDFA494), CoralDeep = Color(0xFFA95543),
-    Teal = Color(0xFFAAC8B1), Amber = Color(0xFFDFC18A),
+    Coral = Color(0xFFDC2626), CoralDeep = Color(0xFFDC2626),
+    Teal = Color(0xFF2DD4BF), Amber = Color(0xFFFBBF24),
     GlassFill = Color(0xFF202A24), GlassEdge = Color(0xFF39473F), OnAction = Color(0xFF142219),
 )
 val LocalCoachColors = staticCompositionLocalOf { LightColors }
@@ -116,7 +124,7 @@ private val LightScheme = lightColorScheme(
     inversePrimary = DarkColors.Teal,
 )
 private val DarkScheme = darkColorScheme(
-    primary = Color(0xFFA3BCA7), onPrimary = DarkColors.OnAction,
+    primary = DarkColors.Teal, onPrimary = DarkColors.OnAction,
     primaryContainer = Color(0xFF293B30), onPrimaryContainer = DarkColors.Teal,
     secondary = DarkColors.Teal, onSecondary = DarkColors.OnAction,
     secondaryContainer = Color(0xFF293B30), onSecondaryContainer = DarkColors.Teal,
@@ -131,7 +139,7 @@ private val DarkScheme = darkColorScheme(
     surfaceContainer = DarkColors.Charcoal, surfaceContainerHigh = DarkColors.Charcoal,
     surfaceContainerHighest = Color(0xFF2B382E),
     outline = DarkColors.TextSecondary, outlineVariant = DarkColors.GlassEdge,
-    error = DarkColors.Coral, onError = DarkColors.Navy,
+    error = DarkColors.Coral, onError = Color.White,
     errorContainer = Color(0xFF3D2C27), onErrorContainer = DarkColors.Coral,
     inverseSurface = LightColors.Charcoal, inverseOnSurface = LightColors.TextPrimary,
     inversePrimary = LightColors.Teal,
