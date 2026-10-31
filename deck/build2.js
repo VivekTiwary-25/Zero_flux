@@ -124,18 +124,34 @@ async function line(file, w, h, segs) {
   const tb = (s, text, o) => s.addText(text, { isTextBox: true, margin: 0, valign: "top", fontSize: 20, color: TEXT, ...o });
   const img = (s, path, x, y, w, h, alt = "") => s.addImage({ path, x, y, w, h, altText: alt });
   const hair = (s, x, y, w, h) => s.addShape(pres.shapes.LINE, { x, y, w, h, line: { color: HAIR, width: 1 } });
-  const slide = (title, section, master = "INK") => { const s = pres.addSlide({ masterName: master, sectionTitle: section }); s.addText(title, { placeholder: "title" }); return s; };
+  // v4 FILM slides: a full-bleed story still from NARRATIVE.md under an ink veil, so white text stays readable.
+  // A missing still falls back to plain ink, so the deck always builds.
+  const filmPath = (shot) => [`assets3/${shot}.jpg`].find((f) => fs.existsSync(f)); // only approved stills (see IMAGES_CHECK.md)
+  const slide = (title, section, master = "INK", film) => {
+    const s = pres.addSlide({ masterName: master, sectionTitle: section });
+    const still = film && filmPath(film.shot);
+    if (still) {
+      s.background = { path: still };
+      s.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 7.5, fill: { color: HEX.ink, transparency: film.veil }, line: { type: "none" } });
+    }
+    s.addText(title, { placeholder: "title" });
+    if (still) tb(s, "Illustration", { x: 10.9, y: 0.18, w: 1.68, h: 0.3, fontSize: 12, color: MUTED, italic: true, align: "right" });
+    s.film = !!still;
+    return s;
+  };
   const source = (s, t) => tb(s, t, { x: M, y: 6.92, w: 10.6, h: 0.3, fontSize: 12, color: MUTED });
 
   // 1 COVER
   pres.addSection({ title: "Opening" });
   {
-    const s = slide("CPR Coach", "Opening", "INK_BARE");
-    tb(s, "A phone that watches your CPR and tells you what to fix.", { x: M, y: 2.75, w: 7.6, h: 1.0, fontSize: 28, color: MUTED });
+    const s = slide("CPR Coach", "Opening", "INK_BARE", { shot: "platform", veil: 45 });
+    tb(s, "A phone that watches your CPR and tells you what to fix.", { x: M, y: 2.75, w: 7.6, h: 1.0, fontSize: 28, color: s.film ? TEXT : MUTED });
     img(s, "assets2/cover.png", 0, 4.1, W, 1.0, "A flat line that turns into a steady push rhythm");
     tb(s, "110 /min", { x: 11.1, y: 3.65, w: 1.5, h: 0.35, fontFace: MONO, fontSize: 16, bold: true, color: TEAL, align: "right" });
-    img(s, "assets3/rescuer.png", 9.0, 1.05, 3.6, 2.4, "Line drawing: a rescuer kneels and pushes a cushion with straight arms, shoulders over hands");
-    tb(s, "Illustration", { x: 9.0, y: 3.5, w: 1.8, h: 0.3, fontSize: 12, color: MUTED, italic: true });
+    if (!s.film) {
+      img(s, "assets3/rescuer.png", 9.0, 1.05, 3.6, 2.4, "Line drawing: a rescuer kneels and pushes a cushion with straight arms, shoulders over hands");
+      tb(s, "Illustration", { x: 9.0, y: 3.5, w: 1.8, h: 0.3, fontSize: 12, color: MUTED, italic: true });
+    }
     tb(s, [{ text: "Team Zero Flux", options: { bold: true, color: TEXT } }, { text: "   Vivek · Pratham · Prabal · Moksh", options: { color: MUTED } }], { x: M, y: 6.3, w: 7.0, h: 0.4, fontSize: 18 });
     tb(s, "ANVATHON 2026 · OPEN INNOVATION", { x: 8.0, y: 6.34, w: 4.58, h: 0.35, fontFace: MONO, fontSize: 14, color: MUTED, align: "right" });
     s.addNotes("CPR Coach is a phone app that watches you do CPR on a practice cushion and tells you, out loud, what to fix. The line on screen is the push rhythm the app reads: flat when nobody is pushing, steady at 110 a minute when someone is.");
@@ -144,7 +160,7 @@ async function line(file, w, h, segs) {
   // 2 BIG NUMBER
   pres.addSection({ title: "Problem" });
   {
-    const s = slide("Only 1 in 10 people who collapsed got CPR from someone nearby", "Problem");
+    const s = slide("Only 1 in 10 people who collapsed got CPR from someone nearby", "Problem", "INK", { shot: "crowd", veil: 40 });
     tb(s, "9.8%", { x: M - 0.05, y: 2.3, w: 6.0, h: 2.6, fontFace: MONO, fontSize: 150, bold: true, color: AMBER, fit: "none" });
     tb(s, [
       { text: "of 205 cardiac-arrest patients at one Indian hospital got CPR from a bystander.", options: { breakLine: true } },
@@ -253,7 +269,7 @@ async function line(file, w, h, segs) {
 
   // 7 SPLIT COMPARISON
   {
-    const s = slide("Practise teaches you; Emergency starts the beat in one tap", "Solution");
+    const s = slide("Practise teaches you; Emergency starts the beat in one tap", "Solution", "INK", { shot: "kneel", veil: 30 });
     hair(s, 6.67, 2.5, 0, 4.0);
     const cols = [
       { x: M, c: TEAL, k: "PRACTISE", h: "Learn with feedback", pts: ["2-minute session, live readings", "One spoken correction at a time", "Scorecard shows how long rate was really measured"], tag: "Ran on a phone: 7 real recordings" },
@@ -289,7 +305,7 @@ async function line(file, w, h, segs) {
 
   // 8 TYPOGRAPHIC
   {
-    const s = slide("It coaches in ten Indian languages, each in its own script", "Solution");
+    const s = slide("It coaches in ten Indian languages, each in its own script", "Solution", "INK", { shot: "circle", veil: 35 });
     const langs = ["English", "हिन्दी", "ಕನ್ನಡ", "मराठी", "ગુજરાતી", "বাংলা", "ଓଡ଼ିଆ", "தமிழ்", "తెలుగు", "മലയാളം"];
     const cw = CW / 5;
     langs.forEach((l, i) => {
@@ -302,7 +318,7 @@ async function line(file, w, h, segs) {
   // 9 DIVIDER
   pres.addSection({ title: "Demo" });
   {
-    const s = slide("Live demo", "Demo", "INK_BARE");
+    const s = slide("Live demo", "Demo", "INK_BARE", { shot: "phone", veil: 35 });
     tb(s, [
       { text: "Guide", options: { color: TEXT } }, { text: "  →  ", options: { color: MUTED } },
       { text: "Practise", options: { color: TEAL } }, { text: "  →  ", options: { color: MUTED } },
@@ -350,7 +366,7 @@ async function line(file, w, h, segs) {
   // 12 CLOSE WITH ACTION
   pres.addSection({ title: "Close" });
   {
-    const s = slide("Next: count it by hand,\nthen test it with CPR trainers", "Close");
+    const s = slide("Next: count it by hand,\nthen test it with CPR trainers", "Close", "INK", { shot: "dawn", veil: 30 });
     tb(s, "Then pilot it with NSS units, first-aid clubs and schools.", { x: M, y: 2.25, w: 8.0, h: 0.5, fontSize: 24, color: MUTED });
     img(s, "assets2/close.png", M, 3.3, 7.67, 0.73, "A slow amber rhythm corrected into a steady teal rhythm");
     s.addImage({ path: "assets/qr.png", x: 9.85, y: 2.15, w: 2.73, h: 2.73, altText: "QR code linking to github.com/VivekTiwary-25/Zero_flux" });
@@ -361,7 +377,7 @@ async function line(file, w, h, segs) {
     s.addNotes("Next, we count it by hand to get a real accuracy number, then put it in front of certified CPR trainers, then pilot it with NSS units, first-aid clubs and schools. The code and our test records are open: scan the code. And the line that matters most: this is not a medical device. In a real emergency, call 112 or 108 and start CPR. Thank you.");
   }
 
-  const out = "CPR_Coach_Anvathon_2026_v3.pptx";
+  const out = process.env.DECK_OUT || "CPR_Coach_Anvathon_2026_v4.pptx";
   await pres.writeFile({ fileName: out });
   await applyTheme(out, THEME);
   console.log("wrote", out);
