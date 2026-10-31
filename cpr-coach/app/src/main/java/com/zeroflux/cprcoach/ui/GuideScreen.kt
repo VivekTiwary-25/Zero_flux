@@ -28,9 +28,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,6 +61,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.zeroflux.cprcoach.R
 
 /**
@@ -72,6 +77,7 @@ fun GuideScreen(
     modifier: Modifier = Modifier,
 ) {
     var step by rememberSaveable { mutableIntStateOf(0) }
+    var showAedPopup by rememberSaveable { mutableStateOf(false) }
     val strings = LocalStrings.current
     val colors = LocalCoachColors.current
     val motionEnabled = rememberCoachMotionEnabled()
@@ -244,13 +250,38 @@ fun GuideScreen(
                                 .fillMaxWidth()
                                 .height(180.dp),
                         )
-                        Text(
-                            text = visualDesc,
-                            color = Color(0xFF243C32),
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp,
-                            textAlign = TextAlign.Center,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        ) {
+                            Text(
+                                text = visualDesc,
+                                color = Color(0xFF243C32),
+                                fontSize = 13.sp,
+                                lineHeight = 18.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                            if (currentStep == 1) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(colors.Teal.copy(alpha = 0.15f))
+                                        .border(1.dp, colors.Teal.copy(alpha = 0.45f), CircleShape)
+                                        .clickable { showAedPopup = true }
+                                        .semantics { role = Role.Button },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = "?",
+                                        color = colors.Teal,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     Text(
@@ -382,6 +413,56 @@ fun GuideScreen(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                         )
+                    }
+                }
+            }
+        }
+    }
+
+    if (showAedPopup) {
+        Dialog(
+            onDismissRequest = { showAedPopup = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .widthIn(max = 320.dp)
+                    .heightIn(max = 280.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(colors.Raised)
+                    .border(1.dp, colors.GlassEdge, RoundedCornerShape(16.dp))
+                    .padding(16.dp),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        Text(
+                            text = strings.get("aed_explanation"),
+                            color = colors.TextPrimary,
+                            style = MaterialTheme.typography.bodyMedium,
+                            lineHeight = 22.sp,
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(
+                            onClick = { showAedPopup = false },
+                        ) {
+                            Text(
+                                text = strings.get("aed_close"),
+                                color = colors.Teal,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 }
             }

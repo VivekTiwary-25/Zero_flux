@@ -2,7 +2,7 @@
 
 These strings were machine translated and no person has checked them. Have a native speaker review each one before release, especially the CPR guide text.
 
-Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copied from the prototype (prototype/locales), not newly translated. P* = copied from the prototype, then edited by hand to match the English wording (top note, Open Emergency link, Back to Home). English (en.json) is the source and is not listed.
+Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copied from the prototype (prototype/locales), not newly translated. P* = copied from the prototype, then edited by hand to match the English wording (top note, Open Emergency link, Back to Home, step 2 AED caption). English (en.json) is the source and is not listed.
 
 ## Task 3: small additions
 
@@ -41,7 +41,7 @@ Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copi
 | cprStep2Title | P | P | T | T | T | T | T | T | T |
 | cprStep2Body | P | P | T | T | T | T | T | T | T |
 | cprStep2Tip | P | P | T | T | T | T | T | T | T |
-| cprStep2Visual | P | P | T | T | T | T | T | T | T |
+| cprStep2Visual | P* | P* | T | T | T | T | T | T | T |
 | cprStep3Title | P | P | T | T | T | T | T | T | T |
 | cprStep3Body | P | P | T | T | T | T | T | T | T |
 | cprStep3Tip | P | P | T | T | T | T | T | T | T |
@@ -85,3 +85,14 @@ Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copi
 | dash_no_rates | T | T | T | T | T | T | T | T | T |
 | dash_basis | T | T | T | T | T | T | T | T | T |
 A second machine checked these and corrections were applied to ta, te, ml, mr, gu, bn and or; no person has checked them. The same review also flags hi and kn step 1 "lightly" for the shoulder tap, the hi "sternum" word, and kn "join" for interlock, left as the prototype has them.
+
+## Task 8: AED explained
+
+| Key | hi | kn | ta | te | ml | mr | gu | bn | or |
+|---|---|---|---|---|---|---|---|---|---|
+| em_reminder_aed | T | T | T | T | T | T | T | T | T |
+| cprStep2Visual | P* | P* | T | T | T | T | T | T | T |
+| aed_explanation | T | T | T | T | T | T | T | T | T |
+| aed_close | T | T | T | T | T | T | T | T | T |
+
+The step 2 caption (`cprStep2Visual`) explains the first Latin AED with a localized defibrillator term; `cprStep2Title` retains its original guide wording. The (?) remains beside the caption, before the heading. The English `em_reminder_aed` is “Ask someone to bring an AED (the box that can restart the heart)”. All nine translations retain Latin “AED” and describe a box that can make the heart work or beat again, without mentioning shock. All ten reminder values were re-checked against the English for asking someone to bring the AED and its ability to restart the heart, not a guaranteed outcome. The guide caption, popup explanation, and voice clips are unchanged by this wording update. These translations have not been reviewed by a native speaker.
