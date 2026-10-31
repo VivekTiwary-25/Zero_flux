@@ -55,4 +55,33 @@ Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copi
 | cprStep5Tip | P | P | T | T | T | T | T | T | T |
 | cprStep5Visual | P | P | T | T | T | T | T | T | T |
 
+## Task 5: Dashboard
+
+| Key | hi | kn | ta | te | ml | mr | gu | bn | or |
+|---|---|---|---|---|---|---|---|---|---|
+| home_dashboard | T | T | T | T | T | T | T | T | T |
+| dash_intro | T | T | T | T | T | T | T | T | T |
+| dash_sessions | T | T | T | T | T | T | T | T | T |
+| dash_time | T | T | T | T | T | T | T | T | T |
+| dash_too_slow | T | T | T | T | T | T | T | T | T |
+| dash_too_fast | T | T | T | T | T | T | T | T | T |
+| dash_left_out | T | T | T | T | T | T | T | T | T |
+| dash_line | T | T | T | T | T | T | T | T | T |
+| dash_last_6 | T | T | T | T | T | T | T | T | T |
+| dash_best | T | T | T | T | T | T | T | T | T |
+| dash_best_note | T | T | T | T | T | T | T | T | T |
+| dash_streak | T | T | T | T | T | T | T | T | T |
+| dash_about | T | T | T | T | T | T | T | T | T |
+| dash_compressions | T | T | T | T | T | T | T | T | T |
+| dash_clear | T | T | T | T | T | T | T | T | T |
+| dash_tag_testing | T | T | T | T | T | T | T | T | T |
+| dash_tag_synthetic | T | T | T | T | T | T | T | T | T |
+| dash_empty | T | T | T | T | T | T | T | T | T |
+| dash_empty_body | T | T | T | T | T | T | T | T | T |
+| dash_duration | T | T | T | T | T | T | T | T | T |
+| dash_measured | T | T | T | T | T | T | T | T | T |
+| dash_rate_chart | T | T | T | T | T | T | T | T | T |
+| dash_gaps | T | T | T | T | T | T | T | T | T |
+| dash_no_rates | T | T | T | T | T | T | T | T | T |
+| dash_basis | T | T | T | T | T | T | T | T | T |
 A second machine checked these and corrections were applied to ta, te, ml, mr, gu, bn and or; no person has checked them. The same review also flags hi and kn step 1 "lightly" for the shoulder tap, the hi "sternum" word, and kn "join" for interlock, left as the prototype has them.

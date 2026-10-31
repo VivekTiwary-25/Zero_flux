@@ -63,6 +63,20 @@ internal fun HomeNavigationIcon() {
 }
 
 @Composable
+internal fun DashboardNavigationIcon() {
+    val color = LocalContentColor.current
+    Canvas(Modifier.size(24.dp)) {
+        val stroke = 2.dp.toPx()
+        fun point(x: Float, y: Float) = Offset(size.width * x / 24f, size.height * y / 24f)
+        drawLine(color, point(4f, 4f), point(4f, 21f), stroke, StrokeCap.Round)
+        drawLine(color, point(4f, 21f), point(21f, 21f), stroke, StrokeCap.Round)
+        drawLine(color, point(8f, 17f), point(8f, 12f), stroke, StrokeCap.Round)
+        drawLine(color, point(13f, 17f), point(13f, 6f), stroke, StrokeCap.Round)
+        drawLine(color, point(18f, 17f), point(18f, 9f), stroke, StrokeCap.Round)
+    }
+}
+
+@Composable
 internal fun GuideNavigationIcon() {
     val color = LocalContentColor.current
     Canvas(Modifier.size(24.dp)) {

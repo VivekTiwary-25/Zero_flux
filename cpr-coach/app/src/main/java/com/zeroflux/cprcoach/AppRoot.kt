@@ -32,7 +32,9 @@ import com.zeroflux.cprcoach.ui.CoachTheme
 import com.zeroflux.cprcoach.ui.EmergencyContact
 import com.zeroflux.cprcoach.ui.EmergencyContactDialog
 import com.zeroflux.cprcoach.ui.HomeScreen
+import com.zeroflux.cprcoach.ui.DashboardScreen
 import com.zeroflux.cprcoach.ui.GuideNavigationIcon
+import com.zeroflux.cprcoach.ui.DashboardNavigationIcon
 import com.zeroflux.cprcoach.ui.GuideScreen
 import com.zeroflux.cprcoach.ui.HomeNavigationIcon
 import com.zeroflux.cprcoach.ui.MainNavigationBar
@@ -40,7 +42,7 @@ import com.zeroflux.cprcoach.ui.MainNavigationDestination
 import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.voice.VoiceCommand
 
-private enum class Screen { HOME, PRACTISE, EMERGENCY, GUIDE }
+private enum class Screen { HOME, PRACTISE, EMERGENCY, GUIDE, DASHBOARD }
 
 @Composable
 fun AppRoot(activity: Activity, cameraPermission: Boolean) {
@@ -112,7 +114,7 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
     } else {
         ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     }
-    val keepScreenOn = screen != Screen.HOME
+    val keepScreenOn = screen == Screen.PRACTISE || screen == Screen.EMERGENCY
     SideEffect {
         activity.requestedOrientation = orientation
         if (!keepScreenOn) {
@@ -134,18 +136,20 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         labelKey = "score_home",
                         icon = { HomeNavigationIcon() },
                     ) {
-                        DisposableEffect(voice) {
-                            val unbind = voice.bind(
-                                setOf(VoiceCommand.EMERGENCY, VoiceCommand.PRACTISE),
-                                allowLanguages = true,
-                            ) { command ->
-                                screen = when (command) {
-                                    VoiceCommand.EMERGENCY -> Screen.EMERGENCY
-                                    VoiceCommand.PRACTISE -> Screen.PRACTISE
-                                    else -> Screen.HOME
+                        DisposableEffect(voice, showContactDialog) {
+                            val unbind = if (!showContactDialog) {
+                                voice.bind(
+                                    setOf(VoiceCommand.EMERGENCY, VoiceCommand.PRACTISE),
+                                    allowLanguages = true,
+                                ) { command ->
+                                    screen = when (command) {
+                                        VoiceCommand.EMERGENCY -> Screen.EMERGENCY
+                                        VoiceCommand.PRACTISE -> Screen.PRACTISE
+                                        else -> Screen.HOME
+                                    }
                                 }
-                            }
-                            onDispose { unbind() }
+                            } else null
+                            onDispose { unbind?.invoke() }
                         }
                         HomeScreen(
                             language = language,
@@ -163,6 +167,16 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         )
                     },
                     MainNavigationDestination(
+                        destination = Screen.DASHBOARD,
+                        labelKey = "home_dashboard",
+                        icon = { DashboardNavigationIcon() },
+                    ) {
+                        DashboardScreen(
+                            onHome = goHome,
+                            modifier = Modifier.safeDrawingPadding().padding(bottom = 80.dp),
+                        )
+                    },
+                    MainNavigationDestination(
                         destination = Screen.GUIDE,
                         labelKey = "cprGuideNav",
                         icon = { GuideNavigationIcon() },
@@ -173,7 +187,6 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                             modifier = Modifier.padding(bottom = 80.dp),
                         )
                     },
-                    // Add Dashboard here once merged, with its screen, label, icon and content.
                 )
             }
             val mainDestination = mainDestinations.firstOrNull { it.destination == screen }
