@@ -44,16 +44,16 @@ Docs that matter, in `cpr-coach/docs/`: `TAKEOVER_LOG.md`, `PLAN_0810.md`, `DEMO
 - **Merge order still to do:** vivid colours, dashboard, AED, pictures.
 
 ## Current state
-Written 10:53 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 11:10 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
+a99cd63 cpr-coach: merge logo and Practice spelling
+3efcf10 cpr-coach: log
+735cdeb cpr-coach: CPR coach mark on Home, Practice spelling on screen
+999b53b cpr-coach: look-only check list for a729293
+0a37fa7 cpr-coach: handover files and log
 a729293 cpr-coach: merge AED help button colour
 ce92452 cpr-coach: merge Button and panel depth, style only
 e417bf4 cpr-coach: log
-61f6da7 cpr-coach: guide Next button keeps readable text, guide and handover buttons rounder
-a5caace cpr-coach: AED help button readable on the picture panel
-79fe9f1 cpr-coach: raised buttons, frosted and soft panels outside the camera screens
-f2b6141 cpr-coach: handover files and log
-b3e66f7 cpr-coach: merge bigger role pictures
 ```
 Takeover branches on GitHub:
 ```
@@ -63,6 +63,7 @@ origin/takeover/t0-replay-check 3d43225
 origin/takeover/t1-emergency-talk 91785d2
 origin/takeover/t10-depth 61f6da7
 origin/takeover/t10b-colour a5caace
+origin/takeover/t11-brand 735cdeb
 origin/takeover/t2-snappy be51948
 origin/takeover/t3-small-additions 317dbaa
 origin/takeover/t4-cpr-guide b8f054c
@@ -82,7 +83,7 @@ origin/takeover/t9b-docs 71b13b9
 Swarm jobs:
 ```
 RUNNING
-  vivek-pc/antigravity     t261031-1043-d0d3  Depth screenshots  (9m)
+  vivek-pc/antigravity     t261031-1043-d0d3  Depth screenshots  (25m)
 QUEUED
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
 ```
@@ -97,10 +98,10 @@ pratham-pc/muse      opencode-go/muse-spark-~ idle     -                        
 pratham-pc/codex-lu~ openai-codex/gpt-6-luna  idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-sol openai-codex/gpt-6.1-sol idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        62% Nov 05 10:25 (in
-vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        47% 14:11 (in 3h17m)
-vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        47% 14:11 (in 3h17m)
+vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        47% 14:11 (in 3h01m)
+vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        47% 14:11 (in 3h01m)
 vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        35% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ busy     t261031-1043-d0d3 Depth~ 86% 13:13 (in 2h19m)
+vivek-pc/antigravity google-antigravity/gemi~ busy     t261031-1043-d0d3 Depth~ 84% 13:13 (in 2h03m)
 ```
 
 ### Tasks
@@ -143,7 +144,12 @@ The phone stays disconnected: no install and no adb against it until the user sa
 Golden builds: only when the user says. On 'b3e66f7 passed': move ee682a1 with its own working install script to `D:\projects\zero_flux\golden\previous\ee682a1\`, put b3e66f7 in `golden\` with `install-golden.ps1`, `SHA1.txt`, `README.txt` updated, read-only, and test the script without the phone: it must stop with 'no phone'. On '<styling hash> passed': the same, moving b3e66f7 to `previous\b3e66f7\`. Never delete any golden or previous build.
 
 ### Styling build
-`a729293`, `D:\projects\apk-builds\a729293.apk`, sha1 `bf410daddf4e64e070fb97743d334ae6d0482f85`. Merged. Waiting for the user's 'install'. The phone has b3e66f7.
+`a729293`, `D:\projects\apk-builds\a729293.apk`, sha1 `bf410daddf4e64e070fb97743d334ae6d0482f85`. Merged. Installed on the CPH2467 at 10:59 after the user said install.
+
+### Logo and spelling, asked by the user at about 11:00
+Branch `takeover/t11-brand`, vivek-pc/codex-sol: 'CPR coach' mark top left on Home, and 'Practice' on screen in English. Merge when checks pass. Build, then wait for 'install'.
+
+Newest build: `a99cd63`, sha1 `300e4a2f8793880b25b878257e497553a9460d30`, includes the logo and spelling; not installed, waits for 'install'. The phone has a729293.
 
 
 ## Known problems
