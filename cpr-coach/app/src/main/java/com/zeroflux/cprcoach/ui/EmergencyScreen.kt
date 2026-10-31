@@ -155,7 +155,7 @@ fun EmergencyScreen(
                         strings.get(state.instructionKey),
                         modifier = Modifier.fillMaxSize().wrapContentHeight(Alignment.CenterVertically),
                         style = TextStyle(
-                            color = Color.White,
+                            color = CoachColors.wordColor(state.instructionKey),
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             lineHeight = 1.1f.em,
