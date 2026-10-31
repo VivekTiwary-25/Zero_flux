@@ -5,6 +5,8 @@ Checked 2026-10-31 against ref copy of branch cpr-coach (FETCH_HEAD 4e46cfd8).
 Scope: every number or measurable claim in PITCH.md, DEMO_SCRIPT.md, DEMO_2MIN.md, JUDGE_QA.md, HOW_IT_WORKS.md.
 Line numbers are from the ref copy. NOT FOUND rows come first.
 
+Language status update, 31 Oct 2026: the team reports Hindi, Kannada, English and Gujarati worked well on a phone in demo `a99cd63`. This was a team try, not a formal translation or medical review; it does not prove every string was checked or every clip was listened to, or that all wording and speech are correct. Tamil, Telugu, Malayalam, Marathi, Bengali and Odia remain unreviewed. Rows below are the earlier source check at `4e46cfd8`; their “NO” listening status is historical. See `STRINGS_UNREVIEWED.md` and `CLIP_STATUS.md` for current status.
+
 ## NOT FOUND (no measurement doc backs these)
 
 | # | Claim | File and line | Evidence status |

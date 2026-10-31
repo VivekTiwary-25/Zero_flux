@@ -1,8 +1,16 @@
 # Unreviewed translations
 
-These strings were machine translated and no person has checked them. Have a native speaker review each one before release, especially the CPR guide text.
+## Current status — 31 Oct 2026
 
-Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copied from the prototype (prototype/locales), not newly translated. P* = copied from the prototype, then edited by hand to match the English wording (top note, Open Emergency link, Back to Home, step 2 AED caption). English (en.json) is the source and is not listed.
+The team reports that Hindi, Kannada, English and Gujarati worked well when tried on a phone in demo build `a99cd63` on 31 Oct 2026. This was a team try, not a formal translation or medical review. It does not prove that every string was checked or every clip was listened to, or that all wording and speech are correct.
+
+Tamil, Telugu, Malayalam, Marathi, Bengali and Odia remain unreviewed. A native speaker should review each string before release, especially the CPR guide text.
+
+## Earlier string records
+
+The tables below record how the strings were made and their review state at the time, not a full list of what the team tried on 31 Oct.
+
+Legend: T = machine translated, unreviewed in this record. P = Hindi or Kannada guide text copied from the prototype (prototype/locales), not newly translated. P* = copied from the prototype, then edited by hand to match the English wording (top note, Open Emergency link, Back to Home, step 2 AED caption). English (en.json) is the source and is not listed.
 
 ## Task 3: small additions
 
@@ -84,7 +92,7 @@ Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copi
 | dash_gaps | T | T | T | T | T | T | T | T | T |
 | dash_no_rates | T | T | T | T | T | T | T | T | T |
 | dash_basis | T | T | T | T | T | T | T | T | T |
-A second machine checked these and corrections were applied to ta, te, ml, mr, gu, bn and or; no person has checked them. The same review also flags hi and kn step 1 "lightly" for the shoulder tap, the hi "sternum" word, and kn "join" for interlock, left as the prototype has them.
+A second machine checked these and corrections were applied to ta, te, ml, mr, gu, bn and or; no person had checked them at the time of this record. The same review also flags hi and kn step 1 "lightly" for the shoulder tap, the hi "sternum" word, and kn "join" for interlock, left as the prototype has them. The team try above does not resolve these wording flags.
 
 ## Task 8: AED explained
 

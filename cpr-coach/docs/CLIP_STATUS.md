@@ -1,6 +1,14 @@
 # Generated clip status
 
-All requested language clips were generated. “Checked by a person” remains NO for every entry; no one has listened to these clips. MMS drops unsupported punctuation/characters before synthesis; the generator reports each dropped sequence.
+## Current status — 31 Oct 2026
+
+The team reports that Hindi, Kannada, English and Gujarati worked well when tried on a phone in demo build `a99cd63` on 31 Oct 2026. This was a team try, not a formal translation or medical review. It does not prove that every clip was listened to or every string was checked, or that all wording and speech are correct.
+
+Tamil, Telugu, Malayalam, Marathi, Bengali and Odia remain unreviewed. There is no full per-clip human review record for the demo build.
+
+## Earlier generated-clip record
+
+All requested language clips were generated. The “Checked by a person” NO entries below are the record from clip generation, when no listening check had been logged. They are kept as history, not a current claim that no one has heard any clip or a full account of the later team try. MMS drops unsupported punctuation/characters before synthesis; the generator reports each dropped sequence.
 
 | Language | Key | Text | Generated | Checked by a person |
 |---|---|---|---|---|
