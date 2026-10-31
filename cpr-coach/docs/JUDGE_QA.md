@@ -2,74 +2,76 @@
 
 CPR Coach is a CPR **practice tool, not a medical device**. It does not diagnose, certify skills, or replace dispatchers and instructors. In a real emergency, call 112 and follow the dispatcher. Never delay care to use the app. Practice is on a cushion, never on a person.
 
-Only **English and Hindi are the first-build languages**. Translations and voices for the other eight languages are unchecked drafts until a native speaker has listened (see "Which languages really work yet?").
+## Accuracy and limits
 
-## Accuracy and honesty
+**What does the app measure?**
+It estimates compression rate, elbow angle and pauses from visible arm motion. It does not measure compression depth or hand placement, and it does not give an overall CPR score. A scorecard shows only readings the app could measure; a dash or “Not measured” is not a zero. One camera cannot reliably measure depth, force, chest recoil or hand placement.
 
 **How accurate is the compression rate?**
-Not demonstrated yet. Counted accuracy runs are not done, so we quote no accuracy figure. The one real recording so far gave no usable beat, and work is in progress. Tests so far are on a cushion, not clinical validation.
+We do not claim a proven accuracy figure. Testing includes real phone recordings replayed through the app's own scorecard code, but that is not clinical validation or a completed counted accuracy study. The rate estimator can miss real pushing, as recording 16 shows below.
 
-**How fast is the feedback?**
-We quote no latency figure. Anything we have not measured, we say we have not measured — we never quote a figure we did not record.
+**How fast is feedback?**
+We quote no latency figure. Anything not measured, we say is not measured.
 
-**What exactly does it measure — and what can't it?**
-It estimates compression rate (per minute), elbow angle and pauses from the visible motion of the arms. One camera cannot reliably measure compression depth, force, chest recoil or hand placement, so the app does not try. The scorecard shows "Not measured" for any row it could not really observe.
+**Why do synthetic sessions appear on the dashboard?**
+Testing data comes from real phone recordings, processed by the app's own scorecard code. Synthetic sessions are made-up data used to show how the charts look; they are tagged so they are not mistaken for real sessions. “Clear sample data” removes both synthetic and testing sessions. Real sessions have no tag.
+
+**What is the known lean-pause problem?**
+During a weak, uneven lean, pushing can continue while the rate estimator rejects the movement. The rate then drops out and the app shows “Pause” after its rate hold runs out. This is a known limit, not a crash. In recording 16, from 104–123 seconds the current setting showed a rate on 13 of 77 reads; a tried rate change raised that to 45 of 77. But the change also raised reads with a rate during the unclear 93–104 second block from 12 of 45 to 34 of 45, increased readings more than 10/min away from the independent peak pace from 15.1% to 25.3% across recordings, and caused worse results elsewhere. It was not shipped. A tried pause-rule change still gave the false cue at 103.25 seconds and lost a real rest cue in recording 14; it also removed an Emergency cue in recording 12. That was not shipped either. The known limit remains; keep the phone still and push steadily.
 
 **How do you know the numbers aren't guesses?**
-The pipeline refuses to guess by design: rate appears only while a steady beat is detected over several seconds of arm-visible frames; the number greys out to "Can't see arms" the moment landmarks go unclear; the scorecard shows a dash instead of a number when there was nothing real to report. Every frame is also saved as a CSV trace so the maths can be re-tested on a PC.
+Rate appears only when the app detects a steady beat over several seconds of frames with visible arms. The display greys out to “Can't see arms” when landmarks are unclear. The scorecard uses a dash instead of inventing a number. Per-frame CSV traces can be saved on the device so the analysis can be replayed.
 
-## Why this design
+## How to use it
 
 **Why two modes?**
-Practise teaches CPR motion calmly: measured camera feedback, teal and amber cues, and a scorecard. Emergency talks you through it: one tap, no setup, immediate metronome and spoken steps, with camera-based corrections joining once the arms are visible. CPR never waits for tracking.
+Practise teaches CPR motion with camera feedback and a scorecard. Emergency gives spoken steps and a metronome immediately; CPR does not wait for camera tracking. Camera-based corrections can join once arms are visible.
 
 **Why one word and no number in Emergency?**
-The emergency screen is designed to be panic-proof: one large instruction in the chosen language keeps attention on the next action instead of asking someone to interpret numbers. Practise is where numerical feedback and a scorecard belong; Emergency never shows a made-up rate.
+The emergency screen uses one large instruction so someone under pressure can focus on the next action. Practise is where measured feedback and a scorecard belong; Emergency does not show a made-up rate.
 
-**What does the "For the ambulance crew" summary show? Why might it show dashes?**
-Total CPR time, average rate and pauses, based only on measured values. A dash means a value was not measured; it is not zero and is never guessed.
+**What does the “For the ambulance crew” summary show? Why might it show dashes?**
+It shows total CPR time, average measured rate and pauses. A dash means a value was not measured, not that it was zero.
 
-**Why not just use a manikin with sensors?**
-Sensor manikins give good feedback but need instructors and expensive equipment most colleges and communities don't have. Our bet: an ordinary phone the team already owns, a cushion, and a second person holding the camera reaches far more practice sessions — with honest "can't see it" states instead of false precision.
+**Why not use a sensor manikin?**
+Sensor manikins give useful feedback but need equipment and instructors. CPR Coach is designed for low-cost practice with a phone and a cushion, and is limited to the motion it can observe.
 
 **Why practise on a cushion instead of a manikin?**
-A cushion lets the rescuer rehearse the motion — steady rhythm, straight elbows, no long pauses — safely and cheaply. The app coaches motion, not clinical effectiveness, so a cushion is enough for what it measures.
+A cushion lets someone safely rehearse rhythm, straight elbows and continuity. The app coaches motion, not clinical effectiveness.
 
 **How is this different from a metronome app?**
-A metronome only sets the beat. CPR Coach watches the rescuer: it reports their actual rate, notices bent elbows and pauses, says the one correction that matters most right now, and shows only this run's measured scorecard at the end.
+A metronome sets a beat. CPR Coach also observes arm motion and can estimate rate, identify bent elbows and pauses, and show this practice run's measured readings.
 
 **What happens when tracking fails?**
-In Emergency the camera stays on, but CPR does not wait for it: metronome and spoken steps start immediately and keep going. If tracking fails, the one-word area says "Keep pushing with the beat" and no invented number appears. Once arms are visible, the same camera analysis and coaching as Practise can add spoken corrections alongside emergency steps.
+Emergency's metronome and spoken steps continue. The instruction area says “Keep pushing with the beat”; no invented number appears. Tracking failure never blocks CPR.
 
-**What happens if the camera fails?**
-Emergency's metronome and spoken steps continue; the instruction-word area says "Keep pushing with the beat". Call 112 stays visible and only opens the dialer. Camera tracking failure never blocks CPR or creates a rate.
+**What is an AED?**
+An AED is a portable box that can restart the heart with an electric shock. AEDs can be found in malls, airports, metro stations and offices. Switch it on and it tells you what to do.
 
-**Is the 112 button safe? Does it auto-dial?**
-It opens the phone dialer with 112 already filled in and waits — it never places the call itself. On stage we stop at the dialer and press Back; we never call 112 during demos or tests.
-
-## Languages, offline, privacy
-
-**Why ten languages?**
-CPR instructions should be understandable under pressure. The picker lists ten languages in their own script; spoken coaching is verified only for a subset.
-
-
-**Which languages really work yet?**
-The app now runs end to end on two real phones with no known crash in the latest build. An early real-person session found a crash, which was fixed. The speech models were checked on real phones for English and Hindi in an earlier project (iTantra). The other eight voice and text translations are generated drafts: per `docs/CLIP_STATUS.md`, "checked by a person" is NO for every clip — nobody has listened to them yet. The demo runs in English.
-
-**Does it work offline?**
-Yes. The pose model, signal math, feedback logic, pre-recorded coaching clips and speech recognition all run on the phone. The app has no networking at all, so there are no dead zones and no data leaves the device.
-
-**What data does it collect?**
-Nothing leaves the phone. Camera frames are processed in memory; the only stored output is an optional per-frame CSV trace on the device itself, used to measure accuracy.
-
-## Safety and scope
+**Does the emergency contact or Call 112 button place a call?**
+No. The emergency contact and Call 112 buttons only open the phone dialer. Nothing auto-calls. The user chooses whether to place a call.
 
 **Is this medical advice?**
-No. It is guided practice for the motion of compressions: rate, elbows, continuity. It does not teach when to do CPR, does not judge clinical quality, and its score is this run's readings — not a certification.
+No. CPR Coach guides practice motion; it does not teach when to do CPR or judge clinical quality. Its readings are not certification. In an emergency, call 112, follow the dispatcher and start CPR right away.
 
 **Who is it for?**
-Colleges, NSS units and community groups that want supervised practice between instructor sessions — always with the safety line: call 112 in a real emergency, follow the dispatcher, start CPR right away.
+Colleges, NSS units and community groups that want supervised practice between instructor sessions.
 
-**What is still unproven?**
+## Pictures (only if pictures ship)
 
-Counted rate-accuracy runs are not done and we quote no accuracy or latency figures. Rate detection on a real person is not yet demonstrated: the one real recording so far gave no usable beat, and work is in progress. The redesigned Emergency screen has not yet been run with a real person. Still unproven: connected-call audio behaviour, per-language voice checks by native speakers, and testing across more phones, lighting and camera angles. The honest status of each is tracked in `docs/MEASUREMENTS.md`, `docs/CLIP_STATUS.md` and `docs/PHONE_TEST.md`.
+**Are the pictures AI-made, and how were they checked?**
+The teaching drawings are AI-made. People and tools checked them against these points: hands only on the lower half of the breastbone, straight arms, shoulders above hands, and correct fingers. This was a teaching-picture check, not a clinical review.
+
+## Languages, offline and privacy
+
+**Which languages really work yet?**
+English and Hindi are the first-build languages. Hindi and Kannada CPR guide text came from teammates. Machine translations have not been reviewed by a person; `docs/STRINGS_UNREVIEWED.md` lists them. Do not describe those translations as human-checked.
+
+**Why ten languages?**
+The picker lists ten languages so instructions can be available in more languages. That does not mean every translation or voice has been reviewed or verified.
+
+**Does it work offline?**
+Yes. The pose model, signal math, feedback logic, coaching clips and speech recognition run on the phone. The app has no networking, so no data leaves the device.
+
+**What data does it collect?**
+Camera frames are processed in memory. An optional per-frame CSV trace may be stored on the device for testing. The app has no networking and sends no data off the phone.
