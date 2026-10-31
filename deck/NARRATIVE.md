@@ -51,3 +51,4 @@ HARD RULES for every image: 16:9 landscape, 1920x1080 or larger, photographic fi
 - Film slides use a full-slide ink veil (50-65% opaque) rather than a left panel: the v3 layouts span the full width and stay untouched.
 - Slide 8 on film keeps headline, both mode names and the "ran on a phone" tags; its bullets moved to the speaker notes (they were already there).
 - The cover's line-art rescuer is hidden when the film still is present; it still appears in v3 and on slide 9's technique diagram.
+- 12:04: backgrounds toned down to soft silhouettes (blur, 30% saturation, darker, crushed shadows) as *_soft.jpg; the veil is now 30% ink. Delete the *_soft.jpg files to go back to the full stills.

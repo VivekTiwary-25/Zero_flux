@@ -126,7 +126,7 @@ async function line(file, w, h, segs) {
   const hair = (s, x, y, w, h) => s.addShape(pres.shapes.LINE, { x, y, w, h, line: { color: HAIR, width: 1 } });
   // v4 FILM slides: a full-bleed story still from NARRATIVE.md under an ink veil, so white text stays readable.
   // A missing still falls back to plain ink, so the deck always builds.
-  const filmPath = (shot) => [`assets3/${shot}.jpg`].find((f) => fs.existsSync(f)); // only approved stills (see IMAGES_CHECK.md)
+  const filmPath = (shot) => [`assets3/${shot}_soft.jpg`, `assets3/${shot}.jpg`].find((f) => fs.existsSync(f)); // only approved stills (see IMAGES_CHECK.md)
   const slide = (title, section, master = "INK", film) => {
     const s = pres.addSlide({ masterName: master, sectionTitle: section });
     const still = film && filmPath(film.shot);
@@ -144,7 +144,7 @@ async function line(file, w, h, segs) {
   // 1 COVER
   pres.addSection({ title: "Opening" });
   {
-    const s = slide("CPR Coach", "Opening", "INK_BARE", { shot: "platform", veil: 45 });
+    const s = slide("CPR Coach", "Opening", "INK_BARE", { shot: "platform", veil: 70 });
     tb(s, "A phone that watches your CPR and tells you what to fix.", { x: M, y: 2.75, w: 7.6, h: 1.0, fontSize: 28, color: s.film ? TEXT : MUTED });
     img(s, "assets2/cover.png", 0, 4.1, W, 1.0, "A flat line that turns into a steady push rhythm");
     tb(s, "110 /min", { x: 11.1, y: 3.65, w: 1.5, h: 0.35, fontFace: MONO, fontSize: 16, bold: true, color: TEAL, align: "right" });
@@ -160,7 +160,7 @@ async function line(file, w, h, segs) {
   // 2 BIG NUMBER
   pres.addSection({ title: "Problem" });
   {
-    const s = slide("Only 1 in 10 people who collapsed got CPR from someone nearby", "Problem", "INK", { shot: "crowd", veil: 40 });
+    const s = slide("Only 1 in 10 people who collapsed got CPR from someone nearby", "Problem", "INK", { shot: "crowd", veil: 70 });
     tb(s, "9.8%", { x: M - 0.05, y: 2.3, w: 6.0, h: 2.6, fontFace: MONO, fontSize: 150, bold: true, color: AMBER, fit: "none" });
     tb(s, [
       { text: "of 205 cardiac-arrest patients at one Indian hospital got CPR from a bystander.", options: { breakLine: true } },
@@ -269,7 +269,7 @@ async function line(file, w, h, segs) {
 
   // 7 SPLIT COMPARISON
   {
-    const s = slide("Practise teaches you; Emergency starts the beat in one tap", "Solution", "INK", { shot: "kneel", veil: 50 });
+    const s = slide("Practise teaches you; Emergency starts the beat in one tap", "Solution", "INK", { shot: "kneel", veil: 70 });
     hair(s, 6.67, 2.5, 0, s.film ? 1.7 : 4.0);
     const cols = [
       { x: M, c: TEAL, k: "PRACTISE", h: "Learn with feedback", pts: ["2-minute session, live readings", "One spoken correction at a time", "Scorecard shows how long rate was really measured"], tag: "Ran on a phone: 7 real recordings" },
@@ -306,7 +306,7 @@ async function line(file, w, h, segs) {
 
   // 8 TYPOGRAPHIC
   {
-    const s = slide("It coaches in ten Indian languages, each in its own script", "Solution", "INK", { shot: "circle", veil: 35 });
+    const s = slide("It coaches in ten Indian languages, each in its own script", "Solution", "INK", { shot: "circle", veil: 70 });
     const langs = ["English", "हिन्दी", "ಕನ್ನಡ", "मराठी", "ગુજરાતી", "বাংলা", "ଓଡ଼ିଆ", "தமிழ்", "తెలుగు", "മലയാളം"];
     const cw = CW / 5;
     langs.forEach((l, i) => {
@@ -319,7 +319,7 @@ async function line(file, w, h, segs) {
   // 9 DIVIDER
   pres.addSection({ title: "Demo" });
   {
-    const s = slide("Live demo", "Demo", "INK_BARE", { shot: "phone", veil: 35 });
+    const s = slide("Live demo", "Demo", "INK_BARE", { shot: "phone", veil: 70 });
     tb(s, [
       { text: "Guide", options: { color: TEXT } }, { text: "  →  ", options: { color: MUTED } },
       { text: "Practise", options: { color: TEAL } }, { text: "  →  ", options: { color: MUTED } },
@@ -367,7 +367,7 @@ async function line(file, w, h, segs) {
   // 12 CLOSE WITH ACTION
   pres.addSection({ title: "Close" });
   {
-    const s = slide("Next: count it by hand,\nthen test it with CPR trainers", "Close", "INK", { shot: "dawn", veil: 30 });
+    const s = slide("Next: count it by hand,\nthen test it with CPR trainers", "Close", "INK", { shot: "dawn", veil: 70 });
     tb(s, "Then pilot it with NSS units, first-aid clubs and schools.", { x: M, y: 2.25, w: 8.0, h: 0.5, fontSize: 24, color: s.film ? TEXT : MUTED });
     img(s, "assets2/close.png", M, 3.3, 7.67, 0.73, "A slow amber rhythm corrected into a steady teal rhythm");
     s.addImage({ path: "assets/qr.png", x: 9.85, y: 2.15, w: 2.73, h: 2.73, altText: "QR code linking to github.com/VivekTiwary-25/Zero_flux" });
