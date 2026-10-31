@@ -68,6 +68,8 @@ class CoachReplayTest {
     @Test
     fun `recording 15 never says keep going while still pushing`() {
         val spoken = replay("real-cph2467-15.csv")
+        assertTrue("straight pushing 3.5-32 s", !spoken.keepGoingIn(3.5, 32.0))
+        assertTrue("resumed pushing after reposition 34.5-37.3 s", !spoken.keepGoingIn(34.5, 37.3))
         assertTrue("bent pushing 38-44 s", !spoken.keepGoingIn(38.0, 44.0))
         assertTrue("bent pushing 54-62 s", !spoken.keepGoingIn(54.0, 62.0))
         assertTrue("lean pushing 64-70 s", !spoken.keepGoingIn(64.0, 70.0))
@@ -77,6 +79,7 @@ class CoachReplayTest {
     fun `recording 13 never says keep going while pushing`() {
         val spoken = replay("real-cph2467-13.csv")
         assertTrue("pushing 4-36 s: $spoken", !spoken.keepGoingIn(4.0, 36.0))
+        assertTrue("real stop still needs its cue: $spoken", spoken.keepGoingIn(39.5, 44.5))
     }
 
     @Test

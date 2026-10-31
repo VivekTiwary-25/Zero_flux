@@ -93,8 +93,25 @@ class CoachPolicy(
                 val now = reading.timeMs
                 if (now - lastPausedReadMs > MIN_PAUSE_MS) pauseConfirmed = false
                 lastPausedReadMs = now
+                // Credit a still beat tail only after a full second. A brief detector dropout
+                // before PAUSED must not bring a short reposition's cue forward.
+                if (pausedReads.isEmpty() && !pauseConfirmed &&
+                    pausedSinceMs?.let { now - it < STILL_NOW_MS } == true) pausedSinceMs = null
                 pausedReads.addLast(now to reading.moving)
                 while (now - pausedReads.first().first > MIN_PAUSE_MS) pausedReads.removeFirst()
+                // A sustained moving run ends the old stop, even while the window is mostly still.
+                if (reading.moving) {
+                    var movingSince = now
+                    for (i in pausedReads.lastIndex downTo 0) {
+                        if (!pausedReads[i].second) break
+                        movingSince = pausedReads[i].first
+                    }
+                    if (now - movingSince >= BREAK_PAUSE_MS) {
+                        pausedSinceMs = null
+                        pauseConfirmed = false
+                        while (pausedReads.first().first < movingSince) pausedReads.removeFirst()
+                    }
+                }
                 val still = pausedReads.count { !it.second } * 2 >= pausedReads.size
                 if (!still) {
                     // Mostly moving: the rescuer is pushing without a locked rate, so there is no pause to time.
@@ -121,20 +138,32 @@ class CoachPolicy(
                 if (pendingRecovery) pauseConfirmed = true
             }
             TrackingState.BEATING -> {
-                clearPause()
+                pendingRecovery = false
+                pausedReads.clear()
                 pauseConfirmed = false
                 pauseAcknowledged = false
-                // Real pushing (moving hands under a locked rate) is what lets Keep going repeat.
+                // The beat can linger after the hands stop. Time that stillness without
+                // changing tracking or the rate, so an ordinary stop is coached promptly.
+                if (reading.moving) pausedSinceMs = null
+                else if (pausedSinceMs == null) pausedSinceMs = reading.timeMs
+                // A locked beat bridges movement-detector dropouts, but still needs moving hands
+                // at both ends before it can re-arm a second Keep going.
                 val now = reading.timeMs
-                if (!reading.moving) pushingSinceMs = null
-                else {
+                if (reading.moving) {
                     if (pushingSinceMs == null) pushingSinceMs = now
                     if (now - pushingSinceMs!! >= MIN_PUSH_MS) pushedSinceCue = true
                 }
             }
-            // We can't see the arms, so this time can't count as part of a pause.
-            TrackingState.LOST -> clearPause()
-            TrackingState.WARMING -> { clearPause(); pauseConfirmed = false }
+            // A confirmed stop survives a short visibility gap, not a new moving read.
+            TrackingState.LOST, TrackingState.WARMING -> {
+                val recentStop = pauseConfirmed && reading.timeMs - lastPausedReadMs in 0..STILL_NOW_MS
+                pendingRecovery = recentStop && !reading.moving && !pauseAcknowledged &&
+                    reading.tracking == TrackingState.WARMING
+                if (!recentStop || reading.moving) {
+                    clearPause()
+                    pauseConfirmed = false
+                }
+            }
         }
         if (reading.tracking != TrackingState.BEATING && reading.tracking != TrackingState.PAUSED) pushingSinceMs = null
     }
@@ -147,14 +176,20 @@ class CoachPolicy(
 
     /** Phrases wanted right now, highest priority first. */
     private fun wantedPhrases(reading: LiveReading, now: Long): List<Phrase> {
-        if (reading.tracking == TrackingState.LOST || reading.tracking == TrackingState.WARMING) return emptyList()
-        // Only real pushing since the last cue lets Keep going repeat; otherwise it never plays twice in a row.
-        if (pendingRecovery) return if (lastPhrase != Phrase.KEEP_GOING || pushedSinceCue) listOf(Phrase.KEEP_GOING) else emptyList()
+        if (reading.tracking == TrackingState.LOST) return emptyList()
+        // Give short repositions time to reveal resumed movement before speaking.
+        if (pendingRecovery && pausedSinceMs?.let { now - it >= MIN_RECOVERY_MS } == true) {
+            return if (lastPhrase != Phrase.KEEP_GOING || pushedSinceCue) listOf(Phrase.KEEP_GOING) else emptyList()
+        }
+        if (reading.tracking == TrackingState.WARMING) return emptyList()
         val beating = reading.tracking == TrackingState.BEATING
         // Bent or leaning pushing often has no locked rate, so posture is also coached while PAUSED and moving.
         if (!beating && !reading.moving) return emptyList()
 
-        val rate = reading.ratePerMinute?.takeIf { beating }
+        // After a PAUSED gap, do not start a rate correction on the first relocking reads.
+        val rate = reading.ratePerMinute?.takeIf {
+            beating && (lastPausedReadMs == 0L || now - lastPausedReadMs >= STILL_NOW_MS)
+        }
         val wanted = ArrayList<Phrase>(3)
         if (rate != null && rate < LiveReading.TARGET_MIN) wanted.add(Phrase.PUSH_FASTER)
         if (rate != null && rate > LiveReading.TARGET_MAX) wanted.add(Phrase.SLOW_DOWN)
@@ -163,7 +198,8 @@ class CoachPolicy(
         val elbowsBent = if (reading.posture != null) issue == PostureIssue.ELBOWS_BENT else reading.elbowsBent == true
         if (elbowsBent) wanted.add(Phrase.ELBOWS_STRAIGHT)
         if (issue == PostureIssue.SHOULDERS_NOT_OVER_HANDS) wanted.add(Phrase.SHOULDERS_OVER_HANDS)
-        if (wanted.isEmpty() && beating && (lastSpokenMs?.let { now - it >= praiseEveryMs } ?: true)) wanted.add(Phrase.GOOD)
+        if (wanted.isEmpty() && beating && reading.inRange == true &&
+            (lastSpokenMs?.let { now - it >= praiseEveryMs } ?: true)) wanted.add(Phrase.GOOD)
         // A phrase may repeat only after its condition has been gone for a while (it was fixed, then came back).
         val last = lastPhrase
         if (last == null || last in wanted) { absentSinceMs = null; absentReads = 0 }
@@ -177,6 +213,8 @@ class CoachPolicy(
 
     private companion object {
         const val MIN_PAUSE_MS = 2_000L
+        const val MIN_RECOVERY_MS = 2_500L
+        const val BREAK_PAUSE_MS = 750L
         const val STILL_NOW_MS = 1_000L
         const val MIN_PUSH_MS = 3_000L
         const val CLEAR_MS = 3_000L

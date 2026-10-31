@@ -8,6 +8,71 @@ import org.junit.Test
 
 class CoachAndMetricsTest {
 
+    @Test fun `brief moving dropouts during a locked beat do not lose next pause cue`() {
+        val policy = CoachPolicy()
+        fun paused(t: Long) = LiveReading(t, TrackingState.PAUSED, null, 170.0, false)
+        assertEquals(
+            Phrase.KEEP_GOING,
+            (0L..2_500L step 250L).mapNotNull { policy.update(paused(it)) }.single()
+        )
+        for (t in 2_750L until 9_000L step 250L) {
+            val moving = t !in setOf(2_750L, 4_750L, 6_750L, 8_750L)
+            policy.update(LiveReading(t, TrackingState.BEATING, 110, 170.0, false, moving))
+        }
+        val nextPause = (9_000L until 13_500L step 250L)
+            .mapNotNull { policy.update(paused(it)) }
+        assertEquals(listOf(Phrase.KEEP_GOING), nextPause)
+    }
+
+    @Test fun `sustained movement interrupts confirmed pause stillness`() {
+        val policy = CoachPolicy()
+        fun paused(t: Long, moving: Boolean = false) =
+            LiveReading(t, TrackingState.PAUSED, null, 170.0, false, moving)
+        for (t in 0L until 3_250L step 250L) {
+            policy.update(LiveReading(t, TrackingState.BEATING, 90, 170.0, false, true))
+        }
+        for (t in 3_250L until 7_750L step 250L) policy.update(paused(t))
+        for (t in 7_750L until 8_750L step 250L) policy.update(paused(t, true))
+        val afterMovement = (8_750L until 10_750L step 250L)
+            .mapNotNull { policy.update(paused(it)) }
+        assertTrue(
+            "A new two-second still period has not elapsed: $afterMovement",
+            afterMovement.none { it == Phrase.KEEP_GOING },
+        )
+        val newPause = (10_750L until 14_000L step 250L)
+            .mapNotNull { policy.update(paused(it)) }
+        assertEquals(listOf(Phrase.KEEP_GOING), newPause)
+    }
+
+    @Test
+    fun `warming can finish a recent confirmed stop but cannot invent one`() {
+        val policy = CoachPolicy()
+        run(policy, 0, 2_250) { paused(it) }
+        val cue = policy.update(paused(2_500).copy(tracking = TrackingState.WARMING))
+        assertEquals(Phrase.KEEP_GOING, cue)
+        assertNull(CoachPolicy().update(paused(2_500).copy(tracking = TrackingState.WARMING)))
+    }
+
+    @Test
+    fun `movement or a long visibility gap cancels a confirmed stop`() {
+        for (moving in listOf(false, true)) {
+            val policy = CoachPolicy()
+            run(policy, 0, 2_250) { paused(it) }
+            val time = if (moving) 2_500L else 3_500L
+            assertNull(policy.update(paused(time).copy(tracking = TrackingState.WARMING, moving = moving)))
+            val after = run(policy, time + 250, time + 2_250) { paused(it) }
+            assertTrue("Old confirmation survived moving=$moving: $after", after.none { it.second == Phrase.KEEP_GOING })
+        }
+    }
+
+    @Test
+    fun `rate correction resumes after the relock guard`() {
+        val policy = CoachPolicy()
+        run(policy, 0, 1_000) { paused(it) }
+        val established = run(policy, 1_000, 6_000) { beating(it, 90).copy(moving = true) }
+        assertEquals(listOf(Phrase.PUSH_FASTER), established.map { it.second })
+    }
+
     private fun beating(t: Long, rate: Int, bent: Boolean = false) =
         LiveReading(t, TrackingState.BEATING, rate, if (bent) 130.0 else 170.0, bent)
 
@@ -296,20 +361,20 @@ class CoachAndMetricsTest {
     @Test
     fun `keep going plays again when the rescuer stops after pushing with bent elbows`() {
         val policy = CoachPolicy()
-        assertEquals(listOf(2_000L to Phrase.KEEP_GOING), run(policy, 0, 2_250) { paused(it) })
+        assertEquals(listOf(Phrase.KEEP_GOING), run(policy, 0, 3_250) { paused(it) }.map { it.second })
         assertEquals(
-            listOf(8_000L to Phrase.ELBOWS_STRAIGHT),
-            run(policy, 2_250, 8_250) { pushing(it, PostureIssue.ELBOWS_BENT) },
+            listOf(Phrase.ELBOWS_STRAIGHT),
+            run(policy, 3_250, 10_250) { pushing(it, PostureIssue.ELBOWS_BENT) }.map { it.second },
         )
-        val secondPause = run(policy, 8_250, 18_000) { paused(it) }
+        val secondPause = run(policy, 10_250, 20_000) { paused(it) }
         assertTrue("expected KEEP_GOING on the second pause, got $secondPause", secondPause.any { it.second == Phrase.KEEP_GOING })
     }
 
     @Test
     fun `keep going plays on a second pause after resuming good compressions`() {
         val policy = CoachPolicy()
-        assertEquals(listOf(2_000L to Phrase.KEEP_GOING), run(policy, 0, 2_250) { paused(it) })
-        run(policy, 2_250, 10_000) { t -> pushing(t, null, TrackingState.BEATING) }
+        assertEquals(listOf(Phrase.KEEP_GOING), run(policy, 0, 3_250) { paused(it) }.map { it.second })
+        run(policy, 3_250, 10_000) { t -> pushing(t, null, TrackingState.BEATING) }
         val secondPause = run(policy, 10_000, 16_000) { paused(it) }
         assertEquals(listOf(Phrase.KEEP_GOING), secondPause.map { it.second })
     }
