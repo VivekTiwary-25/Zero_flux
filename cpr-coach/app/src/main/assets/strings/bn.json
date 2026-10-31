@@ -62,5 +62,11 @@
   "em_summary_pauses": "বিরতি",
   "em_summary_measured": "গতি মাপা হয়েছে",
   "em_summary_note": "ক্যামেরা হাত দেখতে পেলে তবেই গতি ও বিরতি গোনা হয়েছে।",
-  "live_detecting": "আপনার ছন্দ খোঁজা হচ্ছে…"
+  "live_detecting": "আপনার ছন্দ খোঁজা হচ্ছে…",
+  "adult_cpr_only": "Adult CPR only",
+  "score_rate_measured": "Rate measured for %1$d of %2$d s",
+  "home_emergency_contact": "Emergency contact",
+  "em_reminder_aed": "If an AED is nearby, ask someone to bring it.",
+  "em_reminder_continue": "Keep pushing the chest until help arrives.",
+  "em_reminder_swap": "If someone else can push the chest, swap now."
 }

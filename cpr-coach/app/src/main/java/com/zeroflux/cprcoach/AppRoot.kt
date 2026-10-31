@@ -1,9 +1,13 @@
 package com.zeroflux.cprcoach
 
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.provider.ContactsContract
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -22,16 +26,41 @@ import com.zeroflux.cprcoach.audio.MetronomeService
 import com.zeroflux.cprcoach.ui.AppSettings
 import com.zeroflux.cprcoach.ui.AssetStrings
 import com.zeroflux.cprcoach.ui.CoachTheme
+import com.zeroflux.cprcoach.ui.EmergencyContact
 import com.zeroflux.cprcoach.ui.HomeScreen
 import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.voice.VoiceCommand
 
 private enum class Screen { HOME, PRACTISE, EMERGENCY }
 
+
 @Composable
 fun AppRoot(activity: Activity, cameraPermission: Boolean) {
     val settings = remember { AppSettings(activity.applicationContext) }
     var language by remember { mutableStateOf(settings.language) }
+    var emergencyContact by remember { mutableStateOf(settings.emergencyContact) }
+    val contactPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val uri = result.data?.data ?: return@rememberLauncherForActivityResult
+        val contact = activity.contentResolver.query(
+            uri,
+            arrayOf(
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ),
+            null,
+            null,
+            null,
+        )?.use { cursor ->
+            if (!cursor.moveToFirst()) return@use null
+            val name = cursor.getString(0)?.trim().orEmpty()
+            val number = cursor.getString(1)?.trim().orEmpty()
+            if (name.isNotBlank() && number.isNotBlank()) EmergencyContact(name, number) else null
+        }
+        if (contact != null) {
+            settings.emergencyContact = contact
+            emergencyContact = contact
+        }
+    }
     var screen by remember { mutableStateOf(Screen.HOME) }
     var cameraVisible by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -113,6 +142,12 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                             language = chosen
                         },
                         onMicTap = voice::toggle,
+                        emergencyContactName = emergencyContact?.name,
+                        onEmergencyContact = {
+                            contactPicker.launch(
+                                Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI),
+                            )
+                        },
                     )
                 }
                 Screen.PRACTISE -> Box(Modifier.fillMaxSize().safeDrawingPadding()) {
@@ -133,6 +168,7 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         cameraPermission = cameraPermission,
                         onCameraVisibleChange = { cameraVisible = it },
                         onHome = goHome,
+                        emergencyContact = emergencyContact,
                     )
                 }
             }

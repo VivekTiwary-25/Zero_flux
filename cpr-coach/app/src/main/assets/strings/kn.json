@@ -62,5 +62,11 @@
   "em_summary_pauses": "ವಿರಾಮಗಳು",
   "em_summary_measured": "ವೇಗ ಅಳೆದ ಅವಧಿ",
   "em_summary_note": "ಕ್ಯಾಮೆರಾಕ್ಕೆ ತೋಳುಗಳು ಕಂಡಾಗ ಮಾತ್ರ ವೇಗ ಮತ್ತು ವಿರಾಮಗಳನ್ನು ಎಣಿಸಲಾಗಿದೆ.",
-  "live_detecting": "ನಿಮ್ಮ ಲಯ ಹುಡುಕುತ್ತಿದೆ…"
+  "live_detecting": "ನಿಮ್ಮ ಲಯ ಹುಡುಕುತ್ತಿದೆ…",
+  "adult_cpr_only": "Adult CPR only",
+  "score_rate_measured": "Rate measured for %1$d of %2$d s",
+  "home_emergency_contact": "Emergency contact",
+  "em_reminder_aed": "If an AED is nearby, ask someone to bring it.",
+  "em_reminder_continue": "Keep pushing the chest until help arrives.",
+  "em_reminder_swap": "If someone else can push the chest, swap now."
 }
