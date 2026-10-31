@@ -26,7 +26,7 @@ The repo is public, and only pushed work is visible:
 Docs that matter, in `cpr-coach/docs/`: `TAKEOVER_LOG.md`, `PLAN_0810.md`, `DEMO_2MIN.md`, `JUDGE_QA.md`, the newest test sheet (`FINAL_TEST.md` once it's there, otherwise the newest `NEXT_TEST_*.md`), `STRINGS_UNREVIEWED.md`. Also `HANDOVER_TERMINAL.md`, which has every rule word for word.
 
 ## What was decided today
-- **Rollback:** ee682a1 is the last phone-tested good build: Practise perfect, Emergency FASTER / SLOWER slow. Installed by `powershell -ExecutionPolicy Bypass -File D:\projects\zero_flux\golden\install-golden.ps1`.
+- **Demo build and freeze:** a99cd63 is the demo build; it passed the team's phone tests, and the team tried it in Hindi, Kannada, English and Gujarati. Code freeze until the demo, unless I report a bug and say "fix it". Golden install: `powershell -ExecutionPolicy Bypass -File D:\projects\zero_flux\golden\install-golden.ps1`. Older golden: ee682a1 in `golden\previous\ee682a1\`.
 - **Practise must not change.** Protected files aren't edited. Every merge must pass all tests and a replay of recordings 10-16 that is byte-identical to ee682a1. Pace counting doesn't change.
 - **Exception to watch:** `be51948` moved Practise's model load to a background thread, and the dashboard adds a save step to `PractiseHost.kt`. The replay can't prove these are safe, so my phone test decides.
 - **Emergency talks more:** "Push faster" / "Push slower" after 1.5 s, was 3 s. FASTER / SLOWER on screen after 0.5 s, was 1 s; posture words keep their timing. 4 s between spoken lines, was 6 s. "Good" every 10 s on pace, was 20 s. After 8 s of silence while pushing, counted from the end of the last clip, a filler alternates "Keep pushing the chest" and "Push the chest hard and fast, with the beat". "Good" once after a correction is fixed. It also keeps reading the rescuer while a clip plays, which is why the voice was unreliable before.
@@ -44,8 +44,9 @@ Docs that matter, in `cpr-coach/docs/`: `TAKEOVER_LOG.md`, `PLAN_0810.md`, `DEMO
 - **Merge order still to do:** vivid colours, dashboard, AED, pictures.
 
 ## Current state
-Written 11:10 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 11:48 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
+aa712ef cpr-coach: handover files and log
 a99cd63 cpr-coach: merge logo and Practice spelling
 3efcf10 cpr-coach: log
 735cdeb cpr-coach: CPR coach mark on Home, Practice spelling on screen
@@ -53,7 +54,6 @@ a99cd63 cpr-coach: merge logo and Practice spelling
 0a37fa7 cpr-coach: handover files and log
 a729293 cpr-coach: merge AED help button colour
 ce92452 cpr-coach: merge Button and panel depth, style only
-e417bf4 cpr-coach: log
 ```
 Takeover branches on GitHub:
 ```
@@ -83,7 +83,7 @@ origin/takeover/t9b-docs 71b13b9
 Swarm jobs:
 ```
 RUNNING
-  vivek-pc/antigravity     t261031-1043-d0d3  Depth screenshots  (25m)
+  vivek-pc/codex-sol       t261031-1147-ab6d  Docs for the demo build  (8s)
 QUEUED
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
 ```
@@ -98,11 +98,13 @@ pratham-pc/muse      opencode-go/muse-spark-~ idle     -                        
 pratham-pc/codex-lu~ openai-codex/gpt-6-luna  idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-sol openai-codex/gpt-6.1-sol idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        62% Nov 05 10:25 (in
-vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        47% 14:11 (in 3h01m)
-vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        47% 14:11 (in 3h01m)
+vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        43% 14:11 (in 2h22m)
+vivek-pc/codex-sol   openai-codex/gpt-6.1-sol busy     t261031-1147-ab6d Docs ~ 43% 14:11 (in 2h22m)
 vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        35% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ busy     t261031-1043-d0d3 Depth~ 84% 13:13 (in 2h03m)
+vivek-pc/antigravity google-antigravity/gemi~ idle     -                        82% 13:13 (in 1h24m)
 ```
+
+**Code freeze on. a99cd63 is the demo build and new golden, passed the team's phone tests. The phone has a99cd63.** Everything below is history.
 
 ### Tasks
 | Task | Status | Where |
@@ -149,16 +151,13 @@ Golden builds: only when the user says. On 'b3e66f7 passed': move ee682a1 with i
 ### Logo and spelling, asked by the user at about 11:00
 Branch `takeover/t11-brand`, vivek-pc/codex-sol: 'CPR coach' mark top left on Home, and 'Practice' on screen in English. Merge when checks pass. Build, then wait for 'install'.
 
-Newest build: `a99cd63`, sha1 `300e4a2f8793880b25b878257e497553a9460d30`, includes the logo and spelling; not installed, waits for 'install'. The phone has a729293.
+Newest build: `a99cd63`, sha1 `300e4a2f8793880b25b878257e497553a9460d30`, includes the logo and spelling; installed on the CPH2467 after the user said install.
 
 
 ## Known problems
 The swarm's save step fails on some jobs, though no work is lost. During a weak uneven lean the app shows pause; demo with a steady firm lean, short, phone still. Translations are machine made and no person has checked them. Everything since ee682a1 has not been run through a real phone test.
 
 ## Still pending from me
-- The boss no longer waits for my approval: it merges when the checks pass, and installs the final build itself when the phone is plugged in and no session is running.
-- Run the final phone test, under 4 minutes, `docs/FINAL_TEST.md`. Some steps need two people.
-- Decide on `be51948` and the dashboard save step after that test. Reverts are ready on `takeover/revert-model-load` and `takeover/revert-dashboard-save`.
-- Kannada and Hindi listening, and teammates reading the Hindi and Kannada guide text.
 - Rehearse the 2-minute demo: its timing is an estimate.
+- Keep the app on a99cd63. Reinstall only with the golden command.
 - I own "Person 4: Feedback & Emergency" for judge questions; `JUDGE_QA.md` has the answers.

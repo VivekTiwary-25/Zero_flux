@@ -31,6 +31,9 @@ At 11:00: stop all new feature work, finish or drop half-done jobs (cut pictures
 13. Dashboard: Emergency sessions are not saved or shown. "Testing data" and "Synthetic data" tags on every row and chart that uses them. Never show depth, hand placement or an overall CPR quality score. A missing value shows as a dash, never 0.
 14. Don't change pace counting. Don't apply the held-back rate change or the lean Keep going rule: `docs/RECORDING_16.md` has the numbers.
 
+### CODE FREEZE, latest rule, from the user
+"CODE FREEZE from now until the demo. a99cd63 is the demo build. No more app code changes, merges or installs, unless I report a bug and say 'fix it'. Workers may only do report-only jobs." Docs-only commits are allowed.
+
 ### Latest rule change from the user: no more approval waits
 "From now on, do NOT wait for my approval on anything. Just continue." Comparison pages: still make them and send the link, but don't wait. Merge as soon as the automatic checks pass. The checks stay mandatory: all tests pass and the Practise replay is identical to ee682a1. If a check fails, fix it or drop that change, and tell the user; don't merge it. Final build: as soon as everything is merged, verify its sha1 and copy it to `D:\projects\apk-builds\` named by hash. Install: automatically on the CPH2467, but only when the phone is plugged in by USB and the app is not in the middle of a session. Turn trace capture on, open the app once to check it starts, keep the golden folder and `D:\projects\apk-rollback\` untouched. Then tell the user: final build hash, sha1, installed yes/no, path of the final test sheet. Messages to the user: only merges, anything dropped or reverted, the final build, and problems you can't fix. This replaces the approval points and message list above.
 ### Approval points: wait for the user, keep everyone else busy
@@ -60,8 +63,9 @@ Script for this: `python -I D:\projects\apk-builds\boss-tools\watch.py`, run in 
 ## Current state
 Auto-updated section, then the boss's notes.
 
-Written 11:10 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 11:48 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
+aa712ef cpr-coach: handover files and log
 a99cd63 cpr-coach: merge logo and Practice spelling
 3efcf10 cpr-coach: log
 735cdeb cpr-coach: CPR coach mark on Home, Practice spelling on screen
@@ -69,7 +73,6 @@ a99cd63 cpr-coach: merge logo and Practice spelling
 0a37fa7 cpr-coach: handover files and log
 a729293 cpr-coach: merge AED help button colour
 ce92452 cpr-coach: merge Button and panel depth, style only
-e417bf4 cpr-coach: log
 ```
 Takeover branches on GitHub:
 ```
@@ -99,7 +102,7 @@ origin/takeover/t9b-docs 71b13b9
 Swarm jobs:
 ```
 RUNNING
-  vivek-pc/antigravity     t261031-1043-d0d3  Depth screenshots  (25m)
+  vivek-pc/codex-sol       t261031-1147-ab6d  Docs for the demo build  (8s)
 QUEUED
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
 ```
@@ -114,11 +117,13 @@ pratham-pc/muse      opencode-go/muse-spark-~ idle     -                        
 pratham-pc/codex-lu~ openai-codex/gpt-6-luna  idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-sol openai-codex/gpt-6.1-sol idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        62% Nov 05 10:25 (in
-vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        47% 14:11 (in 3h01m)
-vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        47% 14:11 (in 3h01m)
+vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        43% 14:11 (in 2h22m)
+vivek-pc/codex-sol   openai-codex/gpt-6.1-sol busy     t261031-1147-ab6d Docs ~ 43% 14:11 (in 2h22m)
 vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        35% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ busy     t261031-1043-d0d3 Depth~ 84% 13:13 (in 2h03m)
+vivek-pc/antigravity google-antigravity/gemi~ idle     -                        82% 13:13 (in 1h24m)
 ```
+
+**Code freeze on. a99cd63 is the demo build and new golden, passed the team's phone tests. The phone has a99cd63.** Everything below is history.
 
 ### Tasks
 | Task | Status | Where |
@@ -165,11 +170,11 @@ Golden builds: only when the user says. On 'b3e66f7 passed': move ee682a1 with i
 ### Logo and spelling, asked by the user at about 11:00
 Branch `takeover/t11-brand`, vivek-pc/codex-sol: 'CPR coach' mark top left on Home, and 'Practice' on screen in English. Merge when checks pass. Build, then wait for 'install'.
 
-Newest build: `a99cd63`, sha1 `300e4a2f8793880b25b878257e497553a9460d30`, includes the logo and spelling; not installed, waits for 'install'. The phone has a729293.
+Newest build: `a99cd63`, sha1 `300e4a2f8793880b25b878257e497553a9460d30`, includes the logo and spelling; installed on the CPH2467 after the user said install.
 
 
 ## Rollbacks
-- `powershell -ExecutionPolicy Bypass -File D:\projects\zero_flux\golden\install-golden.ps1` puts back ee682a1, the last phone-tested good build. On Windows that folder is inside the repo; it is excluded from git, so never run `git clean -x` there. The script has been tested only against a fake adb, not on a real phone.
+- `powershell -ExecutionPolicy Bypass -File D:\projects\zero_flux\golden\install-golden.ps1` puts back a99cd63, the demo build, which passed the team's phone tests. Older golden: `golden\previous\ee682a1\install-golden.ps1`. Never delete any golden or previous build. On Windows that folder is inside the repo; it is excluded from git, so never run `git clean -x` there. The script has been tested only against a fake adb, not on a real phone.
 - `D:\projects\apk-builds\` has every build by hash, including `ee682a1.apk`.
 - `D:\projects\apk-rollback\app-e1b489f.apk` is the older build.
 
