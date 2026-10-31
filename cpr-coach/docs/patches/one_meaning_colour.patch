@@ -1,0 +1,32 @@
+diff --git a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/ui/HomeScreen.kt b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/ui/HomeScreen.kt
+index c334682..73ff10b 100644
+--- a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/ui/HomeScreen.kt
++++ b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/ui/HomeScreen.kt
+@@ -249,7 +249,7 @@ fun HomeScreen(
+                                     selected = option == language,
+                                     onClick = null,
+                                     colors = RadioButtonDefaults.colors(
+-                                        selectedColor = CoachColors.Teal,
++                                        selectedColor = CoachColors.TextPrimary,
+                                         unselectedColor = CoachColors.TextSecondary,
+                                     ),
+                                 )
+diff --git a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/ui/ScorecardScreen.kt b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/ui/ScorecardScreen.kt
+index 468d71c..6a2a8ee 100644
+--- a/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/ui/ScorecardScreen.kt
++++ b/cpr-coach/app/src/main/java/com/zeroflux/cprcoach/ui/ScorecardScreen.kt
+@@ -140,12 +140,12 @@ fun ScorecardScreen(
+                         .fillMaxWidth()
+                         .heightIn(min = 52.dp),
+                     shape = RoundedCornerShape(18.dp),
+-                    border = BorderStroke(1.dp, CoachColors.Teal),
++                    border = BorderStroke(1.dp, CoachColors.GlassEdge),
+                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                 ) {
+                     Text(
+                         text = strings.get("score_swap"),
+-                        color = CoachColors.Teal,
++                        color = CoachColors.TextPrimary,
+                         fontWeight = FontWeight.SemiBold,
+                         textAlign = TextAlign.Center,
+                     )
