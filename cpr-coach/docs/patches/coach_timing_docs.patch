@@ -1,0 +1,43 @@
+diff --git a/cpr-coach/docs/HOW_IT_WORKS.md b/cpr-coach/docs/HOW_IT_WORKS.md
+index cb3882f..4f2175f 100644
+--- a/cpr-coach/docs/HOW_IT_WORKS.md
++++ b/cpr-coach/docs/HOW_IT_WORKS.md
+@@ -7,7 +7,7 @@
+ 1. **Camera sees the arms.** The holder points the phone at the rescuer from the side. A body-outline guide plus on-screen hints ("Move back", "Wrist out of frame") help frame the shot. Hints are never spoken. The session cannot start until the shoulder, elbow and wrist are clearly visible ("Ready").
+ 2. **On-device pose model finds the joints.** MediaPipe Pose Landmarker, bundled inside the app, marks the shoulder, elbow, wrist and hip in every frame. No video ever leaves the phone.
+ 3. **Signal math turns motion into meaning.** The wrist's height above the hip cancels small wobble from the holder's hand; the repeating beat over the last few seconds gives compressions per minute. The elbow angle comes from the shoulder–elbow–wrist geometry. Arms visible but no steady beat means a pause. Landmarks unclear means tracking is lost — and then the app shows no number at all, never a guess.
+-4. **One spoken correction at a time.** Priority order: "Keep going" after a pause, then "Push faster" / "Slow down" against the 100–120 per minute target, then "Keep your elbows straight", with occasional praise for steady work. A correction plays only after a few seconds of steady readings, with a pause between phrases, and never the same phrase twice in a row. While tracking is lost the app stays silent and the metronome keeps playing.
++4. **One spoken correction at a time.** Priority order: "Keep going" after a pause, then "Push faster" / "Slow down" against the 100–120 per minute target, then "Keep your elbows straight", with occasional praise for steady work. A correction plays only after its reading holds steady, and a posture correction uses a shorter wait than a rate correction. A separate gap between phrases keeps them apart, and the same phrase never plays twice in a row. While tracking is lost the app stays silent and the metronome keeps playing.
+ 5. **Metronome and voice clips, no internet.** The beat and all spoken phrases are short pre-recorded clips stored in the app (live synthesis is too slow for coaching). The full session is two minutes, then a scorecard shows this run's readings — or "Not measured" for anything the app could not really see.
+ 
+ ## Everything on-device — what each part does
+diff --git a/cpr-coach/docs/SPEC.md b/cpr-coach/docs/SPEC.md
+index b787c4a..da7ca6b 100644
+--- a/cpr-coach/docs/SPEC.md
++++ b/cpr-coach/docs/SPEC.md
+@@ -75,14 +75,14 @@ Anything from transport, BLE, RFCOMM, DTN, network, relay, SOS, identity, contac
+ 4. **Live session (2 minutes):**
+    - **Holder sees:** a big rate number (per minute), a teal (in range) / amber (off) glow, an elbow indicator, a time-left ring, and pause/stop.
+    - **Rescuer hears:** one correction at a time. Priority order: "Keep going" (after a pause) → "Push faster" / "Slow down" → "Keep your elbows straight" → occasional "Good, keep going".
+-   - A correction plays only after a few seconds of steady readings, never the same phrase twice in a row.
++   - A rate correction waits for steady readings; a posture correction uses a shorter wait. A separate gap between phrases is not part of that wait. Never the same phrase twice in a row.
+    - **Arms out of frame:** the number greys out and shows "Can't see arms". The rescuer only hears the metronome. **Never show a made-up number.**
+ 5. **Scorecard:** time in the 100–120 range, average rate, elbows straight %, number of pauses. Buttons: "Swap roles and try again" and "Home".
+ 
+ ### Emergency (zero setup, panic-proof)
+ - **Entry and audio:** one tap on **Emergency** opens the camera in landscape and immediately starts the metronome and spoken steps. CPR never waits for camera readiness. Emergency provides no setup flow.
+ - **Guidance:** spoken steps cover calling 112, hands on chest, swapping every 2 minutes, and one AED reminder. Once the arms are visible, the same camera analysis and coaching as Practise add spoken corrections blended with the emergency steps.
+-- **Screen:** show one huge instruction word in the chosen language—**FASTER**, **GOOD**, **SLOWER** or **STRAIGHTEN ARMS**—inside a coral-red frame, with elapsed time in a corner. Show no numbers. Keep a non-blocking hint on screen: hold the phone from the side, or prop it on the floor facing the rescuer's side.
++- **Screen:** show one huge instruction word in the chosen language—**FASTER**, **GOOD**, **SLOWER** or **STRAIGHTEN ARMS**—inside a coral-red frame, with elapsed time in a corner. Show no numbers. A posture word ends when the posture verdict ends. Keep a non-blocking hint on screen: hold the phone from the side, or prop it on the floor facing the rescuer's side.
+ - **Tracking unavailable:** keep the metronome and voice going; show **Keep pushing with the beat** in the word area. Never invent a number.
+ - **Call 112:** always visible, including while the camera is on. It opens the dialer with 112 filled in (`ACTION_DIAL`) and never places a call.
+ - **Stop and summary:** a deliberate hold on Stop opens the portrait **For the ambulance crew** summary with total CPR time, average rate and pauses. Show measured values only; use a dash when a value is unmeasured. Home returns in portrait.
+@@ -100,7 +100,7 @@ Solo mode (phone strapped to the forearm, motion sensor gives rate and pauses),
+ 3. **Elbow:** the angle at the elbow from shoulder, elbow and wrist. The angle doesn't change if the whole frame shifts.
+ 4. **Pause:** no steady beat while the arms are visible.
+ 5. **Tracking lost:** low landmark confidence → stop reporting numbers.
+-6. **Feedback logic:** pick one correction by priority, require steady readings first, add a cooldown, never repeat back to back.
++6. **Feedback logic:** pick one correction by priority, require steady readings first, but a posture correction needs a shorter steady stretch than a rate correction. A separate gap between phrases keeps them apart, and never repeat back to back.
+ 7. Thresholds: target 100–120/min. Elbow "bent" threshold to be tuned by testing.
+ 
+ ---
