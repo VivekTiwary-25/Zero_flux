@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="210dp"
+    android:viewportWidth="360"
+    android:viewportHeight="210">
+    <path
+        android:fillColor="#FFFFFF" android:strokeColor="#285E4E" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M 58.0,20.0 H 138.0 A 19.0,19.0 0 0 1 157.0,39.0 V 174.0 A 19.0,19.0 0 0 1 138.0,193.0 H 58.0 A 19.0,19.0 0 0 1 39.0,174.0 V 39.0 A 19.0,19.0 0 0 1 58.0,20.0 Z" />
+    <path
+        android:fillColor="#EAF0E7" android:strokeColor="#285E4E" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M 58.0,34.0 H 138.0 A 9.0,9.0 0 0 1 147.0,43.0 V 164.0 A 9.0,9.0 0 0 1 138.0,173.0 H 58.0 A 9.0,9.0 0 0 1 49.0,164.0 V 43.0 A 9.0,9.0 0 0 1 58.0,34.0 Z" />
+    <path
+        android:fillColor="#00000000" android:strokeColor="#285E4E" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M91 26h15m-4 156h-9" />
+    <path
+        android:fillColor="#FFFFFF" android:strokeColor="#285E4E" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M89 67q-8 0-9 10 0 15 15 29 14 14 29 14 9-1 9-9l-14-10-9 8q-13-5-19-19l8-9-10-14Z" />
+    <path
+        android:fillColor="#285E4E" android:strokeColor="#00000000"
+        android:pathData="M 74.51,147.75 L 78.67,147.75 L 78.67,135.97 L 74.40,136.85 L 74.40,133.65 L 78.64,132.77 L 83.11,132.77 L 83.11,147.75 L 87.26,147.75 L 87.26,151.00 L 74.51,151.00 L 74.51,147.75 Z M 91.91,147.75 L 96.06,147.75 L 96.06,135.97 L 91.80,136.85 L 91.80,133.65 L 96.03,132.77 L 100.50,132.77 L 100.50,147.75 L 104.65,147.75 L 104.65,151.00 L 91.91,151.00 L 91.91,147.75 Z M 113.58,147.55 L 121.60,147.55 L 121.60,151.00 L 108.35,151.00 L 108.35,147.55 L 115.00,141.67 Q 115.90,140.87 116.32,140.10 Q 116.75,139.33 116.75,138.50 Q 116.75,137.22 115.89,136.44 Q 115.03,135.66 113.60,135.66 Q 112.50,135.66 111.19,136.12 Q 109.89,136.59 108.40,137.52 L 108.40,133.52 Q 109.99,133.00 111.54,132.72 Q 113.09,132.45 114.58,132.45 Q 117.85,132.45 119.66,133.89 Q 121.47,135.32 121.47,137.90 Q 121.47,139.39 120.71,140.68 Q 119.94,141.96 117.47,144.13 L 113.58,147.55 Z" />
+    <path
+        android:fillColor="#00000000" android:strokeColor="#A13E35" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M179 108h21m-8-8 8 8-8 8" />
+    <path
+        android:fillColor="#FFFFFF" android:strokeColor="#285E4E" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M235 63V48q0-8 8-8h40q8 0 8 8v15" />
+    <path
+        android:fillColor="#FFFFFF" android:strokeColor="#285E4E" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M 220.0,60.0 H 311.0 A 13.0,13.0 0 0 1 324.0,73.0 V 170.0 A 13.0,13.0 0 0 1 311.0,183.0 H 220.0 A 13.0,13.0 0 0 1 207.0,170.0 V 73.0 A 13.0,13.0 0 0 1 220.0,60.0 Z" />
+    <path
+        android:fillColor="#EAF0E7" android:strokeColor="#285E4E" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M 226.0,74.0 H 305.0 A 7.0,7.0 0 0 1 312.0,81.0 V 142.0 A 7.0,7.0 0 0 1 305.0,149.0 H 226.0 A 7.0,7.0 0 0 1 219.0,142.0 V 81.0 A 7.0,7.0 0 0 1 226.0,74.0 Z" />
+    <path
+        android:fillColor="#285E4E" android:strokeColor="#00000000"
+        android:pathData="M 252.12,99.08 L 245.65,99.08 L 244.63,102.00 L 240.47,102.00 L 246.41,85.96 L 251.34,85.96 L 257.28,102.00 L 253.13,102.00 L 252.12,99.08 Z M 246.68,96.10 L 251.07,96.10 L 248.88,89.72 L 246.68,96.10 Z M 259.41,85.96 L 270.57,85.96 L 270.57,89.09 L 263.55,89.09 L 263.55,92.07 L 270.15,92.07 L 270.15,95.20 L 263.55,95.20 L 263.55,98.88 L 270.81,98.88 L 270.81,102.00 L 259.41,102.00 L 259.41,85.96 Z M 278.57,89.09 L 278.57,98.88 L 280.06,98.88 Q 282.59,98.88 283.93,97.62 Q 285.27,96.36 285.27,93.96 Q 285.27,91.58 283.93,90.34 Q 282.60,89.09 280.06,89.09 L 278.57,89.09 Z M 274.44,85.96 L 278.80,85.96 Q 282.45,85.96 284.24,86.48 Q 286.03,87.00 287.31,88.25 Q 288.43,89.34 288.98,90.76 Q 289.53,92.17 289.53,93.96 Q 289.53,95.78 288.98,97.20 Q 288.43,98.63 287.31,99.71 Q 286.02,100.96 284.21,101.48 Q 282.41,102.00 278.80,102.00 L 274.44,102.00 L 274.44,85.96 Z" />
+    <path
+        android:fillColor="#FFFFFF" android:strokeColor="#285E4E" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M265 137q-21-13-17-24 4-9 17-2 12-7 17 2 4 11-17 24Z" />
+    <path
+        android:fillColor="#00000000" android:strokeColor="#A13E35" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="m269 112-8 11h7l-4 10" />
+    <path
+        android:fillColor="#00000000" android:strokeColor="#285E4E" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M236 159h58" />
+</vector>
