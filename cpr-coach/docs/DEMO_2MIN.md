@@ -2,47 +2,45 @@
 
 ## Before the clock starts
 
-- Use the demo build in English. Check that CPR guide, Emergency contact and Dashboard are there before going on stage.
-- Use a cushion, never a person. Clear space for the person who will push.
-- One person speaks. One pushes on the cushion. One holds the phone still at the side, with the arms in view, and taps the controls.
-- Turn media sound up. Disconnect headphones and Bluetooth audio. Keep the mic off so it does not mute the coach. Set the screen to stay on. Have a spare phone ready.
-- Check camera access and sound in a dry run, then leave the phone on the Android home screen. Start the live demo from the app icon, not a tool or a deep link.
-- Do not show private contact details. Show the Emergency contact form without saving or calling a contact.
-- For a lean, **push firm and steady, keep it short, and keep the phone still**. A known problem can make weak, uneven pushing read as a pause. This is not proof that the person stopped. Do not force a lean cue or hide a missed cue.
+- Use the English demo build. Confirm CPR guide, Emergency contact and Dashboard are present; rehearse on the stage build.
+- Use a cushion, never a person. Clear space for the person pushing. One person speaks, one pushes, one holds the phone still at the rescuer's side with the arms in view and taps controls.
+- Turn media sound up, disconnect headphones/Bluetooth, leave the mic off, keep the screen on, and have a spare phone ready. Dry-run camera access and sound.
+- Do not expose private contact details. Open the Emergency contact form but do not save a contact or call anyone.
+- For a lean, push firm and steady, keep it short, and keep the phone still. Recording 16 documents a known problem: weak, uneven pushing can lose its rate and show Pause while pushing continues. This is not proof that pushing stopped; do not force a cue or conceal a missed cue.
 
-## Live run: 0:00–2:00, 120 seconds total
+## Live run: 0:00–2:00 (120 seconds total)
 
-The quoted words are the presenter's lines. Leave the other time for taps and the app's own voice. Move on at each time mark; do not wait for a rate or a cue.
+The quoted words are the presenter's lines. The time includes taps, transitions, and app audio. Move on at each time mark; do not wait for a rate or cue.
 
 | Time | Seconds | Screen and action | Say |
 |---|---:|---|---|
-| 0:00–0:16 | 16 | Tap the CPR Coach app icon on the Android home screen. Show the app Home screen. | “CPR Coach is a practice tool, not a medical device. In a real emergency, call 112. Never delay care for the app. We use a cushion, never a person. We will not make a call.” |
-| 0:16–0:28 | 12 | Open CPR guide. Show a step, tap Next once, then go back Home. Do not read the whole guide. | “The CPR guide gives short steps for adult CPR. It does not replace training or the dispatcher.” |
-| 0:28–0:40 | 12 | Open Emergency contact. Point to the name and number fields. Close the form and return Home; do not enter private data or call anyone. | “Emergency contact lets you save a name and number. We will leave the form blank. It is not a call to 112.” |
-| 0:40–0:52 | 12 | Open Dashboard. Point to both “Testing data” and “Synthetic data” tags. Return Home. | “These ‘Testing data’ and ‘Synthetic data’ tags matter. These are test and made-up data, not real users. They do not prove the app works in real care.” |
-| 0:52–1:14 | 22 | Tap Practise. Frame the arms from the side and start when ready. Push on the cushion. If time allows, make one short lean with firm, steady pushes; do not move the phone. Stop and return Home. | “Practise uses arm motion to estimate pace and spot cues. It does not measure depth or hand placement, and gives no overall CPR score. We show only what it sees.” |
-| 1:14–1:46 | 32 | Tap Emergency once. Keep the camera on and the phone still. Push on the cushion to the beat. Let the opening voice play; then speak in a gap. Leave time to hear a later cue if one occurs. In the last few seconds, tap Call 112 to show the dialer, then **cancel it with Back without pressing Call**. Return to the app. | “Emergency talks more: steps, cues and prompts to keep going. The beat and steps do not wait for the camera. This button opens the dialer; we cancel it. No call.” |
-| 1:46–1:52 | 6 | Hold Stop to end Emergency. Show “For the ambulance crew”. Do not read out or invent values. | “A dash means not measured, not zero.” |
-| 1:52–2:00 | 8 | Keep the summary in view. End at 2:00. | “Practice tool, not a medical device. In real danger, call 112 and follow the dispatcher. Never delay care.” |
+| 0:00–0:16 | 16 | Launch from the Android home screen; show Home. | “CPR Coach is a practice tool, not a medical device. In a real emergency, call 112 and follow the dispatcher. Never delay care for this app. We use a cushion, never a person, and will not make a call.” |
+| 0:16–0:30 | 14 | Open CPR guide. Show step 1, tap Next once to step 2 and show its AED explainer pop-up if available; dismiss and return Home. | “The guide gives five short steps for adult CPR. Step 2 explains an AED: an automated external defibrillator, a portable device that can deliver a shock and gives spoken instructions. It does not replace the dispatcher.” |
+| 0:30–0:42 | 12 | Open Emergency contact; point at blank name and phone fields. Close and return Home without entry. | “You can save an emergency contact here. We leave the form blank; saving a contact does not call anyone.” |
+| 0:42–0:54 | 12 | Open Dashboard. Point out “Testing data” and “Synthetic data” labels; return Home. | “These tagged examples are testing and made-up data, not real-user evidence. They do not prove the app works in real care.” |
+| 0:54–1:14 | 20 | Tap Practise. Frame arms from the side; start when ready and push on cushion. If time, brief lean with firm steady pushes, phone still. Stop and return Home. | “Practise uses arm motion to estimate pace and show posture or pause cues. It does not measure depth or hand placement and gives no overall CPR score.” |
+| 1:14–1:46 | 32 | Tap Emergency. Keep camera on and phone still; push to beat. Let opening voice play; speak in a gap. In final seconds tap Call 112 to display dialer, then cancel with Back without pressing Call. Return to app. | “Emergency gives spoken steps and a beat without waiting for camera tracking. Camera-based cues depend on readings. This button opens the dialer; we cancel it. No call.” |
+| 1:46–1:52 | 6 | Hold Stop. Show “For the ambulance crew”; do not invent values. | “A dash means not measured, not zero.” |
+| 1:52–2:00 | 8 | Keep summary visible. End at 2:00. | “This is a practice tool, not a medical device. In real danger call 112 and follow the dispatcher. Never delay care.” |
 
 ## If a cue or sound is missing
 
-- If Practise loses the arms or shows no rate, say: “It cannot get a reading; we will not guess.” Keep to the clock. Do not claim a pause is real when pushes are still going.
-- If Emergency loses tracking, let its beat and spoken steps carry on. Say: “The beat and steps do not wait for the camera.” Do not promise a correction or a rate.
-- Emergency now has more voice prompts. Corrections and praise depend on the reading; some prompts need a quiet gap. Do not promise a set count, a fixed delay, or a cue on demand. A short demo will not reach all later reminders.
-- If sound fails, check media volume and that the mic is off. If needed, use the spare phone and keep to the clock. Say what failed; do not pretend a clip played.
-- If a screen is missing in the stage build, say so. Do not pass off another screen as that feature.
-- If the dialer opens at any point, cancel with Back. Never press Call or place any call in this demo.
+- If Practise loses the arms or gives no rate, say: “It cannot get a reading; we will not guess.” Do not claim a pause is real while pushes continue.
+- If Emergency loses tracking, its beat and spoken steps continue. Do not promise a correction or rate.
+- Corrections, praise and reminders depend on readings and playback gaps. Do not promise a set count, fixed delay, or cue on demand; this short demo will not reach all reminders.
+- If sound fails, state that; use the spare phone if needed. Do not pretend audio played.
+- If a screen is absent from the stage build, say so; do not pass off another screen as the feature.
+- If the dialer opens, cancel with Back. Never press Call or place a call during the demo.
 
 ## Limits for questions
 
-- No depth, force, chest recoil or hand-placement measurement. No overall CPR score, skill certificate or claim of clinical proof. A session card contains only that run's measured readings; it is not a clinical score.
-- Quote no accuracy or speed figure. Rate accuracy on a real person is not proven. The lean/pause problem is still open; steady staging does not fix it.
-- Guide pictures or spoken hand-placement steps are guidance, not a camera check of hand placement.
-- Use English for this demo. New non-English text, including guide text, has not had a full human review. Do not call all languages checked.
-- Dashboard data labelled “Testing data” or “Synthetic data” is not evidence of real users or lives saved.
-- In real care, call 112 and follow the dispatcher. Never delay care to set up the camera or use the app. Never push on a person for a demo.
+- No depth, force, chest recoil or hand-placement measurement. No overall CPR score, certification or clinical proof. Session values are readings available during that run, not a clinical score; a dash means not measured.
+- Quote no accuracy or speed figure. Rate accuracy on a real person is not clinically proven. Recording 16 shows a known rate-dropout/pause problem during weak or uneven pushing; the proposed estimator and pause-rule changes were held back because they introduced other errors.
+- Guide images are illustrations, not camera checks of hand placement.
+- Use English for the demo. Translations noted in `cpr-coach/docs/STRINGS_UNREVIEWED.md` are machine-translated or copied prototype text and have not had human review; do not call them checked.
+- Dashboard “Testing data” and “Synthetic data” entries are examples, not evidence of real users or lives saved. Real saved sessions have no sample tag.
+- In real care, call 112 and follow the dispatcher. Never delay care to set up the camera or app. Never push on a person for a demo.
 
 ## Source notes
 
-Read from `origin/cpr-coach` after `git fetch origin`: `cpr-coach/docs/DEMO_2MIN.md`, `JUDGE_QA.md`, `PLAN_0810.md`, `EMERGENCY_TALK.md`, `RECORDING_16.md` and `STRINGS_UNREVIEWED.md` (all under `cpr-coach/docs/`). Both the source demo and Q&A were present. This is a script, not proof of a phone run; rehearse it on the stage build before use.
+Claims checked against `origin/takeover/t5-final` app code and docs, and the AED wording in `origin/takeover/t8-aed:cpr-coach/app/src/main/assets/strings/en.json`. The upstream `origin/cpr-coach` demo and Q&A informed this rewrite. The guide code has step 2 text but no AED popup in `GuideScreen.kt`; therefore only mention/show a popup if it is present in the actual stage build. This script is not proof of a phone run; rehearse on stage build before use.
