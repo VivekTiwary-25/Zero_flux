@@ -63,7 +63,7 @@ import com.zeroflux.cprcoach.R
 /**
  * CPR guide: the 5 adult CPR steps from the prototype.
  *
- * Plain composable taking [onBack] and [onEmergency]. Task 6 adds the bottom bar later.
+ * Plain composable taking [onBack] and [onEmergency].
  */
 @Composable
 fun GuideScreen(
@@ -73,12 +73,13 @@ fun GuideScreen(
 ) {
     var step by rememberSaveable { mutableIntStateOf(0) }
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val motionEnabled = rememberCoachMotionEnabled()
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(CoachColors.Navy)
+            .background(colors.Navy)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp),
@@ -93,11 +94,11 @@ fun GuideScreen(
                 onClick = onBack,
                 modifier = Modifier.heightIn(min = 44.dp),
             ) {
-                BackArrowIcon(tint = CoachColors.TextSecondary)
+                BackArrowIcon(tint = colors.TextSecondary)
                 Spacer(Modifier.width(6.dp))
                 Text(
                     text = strings.get("cprGuideBack"),
-                    color = CoachColors.TextSecondary,
+                    color = colors.TextSecondary,
                     style = MaterialTheme.typography.titleSmall,
                 )
             }
@@ -107,20 +108,20 @@ fun GuideScreen(
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 text = strings.get("cprGuideNav").uppercase(),
-                color = CoachColors.Teal,
+                color = colors.Teal,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp,
             )
             Text(
                 text = strings.get("cprGuideTitle"),
-                color = CoachColors.TextPrimary,
+                color = colors.TextPrimary,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
             )
             Text(
                 text = strings.get("cprGuideIntro"),
-                color = CoachColors.TextSecondary,
+                color = colors.TextSecondary,
                 style = MaterialTheme.typography.bodyMedium,
                 lineHeight = 20.sp,
             )
@@ -131,18 +132,18 @@ fun GuideScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(CoachColors.Teal.copy(alpha = 0.12f))
-                .border(1.dp, CoachColors.Teal.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+                .background(colors.Teal.copy(alpha = 0.12f))
+                .border(1.dp, colors.Teal.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
                 .padding(14.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                InfoIcon(tint = CoachColors.Teal, modifier = Modifier.padding(top = 2.dp))
+                InfoIcon(tint = colors.Teal, modifier = Modifier.padding(top = 2.dp))
                 Text(
                     text = strings.get("cprGuideScope"),
-                    color = CoachColors.TextPrimary,
+                    color = colors.TextPrimary,
                     style = MaterialTheme.typography.bodyMedium,
                     lineHeight = 20.sp,
                 )
@@ -156,7 +157,7 @@ fun GuideScreen(
         ) {
             for (i in 0..4) {
                 val selected = i == step
-                val shape = RoundedCornerShape(8.dp)
+                val shape = RoundedCornerShape(12.dp)
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -164,11 +165,11 @@ fun GuideScreen(
                         .clip(shape)
                         .then(
                             if (selected) {
-                                Modifier.background(CoachColors.Teal)
+                                Modifier.background(colors.Teal)
                             } else {
                                 Modifier
-                                    .background(CoachColors.Charcoal)
-                                    .border(1.dp, CoachColors.GlassEdge, shape)
+                                    .background(colors.Charcoal)
+                                    .border(1.dp, colors.GlassEdge, shape)
                             }
                         )
                         .clickable { step = i }
@@ -177,7 +178,7 @@ fun GuideScreen(
                 ) {
                     Text(
                         text = (i + 1).toString(),
-                        color = if (selected) CoachColors.Navy else CoachColors.TextSecondary,
+                        color = if (selected) colors.OnAction else colors.TextSecondary,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                         style = MaterialTheme.typography.titleMedium,
                     )
@@ -211,7 +212,7 @@ fun GuideScreen(
                 ) {
                     Text(
                         text = "${strings.get("cprGuideStep").uppercase()} ${(currentStep + 1).toString().padStart(2, '0')} / 05",
-                        color = CoachColors.Teal,
+                        color = colors.Teal,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.5.sp,
@@ -226,11 +227,12 @@ fun GuideScreen(
                     }
                     val visualDesc = strings.get("cprStep${currentStep + 1}Visual")
 
+                    // Keep the vectors' dark green outlines on a neutral light surface in both themes.
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(CoachColors.TextPrimary)
+                            .background(Color(0xFFF8F9F6))
                             .padding(horizontal = 14.dp, vertical = 12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -244,7 +246,7 @@ fun GuideScreen(
                         )
                         Text(
                             text = visualDesc,
-                            color = CoachColors.Charcoal,
+                            color = Color(0xFF243C32),
                             fontSize = 13.sp,
                             lineHeight = 18.sp,
                             textAlign = TextAlign.Center,
@@ -253,14 +255,14 @@ fun GuideScreen(
 
                     Text(
                         text = strings.get("cprStep${currentStep + 1}Title"),
-                        color = CoachColors.TextPrimary,
+                        color = colors.TextPrimary,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                     )
 
                     Text(
                         text = strings.get("cprStep${currentStep + 1}Body"),
-                        color = CoachColors.TextSecondary,
+                        color = colors.TextSecondary,
                         style = MaterialTheme.typography.bodyMedium,
                         lineHeight = 22.sp,
                     )
@@ -269,10 +271,10 @@ fun GuideScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(CoachColors.Teal.copy(alpha = 0.10f))
+                            .background(colors.Teal.copy(alpha = 0.10f))
                             .drawBehind {
                                 drawLine(
-                                    color = CoachColors.Teal,
+                                    color = colors.Teal,
                                     start = Offset(1.5.dp.toPx(), 0f),
                                     end = Offset(1.5.dp.toPx(), size.height),
                                     strokeWidth = 3.dp.toPx(),
@@ -284,10 +286,10 @@ fun GuideScreen(
                             verticalAlignment = Alignment.Top,
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            CheckIcon(tint = CoachColors.Teal, modifier = Modifier.padding(top = 2.dp))
+                            CheckIcon(tint = colors.Teal, modifier = Modifier.padding(top = 2.dp))
                             Text(
                                 text = strings.get("cprStep${currentStep + 1}Tip"),
-                                color = CoachColors.TextPrimary,
+                                color = colors.TextPrimary,
                                 style = MaterialTheme.typography.bodyMedium,
                                 lineHeight = 20.sp,
                             )
@@ -309,18 +311,18 @@ fun GuideScreen(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(12.dp),
                     elevation = 6.dp,
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        BackArrowIcon(tint = CoachColors.TextPrimary)
+                        BackArrowIcon(tint = colors.TextPrimary)
                         Text(
                             modifier = Modifier.weight(1f, fill = false),
                             text = strings.get("cprGuidePrevious"),
-                            color = CoachColors.TextPrimary,
+                            color = colors.TextPrimary,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                         )
@@ -336,9 +338,9 @@ fun GuideScreen(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp),
-                    color = CoachColors.Teal,
-                    colorDeep = CoachColors.Charcoal,
-                    shape = RoundedCornerShape(14.dp),
+                    color = colors.Teal,
+                    colorDeep = colors.Charcoal,
+                    shape = RoundedCornerShape(12.dp),
                     elevation = 6.dp,
                 ) {
                     Row(
@@ -348,11 +350,11 @@ fun GuideScreen(
                         Text(
                             modifier = Modifier.weight(1f, fill = false),
                             text = strings.get("cprGuideNext"),
-                            color = CoachColors.Navy,
+                            color = colors.OnAction,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                         )
-                        ForwardArrowIcon(tint = CoachColors.Navy)
+                        ForwardArrowIcon(tint = colors.OnAction)
                     }
                 }
             } else {
@@ -361,9 +363,9 @@ fun GuideScreen(
                     modifier = Modifier
                         .weight(1.3f)
                         .heightIn(min = 48.dp),
-                    color = CoachColors.Coral,
-                    colorDeep = CoachColors.CoralDeep,
-                    shape = RoundedCornerShape(14.dp),
+                    color = colors.Coral,
+                    colorDeep = colors.CoralDeep,
+                    shape = RoundedCornerShape(12.dp),
                     elevation = 6.dp,
                 ) {
                     Row(
@@ -371,11 +373,11 @@ fun GuideScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        PhoneIcon(tint = CoachColors.Navy)
+                        PhoneIcon(tint = colors.OnDanger)
                         Text(
                             modifier = Modifier.weight(1f, fill = false),
                             text = strings.get("cprGuideEmergency"),
-                            color = CoachColors.Navy,
+                            color = colors.OnDanger,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,

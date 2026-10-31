@@ -257,6 +257,7 @@ fun EmergencySummaryScreen(
     modifier: Modifier = Modifier,
 ) {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val dash = strings.get("live_no_rate")
     val pauses = summary.pauses?.toString() ?: dash
     val measured = if (summary.measuredSeconds > 0) formatElapsed(summary.measuredSeconds) else dash
@@ -264,7 +265,7 @@ fun EmergencySummaryScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(CoachColors.Navy)
+            .background(colors.Navy)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -281,13 +282,13 @@ fun EmergencySummaryScreen(
                     .width(72.dp)
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(CoachColors.Coral),
+                    .background(colors.Coral),
             )
             BasicText(
                 strings.get("em_summary_title"),
                 modifier = Modifier.fillMaxWidth(),
                 style = TextStyle(
-                    color = CoachColors.TextPrimary,
+                    color = colors.TextPrimary,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     lineHeight = 1.2f.em,
@@ -309,7 +310,7 @@ fun EmergencySummaryScreen(
                     SummaryRow(strings.get("em_summary_pauses"), pauses)
                     Text(
                         "${strings.get("em_summary_measured")}: $measured",
-                        color = CoachColors.TextSecondary,
+                        color = colors.TextSecondary,
                         fontSize = 15.sp,
                         lineHeight = 19.sp,
                         style = TabularStyle,
@@ -319,7 +320,7 @@ fun EmergencySummaryScreen(
             Text(
                 strings.get("em_summary_note"),
                 modifier = Modifier.fillMaxWidth(),
-                color = CoachColors.TextSecondary,
+                color = colors.TextSecondary,
                 fontSize = 13.sp,
                 lineHeight = 17.sp,
                 textAlign = TextAlign.Center,
@@ -328,16 +329,16 @@ fun EmergencySummaryScreen(
         ClayButton(
             onClick = onCall112,
             modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
-            color = CoachColors.Coral,
-            colorDeep = CoachColors.CoralDeep,
-            shape = RoundedCornerShape(28.dp),
-            elevation = 16.dp,
+            color = colors.CoralDeep,
+            colorDeep = colors.CoralDeep,
+            shape = RoundedCornerShape(12.dp),
+            elevation = 2.dp,
             pressedScale = 0.96f,
         ) {
             Text(
                 strings.get("em_call"),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                color = Color.White,
+                color = colors.OnDanger,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -350,7 +351,7 @@ fun EmergencySummaryScreen(
             Text(
                 strings.get("score_home"),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                color = CoachColors.TextPrimary,
+                color = colors.TextPrimary,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -362,18 +363,19 @@ fun EmergencySummaryScreen(
 /** Label and value share a row; the label wraps before the value ever does. */
 @Composable
 private fun SummaryRow(label: String, value: String, unit: String? = null) {
+    val colors = LocalCoachColors.current
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             label,
             modifier = Modifier.weight(1f),
-            color = CoachColors.TextSecondary,
+            color = colors.TextSecondary,
             fontSize = 16.sp,
             lineHeight = 20.sp,
         )
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 value,
-                color = CoachColors.TextPrimary,
+                color = colors.TextPrimary,
                 fontSize = 30.sp,
                 lineHeight = 36.sp,
                 fontWeight = FontWeight.Bold,
@@ -385,7 +387,7 @@ private fun SummaryRow(label: String, value: String, unit: String? = null) {
                 Text(
                     unit,
                     modifier = Modifier.padding(bottom = 5.dp),
-                    color = CoachColors.TextSecondary,
+                    color = colors.TextSecondary,
                     fontSize = 14.sp,
                     lineHeight = 18.sp,
                     maxLines = 2,

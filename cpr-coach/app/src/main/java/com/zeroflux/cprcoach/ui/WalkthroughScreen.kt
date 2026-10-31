@@ -55,11 +55,12 @@ fun WalkthroughScreen(
 ) {
     var page by remember { mutableIntStateOf(0) }
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val motionEnabled = rememberCoachMotionEnabled()
     Column(
         modifier
             .fillMaxSize()
-            .background(CoachColors.Navy)
+            .background(colors.Navy)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(horizontal = 24.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -90,7 +91,7 @@ fun WalkthroughScreen(
                         0 -> {
                             Text(
                                 strings.get("walk_title_1"),
-                                color = CoachColors.TextPrimary,
+                                color = colors.TextPrimary,
                                 fontSize = 30.sp,
                                 lineHeight = 39.sp,
                                 fontWeight = FontWeight.SemiBold,
@@ -99,7 +100,7 @@ fun WalkthroughScreen(
                             Spacer(Modifier.height(16.dp))
                             Text(
                                 strings.get("walk_body_1"),
-                                color = CoachColors.TextSecondary,
+                                color = colors.TextSecondary,
                                 fontSize = 18.sp,
                                 lineHeight = 26.sp,
                                 textAlign = TextAlign.Center,
@@ -107,7 +108,7 @@ fun WalkthroughScreen(
                             Spacer(Modifier.height(8.dp))
                             Text(
                                 strings.get("adult_cpr_only"),
-                                color = CoachColors.TextSecondary,
+                                color = colors.TextSecondary,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center,
                             )
@@ -121,7 +122,7 @@ fun WalkthroughScreen(
                         1 -> {
                             Text(
                                 strings.get("walk_title_2"),
-                                color = CoachColors.TextPrimary,
+                                color = colors.TextPrimary,
                                 fontSize = 26.sp,
                                 lineHeight = 34.sp,
                                 fontWeight = FontWeight.SemiBold,
@@ -149,7 +150,7 @@ fun WalkthroughScreen(
                         else -> {
                             Text(
                                 strings.get("walk_title_3"),
-                                color = CoachColors.TextPrimary,
+                                color = colors.TextPrimary,
                                 fontSize = 28.sp,
                                 lineHeight = 36.sp,
                                 fontWeight = FontWeight.SemiBold,
@@ -160,8 +161,8 @@ fun WalkthroughScreen(
                                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                ColorSwatch(CoachColors.Teal)
-                                ColorSwatch(CoachColors.Amber)
+                                ColorSwatch(colors.Teal)
+                                ColorSwatch(colors.Amber)
                             }
                         }
                     }
@@ -176,30 +177,30 @@ fun WalkthroughScreen(
         ) {
             if (page > 0) {
                 TextButton(onClick = { page-- }, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(strings.get("walk_back"), color = CoachColors.TextSecondary, fontSize = 16.sp)
+                    Text(strings.get("walk_back"), color = colors.TextSecondary, fontSize = 16.sp)
                 }
             } else {
                 Spacer(Modifier.width(48.dp))
             }
 
             TextButton(onClick = onSkip, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(strings.get("walk_skip"), color = CoachColors.TextSecondary, fontSize = 16.sp)
+                Text(strings.get("walk_skip"), color = colors.TextSecondary, fontSize = 16.sp)
             }
 
             if (page < 2) {
                 TextButton(onClick = { page++ }, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(strings.get("walk_next"), color = CoachColors.Teal, fontSize = 16.sp)
+                    Text(strings.get("walk_next"), color = colors.Teal, fontSize = 16.sp)
                 }
             } else {
                 ClayButton(
                     onClick = onStart,
                     modifier = Modifier.heightIn(min = 48.dp).width(112.dp),
-                    color = CoachColors.Teal,
-                    colorDeep = Color(0xFF159E91),
+                    color = colors.Teal,
+                    colorDeep = colors.Teal,
                 ) {
                     Text(
                         strings.get("walk_start"),
-                        color = CoachColors.Navy,
+                        color = colors.OnAction,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -216,6 +217,7 @@ private fun RoleCard(
     body: String,
     rescuer: Boolean,
 ) {
+    val colors = LocalCoachColors.current
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -224,7 +226,7 @@ private fun RoleCard(
         Spacer(Modifier.height(12.dp))
         Text(
             title,
-            color = CoachColors.Teal,
+            color = colors.Teal,
             fontSize = 17.sp,
             lineHeight = 24.sp,
             fontWeight = FontWeight.SemiBold,
@@ -233,7 +235,7 @@ private fun RoleCard(
         Spacer(Modifier.height(8.dp))
         Text(
             body,
-            color = CoachColors.TextSecondary,
+            color = colors.TextSecondary,
             fontSize = 14.sp,
             lineHeight = 21.sp,
             textAlign = TextAlign.Center,
@@ -243,8 +245,9 @@ private fun RoleCard(
 
 @Composable
 private fun RoleIcon(rescuer: Boolean) {
+    val colors = LocalCoachColors.current
     Canvas(Modifier.size(width = 54.dp, height = 58.dp)) {
-        val ink = CoachColors.Teal
+        val ink = colors.Teal
         val stroke = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
         val head = Offset(size.width * 0.5f, size.height * 0.19f)
         drawCircle(ink, radius = size.width * 0.12f, center = head)

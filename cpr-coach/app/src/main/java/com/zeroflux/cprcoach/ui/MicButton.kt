@@ -48,6 +48,17 @@ fun MicButton(
     modifier: Modifier = Modifier,
 ) {
     val strings = LocalStrings.current
+    val camera = LocalCameraChrome.current
+    val colors = LocalCoachColors.current
+    val green = if (camera) CoachColors.Teal else colors.Teal
+    val surface = if (camera) CoachColors.Charcoal else colors.Charcoal
+    val edge = if (camera) CoachColors.GlassEdge else colors.GlassEdge
+    val muted = if (camera) CoachColors.TextSecondary else colors.TextSecondary
+    val ink = if (camera) {
+        if (state == MicState.LISTENING) CoachColors.Navy else CoachColors.TextPrimary
+    } else {
+        if (state == MicState.LISTENING) colors.OnAction else colors.TextPrimary
+    }
     val motionEnabled = rememberCoachMotionEnabled()
     val listening = state == MicState.LISTENING
     val description = strings.get(
@@ -76,15 +87,15 @@ fun MicButton(
                 if (listening) {
                     val progress = if (motionEnabled) ring.value else 0f
                     drawCircle(
-                        color = CoachColors.Teal.copy(alpha = 0.22f * (1f - progress)),
+                        color = green.copy(alpha = 0.22f * (1f - progress)),
                         radius = size.minDimension / 2 + 6.dp.toPx() * progress,
                         style = Stroke(2.dp.toPx()),
                     )
                 }
             }
             .clip(CircleShape)
-            .background(if (listening) CoachColors.Teal else CoachColors.Charcoal, CircleShape)
-            .border(1.dp, if (listening) CoachColors.Teal else CoachColors.GlassEdge, CircleShape)
+            .background(if (listening) green else surface, CircleShape)
+            .border(1.dp, if (listening) green else edge, CircleShape)
             .semantics { contentDescription = description }
             .clickable(role = Role.Button, onClick = onTap),
         contentAlignment = Alignment.Center,
@@ -93,7 +104,7 @@ fun MicButton(
             if (motionEnabled) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(38.dp).clearAndSetSemantics { },
-                    color = CoachColors.TextSecondary,
+                    color = muted,
                     strokeWidth = 2.dp,
                     trackColor = Color.Transparent,
                 )
@@ -102,7 +113,7 @@ fun MicButton(
                 Canvas(Modifier.size(38.dp)) {
                     val inset = 2.dp.toPx()
                     drawArc(
-                        color = CoachColors.TextSecondary,
+                        color = muted,
                         startAngle = -90f,
                         sweepAngle = 270f,
                         useCenter = false,
@@ -115,7 +126,6 @@ fun MicButton(
         }
         Canvas(Modifier.size(24.dp)) {
             val unit = size.minDimension / 24f
-            val ink = if (listening) CoachColors.Navy else CoachColors.TextPrimary
             val stroke = Stroke(2f * unit, cap = StrokeCap.Round)
             drawRoundRect(
                 color = ink,

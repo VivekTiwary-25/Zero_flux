@@ -64,7 +64,6 @@ fun HomeScreen(
     micState: MicState,
     onEmergency: () -> Unit,
     onPractise: () -> Unit,
-    onGuide: () -> Unit,
     onLanguageChosen: (AppLanguage) -> Unit,
     onMicTap: () -> Unit,
     emergencyContactName: String?,
@@ -72,11 +71,12 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
 ) {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val motionEnabled = rememberCoachMotionEnabled()
     var pickerOpen by rememberSaveable { mutableStateOf(false) }
     var emergencyPressed by remember { mutableStateOf(false) }
     val pulse = remember { Animatable(1f) }
-    val emergencyShape = RoundedCornerShape(32.dp)
+    val emergencyShape = RoundedCornerShape(12.dp)
     val languageTitle = strings.get("language_title")
 
     LaunchedEffect(emergencyPressed, motionEnabled) {
@@ -91,7 +91,7 @@ fun HomeScreen(
     BoxWithConstraints(
         modifier
             .fillMaxSize()
-            .background(CoachColors.Navy)
+            .background(colors.Navy)
             .safeDrawingPadding(),
     ) {
         val emergencyHeight = maxOf(200.dp, maxHeight * 0.42f)
@@ -100,7 +100,8 @@ fun HomeScreen(
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(20.dp),
+                .padding(20.dp)
+                .padding(bottom = 80.dp), // Scroll clear of tabs without shrinking the original cards.
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -110,7 +111,7 @@ fun HomeScreen(
                             contentDescription = languageTitle
                         }
                         .clickable(role = Role.Button) { pickerOpen = true },
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(12.dp),
                 ) {
                     // Native names come from the shared language contract, not a translation.
                     Text(
@@ -118,7 +119,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .heightIn(min = 48.dp)
                             .padding(horizontal = 20.dp, vertical = 12.dp),
-                        color = CoachColors.TextPrimary,
+                        color = colors.TextPrimary,
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }
@@ -128,11 +129,11 @@ fun HomeScreen(
                 Modifier
                     .fillMaxWidth()
                     .shadow(
-                        elevation = 24.dp,
+                        elevation = 2.dp,
                         shape = emergencyShape,
                         clip = false,
-                        ambientColor = CoachColors.CoralDeep,
-                        spotColor = CoachColors.CoralDeep,
+                        ambientColor = colors.CoralDeep,
+                        spotColor = colors.CoralDeep,
                     )
                     .drawWithContent {
                         drawContent()
@@ -140,10 +141,10 @@ fun HomeScreen(
                         if (motionEnabled && progress > 0f && progress < 1f) {
                             val spread = 8.dp.toPx() * progress
                             drawRoundRect(
-                                color = CoachColors.Coral.copy(alpha = (1f - progress) * 0.28f),
+                                color = colors.Coral.copy(alpha = (1f - progress) * 0.28f),
                                 topLeft = Offset(-spread, -spread),
                                 size = Size(size.width + spread * 2, size.height + spread * 2),
-                                cornerRadius = CornerRadius(32.dp.toPx() + spread),
+                                cornerRadius = CornerRadius(12.dp.toPx() + spread),
                                 style = Stroke(1.5.dp.toPx()),
                             )
                         }
@@ -167,10 +168,10 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .heightIn(min = emergencyHeight)
                         .semantics { role = Role.Button },
-                    color = CoachColors.Coral,
-                    colorDeep = CoachColors.CoralDeep,
+                    color = colors.CoralDeep,
+                    colorDeep = colors.CoralDeep,
                     shape = emergencyShape,
-                    elevation = 16.dp,
+                    elevation = 2.dp,
                     pressedScale = if (motionEnabled) 0.94f else 1f,
                 ) {
                     Column(
@@ -179,14 +180,14 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = strings.get("home_emergency"),
-                            color = CoachColors.Navy,
+                            color = colors.OnDanger,
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                         )
                         Text(
                             text = strings.get("adult_cpr_only"),
-                            color = CoachColors.Navy,
+                            color = colors.OnDanger,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                         )
@@ -205,7 +206,7 @@ fun HomeScreen(
                 Text(
                     text = strings.get("home_practise"),
                     modifier = Modifier.padding(24.dp),
-                    color = CoachColors.TextPrimary,
+                    color = colors.TextPrimary,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
@@ -215,37 +216,19 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 48.dp)
-                    .clickable(role = Role.Button, onClick = onEmergencyContact)
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                    .clickable(role = Role.Button, onClick = onEmergencyContact),
                 shape = RoundedCornerShape(18.dp),
             ) {
                 Text(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     text = buildString {
                         append(strings.get("home_emergency_contact"))
                         if (!emergencyContactName.isNullOrBlank()) append(": $emergencyContactName")
                     },
-                    color = CoachColors.TextPrimary,
+                    color = colors.TextPrimary,
                     style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-
-            ClayButton(
-                onClick = onGuide,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .semantics { role = Role.Button },
-                pressedScale = if (motionEnabled) 0.97f else 1f,
-            ) {
-                Text(
-                    text = strings.get("cprGuideNav"),
-                    modifier = Modifier.padding(14.dp),
-                    color = CoachColors.TextPrimary,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
                 )
             }
 
@@ -263,20 +246,20 @@ fun HomeScreen(
         ModalBottomSheet(
             onDismissRequest = { pickerOpen = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = CoachColors.Charcoal.copy(alpha = 0.96f),
-            contentColor = CoachColors.TextPrimary,
+            containerColor = colors.Charcoal,
+            contentColor = colors.TextPrimary,
             dragHandle = null,
         ) {
             GlassPanel(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             ) {
                 Column(Modifier.fillMaxWidth().padding(16.dp)) {
                     Text(
                         text = languageTitle,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
                         style = MaterialTheme.typography.headlineSmall,
-                        color = CoachColors.TextPrimary,
+                        color = colors.TextPrimary,
                     )
                     LazyColumn(Modifier.fillMaxWidth().selectableGroup()) {
                         items(AppLanguage.entries, key = { it.code }) { option ->
@@ -300,15 +283,15 @@ fun HomeScreen(
                                     selected = option == language,
                                     onClick = null,
                                     colors = RadioButtonDefaults.colors(
-                                        selectedColor = CoachColors.Teal,
-                                        unselectedColor = CoachColors.TextSecondary,
+                                        selectedColor = colors.Teal,
+                                        unselectedColor = colors.TextSecondary,
                                     ),
                                 )
                                 Text(
                                     text = option.nativeName,
                                     modifier = Modifier.weight(1f),
                                     style = MaterialTheme.typography.titleLarge,
-                                    color = CoachColors.TextPrimary,
+                                    color = colors.TextPrimary,
                                 )
                             }
                         }
