@@ -43,6 +43,8 @@ Anything from transport, BLE, RFCOMM, DTN, network, relay, SOS, identity, contac
 - Kannada TTS exists but **no one has listened to it for quality yet.**
 - MMS voices are slow to start (Bengali ~2.4 s from text to first sound). That's why coaching uses **pre-generated clips** (section 6).
 
+This is an earlier iTantra report, not the current CPR Coach language status. For the 31 Oct 2026 team try of Hindi, Kannada, English and Gujarati in demo `a99cd63`, and the six unreviewed languages, see `STRINGS_UNREVIEWED.md`. That try was not a formal translation or medical review or a full string/clip check.
+
 ---
 
 ## 3. App behaviour (agreed with Vivek)

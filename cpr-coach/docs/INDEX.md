@@ -60,10 +60,13 @@ Every file in docs/, grouped by use. One plain line each.
 
 ## Voice and translations
 
+On 31 Oct 2026, the team reports Hindi, Kannada, English and Gujarati worked well on a phone in demo `a99cd63`. This was a team try, not a formal translation or medical review, and not proof that every string or clip was checked. Tamil, Telugu, Malayalam, Marathi, Bengali and Odia remain unreviewed.
+
+- [`STRINGS_UNREVIEWED.md`](STRINGS_UNREVIEWED.md) — Current language status and earlier string records.
 - [`CLIP_CHECK.md`](CLIP_CHECK.md) (older) — First machine clip check, extended by CLIP_CHECK_0400.
 - [`CLIP_CHECK_0400.md`](CLIP_CHECK_0400.md) — Newer machine check including the shoulders cue.
 - [`CLIP_COVERAGE.md`](CLIP_COVERAGE.md) — Tool that lists playable clip keys across ten languages.
-- [`CLIP_STATUS.md`](CLIP_STATUS.md) — Generated-clip record, none checked by a person.
+- [`CLIP_STATUS.md`](CLIP_STATUS.md) — Current team-try status and earlier per-clip generation record.
 - [`STRINGS_COVERAGE.md`](STRINGS_COVERAGE.md) — Screen-text key coverage across ten languages.
 - [`HINDI_REVIEW.md`](HINDI_REVIEW.md) — Machine review of Hindi strings and clips.
 - [`KANNADA_REVIEW.md`](KANNADA_REVIEW.md) — Machine review of Kannada strings and clips.

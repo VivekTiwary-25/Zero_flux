@@ -203,7 +203,7 @@ Switch to the backup phone. It is already on Home, in English, with the volume u
 - **"Does it work offline?"** "Yes. Pose, speech and coaching clips run on the phone. No network."
 - **"What if the camera fails?"** "The metronome and spoken emergency steps start immediately and continue. The word area says 'Keep pushing with the beat'; the app shows no invented number. Rate detection on a real person, and this redesigned Emergency screen with a real person, are not proven."
 - **"What about 112?"** "The button opens the dialer with 112 filled in. It never calls by itself. We stop at the dialer on stage. In a real emergency, call 112 and follow the dispatcher."
-- **"Which languages work?"** "The picker lists ten. Spoken coaching is verified for a subset. English is what we demo." Do not claim all ten voices are verified.
+- **"Which languages work?"** "The picker lists ten. The team tried Hindi, Kannada, English and Gujarati on a phone in demo `a99cd63` on 31 Oct 2026 and says they worked well. That was a team try, not a formal translation or medical review. Tamil, Telugu, Malayalam, Marathi, Bengali and Odia remain unreviewed. English is what we demo." Do not claim every string or clip was checked, or all wording and speech are correct.
 - **"What does the score mean?"** "It is this run's readings. It is not a certification or a clinical score."
 - **"Why a cushion?"** "We do not practise on a person. A cushion lets the rescuer rehearse the motion safely."
 
