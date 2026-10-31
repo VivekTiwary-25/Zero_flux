@@ -63,10 +63,16 @@
   "em_summary_measured": "వేగం కొలిచిన సమయం",
   "em_summary_note": "కెమెరాకు చేతులు కనిపించినప్పుడు మాత్రమే వేగం, విరామాలు లెక్కించబడ్డాయి.",
   "live_detecting": "మీ లయను వెతుకుతోంది…",
-  "adult_cpr_only": "Adult CPR only",
-  "score_rate_measured": "Rate measured for %1$d of %2$d s",
-  "home_emergency_contact": "Emergency contact",
-  "em_reminder_aed": "If an AED is nearby, ask someone to bring it.",
-  "em_reminder_continue": "Keep pushing the chest until help arrives.",
-  "em_reminder_swap": "If someone else can push the chest, swap now."
+  "adult_cpr_only": "పెద్దవారికి మాత్రమే CPR",
+  "score_rate_measured": "వేగం కొలిచిన సమయం: %1$d / %2$d సె",
+  "home_emergency_contact": "అత్యవసర కాంటాక్ట్",
+  "em_reminder_aed": "దగ్గరలో AED ఉంటే, దాన్ని తీసుకురావాలని ఎవరికైనా చెప్పండి.",
+  "em_reminder_continue": "సహాయం వచ్చే వరకు ఛాతీని నొక్కుతూ ఉండండి.",
+  "em_reminder_swap": "మరొకరు ఛాతీని నొక్కగలిగితే, ఇప్పుడే మారండి.",
+  "em_hand_placement_desc": "ఛాతీ మధ్యలో ఒక చేయి, దాని మీద మరో చేయి.",
+  "contact_name": "పేరు",
+  "contact_number": "ఫోన్ నంబర్",
+  "contact_pick": "కాంటాక్ట్‌ల నుండి ఎంచుకోండి",
+  "contact_save": "సేవ్ చేయండి",
+  "contact_clear": "తొలగించండి"
 }

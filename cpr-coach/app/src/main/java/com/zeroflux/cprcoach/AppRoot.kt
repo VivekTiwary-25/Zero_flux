@@ -27,18 +27,19 @@ import com.zeroflux.cprcoach.ui.AppSettings
 import com.zeroflux.cprcoach.ui.AssetStrings
 import com.zeroflux.cprcoach.ui.CoachTheme
 import com.zeroflux.cprcoach.ui.EmergencyContact
+import com.zeroflux.cprcoach.ui.EmergencyContactDialog
 import com.zeroflux.cprcoach.ui.HomeScreen
 import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.voice.VoiceCommand
 
 private enum class Screen { HOME, PRACTISE, EMERGENCY }
 
-
 @Composable
 fun AppRoot(activity: Activity, cameraPermission: Boolean) {
     val settings = remember { AppSettings(activity.applicationContext) }
     var language by remember { mutableStateOf(settings.language) }
     var emergencyContact by remember { mutableStateOf(settings.emergencyContact) }
+    var showContactDialog by remember { mutableStateOf(false) }
     val contactPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val uri = result.data?.data ?: return@rememberLauncherForActivityResult
         val contact = activity.contentResolver.query(
@@ -143,12 +144,31 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         },
                         onMicTap = voice::toggle,
                         emergencyContactName = emergencyContact?.name,
-                        onEmergencyContact = {
-                            contactPicker.launch(
-                                Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI),
-                            )
-                        },
+                        onEmergencyContact = { showContactDialog = true },
                     )
+                    if (showContactDialog) {
+                        EmergencyContactDialog(
+                            current = emergencyContact,
+                            onSave = { typed ->
+                                // A blank name or number clears the contact (the store enforces it).
+                                settings.emergencyContact = typed
+                                emergencyContact = settings.emergencyContact
+                                showContactDialog = false
+                            },
+                            onPick = {
+                                showContactDialog = false
+                                contactPicker.launch(
+                                    Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI),
+                                )
+                            },
+                            onClear = {
+                                settings.emergencyContact = null
+                                emergencyContact = null
+                                showContactDialog = false
+                            },
+                            onDismiss = { showContactDialog = false },
+                        )
+                    }
                 }
                 Screen.PRACTISE -> Box(Modifier.fillMaxSize().safeDrawingPadding()) {
                     PractiseHost(

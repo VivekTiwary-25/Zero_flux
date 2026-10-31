@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -49,6 +50,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -60,6 +62,8 @@ data class EmergencyUiState(
     val instructionKey: String,
     val elapsedSeconds: Int,
     val showSetupHint: Boolean,
+    /** True only while one of the opening clips (call, hands, push) is playing. */
+    val showHandPlacement: Boolean = false,
 )
 
 private val FrameWidth = 10.dp
@@ -128,7 +132,16 @@ fun EmergencyScreen(
                 }
 
                 // Leave the top of the picture clear: the holder has to see the rescuer's arms.
-                Spacer(Modifier.weight(0.8f))
+                // The hand picture lives in this same empty slot, so it takes no extra space and moves nothing.
+                Box(Modifier.weight(0.8f).fillMaxWidth()) {
+                    if (state.showHandPlacement) {
+                        Image(
+                            painter = painterResource(com.zeroflux.cprcoach.R.drawable.hand_placement),
+                            contentDescription = strings.get("em_hand_placement_desc"),
+                            modifier = Modifier.align(Alignment.CenterStart).sizeIn(maxHeight = 76.dp).fillMaxHeight(),
+                        )
+                    }
+                }
                 Box(
                     modifier = Modifier
                         .weight(1.2f)
@@ -215,6 +228,8 @@ fun EmergencyScreen(
                                     fontWeight = FontWeight.SemiBold,
                                     textAlign = TextAlign.Center,
                                 ),
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
                                 autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = 16.sp, stepSize = 1.sp),
                             )
                         }
@@ -231,14 +246,6 @@ fun EmergencyScreen(
                 )
             }
         }
-        Image(
-            painter = painterResource(com.zeroflux.cprcoach.R.drawable.hand_placement),
-            contentDescription = null,
-            modifier = Modifier.align(Alignment.TopStart)
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(start = 24.dp, top = 58.dp)
-                .size(76.dp),
-        )
     }
 }
 

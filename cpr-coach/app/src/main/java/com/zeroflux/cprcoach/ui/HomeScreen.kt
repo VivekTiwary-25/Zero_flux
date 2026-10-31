@@ -54,6 +54,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -218,6 +219,8 @@ fun HomeScreen(
                 shape = RoundedCornerShape(18.dp),
             ) {
                 Text(
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     text = buildString {
                         append(strings.get("home_emergency_contact"))
                         if (!emergencyContactName.isNullOrBlank()) append(": $emergencyContactName")

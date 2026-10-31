@@ -63,10 +63,16 @@
   "em_summary_measured": "வேகம் அளந்த நேரம்",
   "em_summary_note": "கேமராவுக்குக் கைகள் தெரிந்த நேரத்தில் மட்டுமே வேகமும் இடைநிறுத்தங்களும் கணக்கிடப்பட்டன.",
   "live_detecting": "உங்கள் தாளத்தைத் தேடுகிறது…",
-  "adult_cpr_only": "Adult CPR only",
-  "score_rate_measured": "Rate measured for %1$d of %2$d s",
-  "home_emergency_contact": "Emergency contact",
-  "em_reminder_aed": "If an AED is nearby, ask someone to bring it.",
-  "em_reminder_continue": "Keep pushing the chest until help arrives.",
-  "em_reminder_swap": "If someone else can push the chest, swap now."
+  "adult_cpr_only": "பெரியவர்களுக்கான CPR மட்டும்",
+  "score_rate_measured": "வேகம் அளந்த நேரம்: %1$d / %2$d வி",
+  "home_emergency_contact": "அவசரத் தொடர்பு",
+  "em_reminder_aed": "அருகில் AED இருந்தால், அதைக் கொண்டுவர ஒருவரிடம் சொல்லுங்கள்.",
+  "em_reminder_continue": "உதவி வரும் வரை மார்பைத் தொடர்ந்து அழுத்துங்கள்.",
+  "em_reminder_swap": "வேறொருவர் மார்பை அழுத்த முடிந்தால், இப்போதே மாறிக்கொள்ளுங்கள்.",
+  "em_hand_placement_desc": "மார்பின் நடுவில் ஒரு கை, அதன் மேல் மற்றொரு கை.",
+  "contact_name": "பெயர்",
+  "contact_number": "தொலைபேசி எண்",
+  "contact_pick": "தொடர்புகளிலிருந்து தேர்வு செய்",
+  "contact_save": "சேமி",
+  "contact_clear": "நீக்கு"
 }

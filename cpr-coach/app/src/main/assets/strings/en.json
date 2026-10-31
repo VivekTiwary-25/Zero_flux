@@ -73,5 +73,11 @@
   "home_emergency_contact": "Emergency contact",
   "em_reminder_aed": "If an AED is nearby, ask someone to bring it.",
   "em_reminder_continue": "Keep pushing the chest until help arrives.",
-  "em_reminder_swap": "If someone else can push the chest, swap now."
+  "em_reminder_swap": "If someone else can push the chest, swap now.",
+  "em_hand_placement_desc": "Hands on the centre of the chest, one on top of the other.",
+  "contact_name": "Name",
+  "contact_number": "Phone number",
+  "contact_pick": "Pick from contacts",
+  "contact_save": "Save",
+  "contact_clear": "Clear"
 }

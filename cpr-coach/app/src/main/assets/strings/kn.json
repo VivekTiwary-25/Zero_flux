@@ -63,10 +63,16 @@
   "em_summary_measured": "ವೇಗ ಅಳೆದ ಅವಧಿ",
   "em_summary_note": "ಕ್ಯಾಮೆರಾಕ್ಕೆ ತೋಳುಗಳು ಕಂಡಾಗ ಮಾತ್ರ ವೇಗ ಮತ್ತು ವಿರಾಮಗಳನ್ನು ಎಣಿಸಲಾಗಿದೆ.",
   "live_detecting": "ನಿಮ್ಮ ಲಯ ಹುಡುಕುತ್ತಿದೆ…",
-  "adult_cpr_only": "Adult CPR only",
-  "score_rate_measured": "Rate measured for %1$d of %2$d s",
-  "home_emergency_contact": "Emergency contact",
-  "em_reminder_aed": "If an AED is nearby, ask someone to bring it.",
-  "em_reminder_continue": "Keep pushing the chest until help arrives.",
-  "em_reminder_swap": "If someone else can push the chest, swap now."
+  "adult_cpr_only": "ವಯಸ್ಕರಿಗೆ ಮಾತ್ರ CPR",
+  "score_rate_measured": "ವೇಗ ಅಳೆದ ಅವಧಿ: %1$d / %2$d ಸೆ",
+  "home_emergency_contact": "ತುರ್ತು ಸಂಪರ್ಕ",
+  "em_reminder_aed": "ಹತ್ತಿರ AED ಇದ್ದರೆ, ಅದನ್ನು ತರಲು ಯಾರಿಗಾದರೂ ಹೇಳಿ.",
+  "em_reminder_continue": "ಸಹಾಯ ಬರುವವರೆಗೆ ಎದೆಯನ್ನು ಒತ್ತುತ್ತಿರಿ.",
+  "em_reminder_swap": "ಬೇರೆ ಯಾರಾದರೂ ಎದೆಯನ್ನು ಒತ್ತಬಲ್ಲರೆ, ಈಗಲೇ ಬದಲಾಯಿಸಿಕೊಳ್ಳಿ.",
+  "em_hand_placement_desc": "ಎದೆಯ ಮಧ್ಯದಲ್ಲಿ ಒಂದು ಕೈ, ಅದರ ಮೇಲೆ ಇನ್ನೊಂದು ಕೈ.",
+  "contact_name": "ಹೆಸರು",
+  "contact_number": "ಫೋನ್ ಸಂಖ್ಯೆ",
+  "contact_pick": "ಸಂಪರ್ಕಗಳಿಂದ ಆರಿಸಿ",
+  "contact_save": "ಉಳಿಸಿ",
+  "contact_clear": "ತೆಗೆದುಹಾಕಿ"
 }

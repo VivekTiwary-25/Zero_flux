@@ -32,21 +32,21 @@ import com.zeroflux.cprcoach.engine.EmergencyCoach
 import com.zeroflux.cprcoach.engine.EmergencySequence
 import com.zeroflux.cprcoach.engine.EmergencyWord
 import com.zeroflux.cprcoach.engine.HandoverSummary
-import com.zeroflux.cprcoach.engine.LandmarkGuard
-import com.zeroflux.cprcoach.engine.OverlayPose
 import com.zeroflux.cprcoach.engine.LiveAnalyzer
 import com.zeroflux.cprcoach.engine.LiveReading
 import com.zeroflux.cprcoach.engine.PoseEngine
 import com.zeroflux.cprcoach.engine.TrackingState
 import com.zeroflux.cprcoach.ui.AppLanguage
-import com.zeroflux.cprcoach.ui.ArmOverlay
-import com.zeroflux.cprcoach.ui.BeatSource
 import com.zeroflux.cprcoach.ui.CoachColors
+import com.zeroflux.cprcoach.ui.BeatSource
 import com.zeroflux.cprcoach.ui.EmergencyContact
 import com.zeroflux.cprcoach.ui.EmergencyScreen
 import com.zeroflux.cprcoach.ui.EmergencySummaryScreen
 import com.zeroflux.cprcoach.ui.EmergencyUiState
 import com.zeroflux.cprcoach.ui.LocalStrings
+import com.zeroflux.cprcoach.engine.LandmarkGuard
+import com.zeroflux.cprcoach.engine.OverlayPose
+import com.zeroflux.cprcoach.ui.ArmOverlay
 import com.zeroflux.cprcoach.ui.PoseCameraView
 import com.zeroflux.cprcoach.voice.VoiceCommand
 import java.io.File
@@ -66,6 +66,8 @@ internal fun openEmergencyDialer(context: Context) {
         // A device without a dialer must still be able to provide CPR coaching.
     }
 }
+
+private val OPENING_HAND_KEYS = setOf("em_call", "em_hands", "em_push")
 
 internal fun openEmergencyContactDialer(context: Context, number: String) {
     val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number, null))
@@ -94,7 +96,7 @@ fun EmergencyHost(
     val appContext = context.applicationContext
     val startMs = remember { SystemClock.uptimeMillis() }
     val playback = remember(appContext) { EmergencyPlayback(appContext) }
-    val coach = remember { EmergencyCoach(startMs) }
+    val coach = remember { EmergencyCoach(startMs, rateHoldMs = 500) }
     val engine by MetronomeService.engine.collectAsState()
     val currentEngine by rememberUpdatedState(engine)
     val beat = remember { BeatSource.of { currentEngine } }
@@ -197,9 +199,7 @@ fun EmergencyHost(
                 // Not side-on means no judgement: the same hint says how to fix the view.
                 needsSetup = coach.needsSetup || coach.turnPhoneHint
                 posture = reading.posture
-                if (playback.voiceIdle) {
-                    coach.nextCorrection(reading)?.let { playback.speak(it.key) }
-                }
+                coach.nextClip(reading, playback.voiceIdle, playback.lastClipEndedMs)?.let { playback.speak(it) }
             } catch (error: RuntimeException) {
                 if (error is CancellationException) throw error
                 // The app and the beat share a process, so nothing here may escape and kill both.
@@ -229,6 +229,7 @@ fun EmergencyHost(
             },
             elapsedSeconds = elapsedSeconds,
             showSetupHint = needsSetup && cameraPermission,
+            showHandPlacement = playback.showHandPlacement,
         ),
         micState = micState,
         onCall112 = { openEmergencyDialer(context) },
@@ -341,6 +342,12 @@ private class EmergencyPlayback(private val context: Context) {
     var spokenKey by mutableStateOf<String?>(null)
         private set
 
+    /** The hand picture shows only for the scripted opening clips, never a filler that reuses em_push. */
+    val showHandPlacement: Boolean
+        get() = !fillerPlaying && spokenKey in OPENING_HAND_KEYS
+    private var fillerPlaying by mutableStateOf(false)
+    private var nextIsFiller = false
+
     private val mainHandler = Handler(Looper.getMainLooper())
     private val sequence = EmergencySequence()
     private val pending = ArrayDeque<String>()
@@ -350,6 +357,8 @@ private class EmergencyPlayback(private val context: Context) {
     private var sequenceStarted = false
     private var generation = 0L
     private var stopped = false
+    var lastClipEndedMs: Long? = null
+        private set
 
     /** Scripted steps always go first. A correction only ever fills silence, so it is never stale. */
     val voiceIdle: Boolean
@@ -391,6 +400,7 @@ private class EmergencyPlayback(private val context: Context) {
     fun speak(key: String) {
         if (!voiceIdle) return
         pending.add(key)
+        nextIsFiller = true
         playNext()
     }
 
@@ -399,12 +409,15 @@ private class EmergencyPlayback(private val context: Context) {
         if (pending.isEmpty()) {
             stepKey = null
             spokenKey = null
+            fillerPlaying = false
             return
         }
         val audio = engine ?: return
         val key = pending.removeFirst()
         currentKey = key
         spokenKey = key
+        fillerPlaying = nextIsFiller
+        nextIsFiller = false
         stepKey = when (key) {
             "em_call" -> "em_step_call"
             "em_hands" -> "em_step_hands"
@@ -417,6 +430,8 @@ private class EmergencyPlayback(private val context: Context) {
             mainHandler.post {
                 if (!stopped && token == generation && engine === audio) {
                     spokenKey = null
+                    fillerPlaying = false
+                    lastClipEndedMs = SystemClock.uptimeMillis()
                     currentKey = null
                     playNext()
                 }
@@ -431,6 +446,7 @@ private class EmergencyPlayback(private val context: Context) {
         generation += 1
         pending.clear()
         spokenKey = null
+        fillerPlaying = false
         currentKey = null
         compressing = false
         engine?.stopClips()

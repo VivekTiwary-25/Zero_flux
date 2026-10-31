@@ -63,10 +63,16 @@
   "em_summary_measured": "গতি মাপা হয়েছে",
   "em_summary_note": "ক্যামেরা হাত দেখতে পেলে তবেই গতি ও বিরতি গোনা হয়েছে।",
   "live_detecting": "আপনার ছন্দ খোঁজা হচ্ছে…",
-  "adult_cpr_only": "Adult CPR only",
-  "score_rate_measured": "Rate measured for %1$d of %2$d s",
-  "home_emergency_contact": "Emergency contact",
-  "em_reminder_aed": "If an AED is nearby, ask someone to bring it.",
-  "em_reminder_continue": "Keep pushing the chest until help arrives.",
-  "em_reminder_swap": "If someone else can push the chest, swap now."
+  "adult_cpr_only": "শুধু প্রাপ্তবয়স্কদের জন্য CPR",
+  "score_rate_measured": "গতি মাপা হয়েছে: %1$d / %2$d সে",
+  "home_emergency_contact": "জরুরি যোগাযোগ",
+  "em_reminder_aed": "কাছে AED থাকলে কাউকে সেটি আনতে বলুন।",
+  "em_reminder_continue": "সাহায্য না আসা পর্যন্ত বুক চাপতে থাকুন।",
+  "em_reminder_swap": "অন্য কেউ বুক চাপতে পারলে এখনই বদল করুন।",
+  "em_hand_placement_desc": "বুকের মাঝখানে এক হাত, তার ওপর অন্য হাত।",
+  "contact_name": "নাম",
+  "contact_number": "ফোন নম্বর",
+  "contact_pick": "কন্টাক্ট থেকে বেছে নিন",
+  "contact_save": "সেভ করুন",
+  "contact_clear": "মুছুন"
 }

@@ -63,10 +63,16 @@
   "em_summary_measured": "ଗତି ମପା ହୋଇଥିବା ସମୟ",
   "em_summary_note": "କ୍ୟାମେରା ହାତ ଦେଖିପାରୁଥିବା ବେଳେ ହିଁ ଗତି ଓ ବିରତି ଗଣାଯାଇଛି।",
   "live_detecting": "ଆପଣଙ୍କ ଛନ୍ଦ ଖୋଜୁଛି…",
-  "adult_cpr_only": "Adult CPR only",
-  "score_rate_measured": "Rate measured for %1$d of %2$d s",
-  "home_emergency_contact": "Emergency contact",
-  "em_reminder_aed": "If an AED is nearby, ask someone to bring it.",
-  "em_reminder_continue": "Keep pushing the chest until help arrives.",
-  "em_reminder_swap": "If someone else can push the chest, swap now."
+  "adult_cpr_only": "କେବଳ ବୟସ୍କଙ୍କ ପାଇଁ CPR",
+  "score_rate_measured": "ଗତି ମପା ହୋଇଥିବା ସମୟ: %1$d / %2$d ସେ",
+  "home_emergency_contact": "ଜରୁରୀ ଯୋଗାଯୋଗ",
+  "em_reminder_aed": "ପାଖରେ AED ଥିଲେ, କାହାକୁ ତାହା ଆଣିବାକୁ କୁହନ୍ତୁ।",
+  "em_reminder_continue": "ସାହାଯ୍ୟ ନଆସିବା ପର୍ଯ୍ୟନ୍ତ ଛାତି ଦବାଇ ଚାଲନ୍ତୁ।",
+  "em_reminder_swap": "ଅନ୍ୟ କେହି ଛାତି ଦବାଇ ପାରିଲେ, ଏବେ ବଦଳାନ୍ତୁ।",
+  "em_hand_placement_desc": "ଛାତି ମଝିରେ ଗୋଟିଏ ହାତ, ତା ଉପରେ ଅନ୍ୟ ହାତ।",
+  "contact_name": "ନାମ",
+  "contact_number": "ଫୋନ୍ ନମ୍ବର",
+  "contact_pick": "ଯୋଗାଯୋଗରୁ ବାଛନ୍ତୁ",
+  "contact_save": "ସେଭ୍ କରନ୍ତୁ",
+  "contact_clear": "ହଟାନ୍ତୁ"
 }

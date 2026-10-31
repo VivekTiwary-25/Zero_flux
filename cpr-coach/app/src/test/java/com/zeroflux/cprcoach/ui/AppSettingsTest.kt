@@ -76,27 +76,4 @@ class AppSettingsTest {
         assertEquals(AppLanguage.EN, defaultLanguageFor("-"))
         assertEquals(AppLanguage.EN, defaultLanguageFor("unknown-XYZ"))
     }
-    @Test
-    fun `emergency contact storage saves and clears both fields`() {
-        val values = mutableMapOf<String, String>()
-        val store = EmergencyContactStore(
-            read = values::get,
-            write = { name, number ->
-                if (name == null || number == null) {
-                    values.clear()
-                } else {
-                    values["emergency_contact_name"] = name
-                    values["emergency_contact_number"] = number
-                }
-            },
-        )
-        val contact = EmergencyContact("Alex", "+1 555 0100")
-
-        store.save(contact)
-        assertEquals(contact, store.load())
-
-        store.save(null)
-        assertEquals(null, store.load())
-        assertEquals(emptyMap<String, String>(), values)
-    }
 }

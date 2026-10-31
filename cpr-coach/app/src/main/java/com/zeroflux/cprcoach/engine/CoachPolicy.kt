@@ -12,7 +12,7 @@ enum class Phrase(val key: String) {
 
 /**
  * Picks at most one spoken correction. A correction must hold steady before it plays, there is a
- * cooldown between phrases, and the same phrase never plays twice in a row.
+ * cooldown between phrases, and the same phrase never plays twice in a row unless repeat praise is enabled.
  * While tracking is lost it stays silent, so the rescuer only hears the metronome.
  */
 class CoachPolicy(
@@ -21,6 +21,10 @@ class CoachPolicy(
     private val cooldownMs: Long = 6_000,
     private val praiseEveryMs: Long = 20_000,
     private val elbowSteadyMs: Long = 1_000,
+    private val canSpeak: () -> Boolean = { true },
+    private val praiseOnCorrection: Boolean = false,
+    private val repeatPraise: Boolean = false,
+    private val rateRelockWithinSteady: Boolean = false,
 ) {
     // When each currently wanted phrase started to be wanted without a break; a phrase that drops out loses its time.
     private val wantedSinceMs = java.util.EnumMap<Phrase, Long>(Phrase::class.java)
@@ -39,7 +43,7 @@ class CoachPolicy(
     private var repeatAllowed = false
     private var absentReads = 0
 
-    /** Returns the phrase to play now, or null to stay quiet. */
+    /** Returns the phrase to play now, or null to stay quiet. Still observes reads while speech is busy. */
     fun update(reading: LiveReading): Phrase? {
         val now = reading.timeMs
         trackPause(reading)
@@ -53,11 +57,16 @@ class CoachPolicy(
         var phrase: Phrase? = null
         for (p in wanted) {
             val since = wantedSinceMs.getValue(p)
-            if (now - since >= requiredMs(p) && since < pendingSince) { phrase = p; break }
+            if (now - since >= requiredMs(p) && since < pendingSince &&
+                (p != Phrase.PUSH_FASTER && p != Phrase.SLOW_DOWN || rateRelocked(now))) {
+                phrase = p
+                break
+            }
             pendingSince = minOf(pendingSince, since)
         }
         if (phrase == null) return null
         lastSpokenMs?.let { if (now - it < cooldownMs) return null }
+        if (!canSpeak()) return null
 
         lastSpokenMs = now
         lastPhrase = phrase
@@ -74,14 +83,23 @@ class CoachPolicy(
         return phrase
     }
 
-    // Recovering from a pause should be acknowledged quickly, everything else must be steady.
+    // Recovery and enabled praise can be immediate; corrections must still hold steady.
     private fun requiredMs(phrase: Phrase) = when (phrase) {
         Phrase.KEEP_GOING -> 0
         // Elbows are already sustained by the judge; keep the shoulder voice timing unchanged.
         Phrase.ELBOWS_STRAIGHT -> elbowSteadyMs
         Phrase.SHOULDERS_OVER_HANDS -> postureSteadyMs
+        Phrase.GOOD -> if (praiseFollowsCorrection() || (repeatPraise && lastSpokenMs != null)) 0 else steadyMs
         else -> steadyMs
     }
+
+    private fun praiseFollowsCorrection() = praiseOnCorrection && when (lastPhrase) {
+        Phrase.PUSH_FASTER, Phrase.SLOW_DOWN, Phrase.ELBOWS_STRAIGHT, Phrase.SHOULDERS_OVER_HANDS -> true
+        else -> false
+    }
+
+    private fun rateRelocked(now: Long) =
+        lastPausedReadMs == 0L || now - lastPausedReadMs >= STILL_NOW_MS
 
     /**
      * A pause is PAUSED for MIN_PAUSE_MS without a break, and mostly still. Wrist noise (sitting up, resting hands)
@@ -186,9 +204,9 @@ class CoachPolicy(
         // Bent or leaning pushing often has no locked rate, so posture is also coached while PAUSED and moving.
         if (!beating && !reading.moving) return emptyList()
 
-        // After a PAUSED gap, do not start a rate correction on the first relocking reads.
+        // Emergency can count the relock guard inside steadiness, but emission still waits for the guard.
         val rate = reading.ratePerMinute?.takeIf {
-            beating && (lastPausedReadMs == 0L || now - lastPausedReadMs >= STILL_NOW_MS)
+            beating && (rateRelockWithinSteady || rateRelocked(now))
         }
         val wanted = ArrayList<Phrase>(3)
         if (rate != null && rate < LiveReading.TARGET_MIN) wanted.add(Phrase.PUSH_FASTER)
@@ -199,7 +217,7 @@ class CoachPolicy(
         if (elbowsBent) wanted.add(Phrase.ELBOWS_STRAIGHT)
         if (issue == PostureIssue.SHOULDERS_NOT_OVER_HANDS) wanted.add(Phrase.SHOULDERS_OVER_HANDS)
         if (wanted.isEmpty() && beating && reading.inRange == true &&
-            (lastSpokenMs?.let { now - it >= praiseEveryMs } ?: true)) wanted.add(Phrase.GOOD)
+            (praiseFollowsCorrection() || (lastSpokenMs?.let { now - it >= praiseEveryMs } ?: true))) wanted.add(Phrase.GOOD)
         // A phrase may repeat only after its condition has been gone for a while (it was fixed, then came back).
         val last = lastPhrase
         if (last == null || last in wanted) { absentSinceMs = null; absentReads = 0 }
@@ -208,7 +226,7 @@ class CoachPolicy(
             absentReads++
         }
         if (absentReads >= CLEAR_READS && absentSinceMs?.let { now - it >= CLEAR_MS } == true) repeatAllowed = true
-        return wanted.filter { it != last || (repeatAllowed && it != Phrase.GOOD) }
+        return wanted.filter { it != last || (repeatAllowed && it != Phrase.GOOD) || (repeatPraise && it == Phrase.GOOD) }
     }
 
     private companion object {

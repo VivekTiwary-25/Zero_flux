@@ -6,6 +6,7 @@ import java.util.Locale
 
 private const val KEY_CONTACT_NAME = "emergency_contact_name"
 private const val KEY_CONTACT_NUMBER = "emergency_contact_number"
+
 /**
  * Resolves the default [AppLanguage] from a system language tag (such as "hi-IN", "or", "ory").
  * Falls back to [AppLanguage.EN] if the system language does not match any supported language.
