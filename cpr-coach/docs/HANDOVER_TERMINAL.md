@@ -60,16 +60,16 @@ Script for this: `python -I D:\projects\apk-builds\boss-tools\watch.py`, run in 
 ## Current state
 Auto-updated section, then the boss's notes.
 
-Written 10:14 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 10:25 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
+900d9e1 cpr-coach: merge Task 7, approved pictures
+e1f867f cpr-coach: log
+04fe4e6 cpr-coach: merge cpr-coach into pictures
+818c1f0 cpr-coach: approved pictures replace every picture, no logic changes
+892461c cpr-coach: handover files and log
 9dfd6ef cpr-coach: handover files and log
 52efc62 cpr-coach: merge polish from reviews
 ff7000a cpr-coach: log
-5d18d84 cpr-coach: dashboard tags keep whole words, three contrast fixes
-1ec48f1 cpr-coach: handover files and log
-88fa66f cpr-coach: merge AED explained, keeping dashboard and AED strings
-0e362b1 cpr-coach: log
-12799d5 cpr-coach: merge 5 Dashboard
 ```
 Takeover branches on GitHub:
 ```
@@ -87,6 +87,7 @@ origin/takeover/t5-final 0e8b329
 origin/takeover/t6-reskin 5868dd3
 origin/takeover/t6b-vivid af421fa
 origin/takeover/t6c-polish 5d18d84
+origin/takeover/t7-pictures 04fe4e6
 origin/takeover/t8-aed 70fb804
 origin/takeover/t9-docs d1bf758
 origin/takeover/t9b-docs 71b13b9
@@ -94,7 +95,6 @@ origin/takeover/t9b-docs 71b13b9
 Swarm jobs:
 ```
 RUNNING
-  vivek-pc/codex-sol       t261031-1009-4db2  T7 swap approved pictures  (5m)
 QUEUED
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
 ```
@@ -109,10 +109,10 @@ pratham-pc/muse      opencode-go/muse-spark-~ idle     -                        
 pratham-pc/codex-lu~ openai-codex/gpt-6-luna  idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-sol openai-codex/gpt-6.1-sol idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        62% Nov 05 10:25 (in
-vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        51% Nov 04 18:34 (in
-vivek-pc/codex-sol   openai-codex/gpt-6.1-sol busy     t261031-1009-4db2 T7 sw~ 51% Nov 04 18:34 (in
-vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        37% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ idle     -                        86% 13:13 (in 2h58m)
+vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        50% Nov 04 18:34 (in
+vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        50% Nov 04 18:34 (in
+vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        35% Nov 06 23:38 (in
+vivek-pc/antigravity google-antigravity/gemi~ idle     -                        86% 13:13 (in 2h47m)
 ```
 
 ### Tasks
@@ -127,7 +127,7 @@ vivek-pc/antigravity google-antigravity/gemi~ idle     -                        
 | 6b. Vivid colours | Merged, approved by the user | `032a232` |
 | 5. Dashboard | Merged | `12799d5` |
 | 8. AED explained | Merged | `88fa66f` |
-| 7. Pictures | All approved by the user at 10:07. Being swapped in by vivek-pc/codex-sol | `C:\Users\Arena\.swarm\work\wt-t7-pictures`, branch `takeover/t7-pictures`, uncommitted until the boss commits. Screenshots go to `D:\projects\apk-builds\screens\pictures\`; send them to the user, then gate and merge |
+| 7. Pictures | Merged | `900d9e1` |
 | 9. Demo script and judge answers | Merged | `6ca1b17` |
 | Final test sheet | Merged, needs a final check at build time | `docs/FINAL_TEST.md`, `6ca1b17` |
 | Debug banner | Answered, no code change | Shows only if the app is started by a command with a replay setting. Tapping the icon never does. Don't change the replay tool |
@@ -143,10 +143,8 @@ Merge only if the final phone test shows a Practise problem, and only on the use
 - Each page must show at the top what the user is approving and how to reply, such as "colours approved", or "pictures: approve 1, 2, 3, 5; redo 4". Open the page for the user and give its exact link.
 - The earlier re-skin page, https://claude.ai/artifact/8RgEWwPV6Yo2MtRECEBxCW, is on Vachana's account. It's private, so the user's own account can't open it unless it's shared. Publish new pages from the user's account. All its images are in `D:\projects\apk-builds\screens\before` and `after`.
 
-### Merge order still to do
-Only pictures remain, after the user approves them.
-Cut order if time runs out: pictures first, then dashboard.
-Final build expected about 10:30 with pictures, about 10:15 without.
+### Final build
+`900d9e1`, APK `D:\projects\apk-builds\900d9e1.apk`, sha1 `82c2e39f9a2f622c51d4ef8f660108a6da410629`, test sheet `cpr-coach/docs/FINAL_TEST.md`. Install runs by itself when the phone is plugged in and no session is running: `python -I D:\projects\apk-builds\boss-tools\install_when_ready.py 900d9e1 82c2e39f9a2f622c51d4ef8f660108a6da410629`
 
 ### Build on the phone
 CPH2467 has 270070e (APK sha1 `2db874361b2f24c03c104e87ee567f246092a545`), installed at 08:56 with capture on. The user won't test it; they test only the final build. Leave it on until the final build is ready.
