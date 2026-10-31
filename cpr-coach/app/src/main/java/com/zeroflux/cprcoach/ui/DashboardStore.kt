@@ -4,6 +4,10 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption.ATOMIC_MOVE
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.time.ZoneId
 
 /** Practise history on the phone. Samples stay in assets until cleared. */
@@ -60,12 +64,19 @@ internal object DashboardStore {
         writeStore(context, DashboardLogic.clearSamples(readStore(context)))
     }
 
-    private fun readStore(context: Context): HistoryFile {
-        val file = File(context.filesDir, FILE_NAME)
+    private fun readStore(context: Context): HistoryFile =
+        readStore(File(context.filesDir, FILE_NAME))
+
+    /** Preserve unreadable history before a later save can replace it. */
+    internal fun readStore(file: File): HistoryFile {
         if (!file.isFile) return HistoryFile()
         return try {
             DashboardLogic.parseStore(file.readText())
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            val backup = File(file.parentFile, "${file.name}.bak")
+            if (!file.renameTo(backup)) {
+                throw IOException("Cannot preserve corrupt Dashboard history at ${backup.path}", error)
+            }
             HistoryFile()
         }
     }
@@ -85,7 +96,18 @@ internal object DashboardStore {
         val sessions = JSONArray()
         for (record in file.sessions) sessions.put(toJson(record))
         root.put("sessions", sessions)
-        File(context.filesDir, FILE_NAME).writeText(root.toString())
+        writeStore(File(context.filesDir, FILE_NAME), root.toString())
+    }
+
+    /** Never remove the previous history unless its replacement can be renamed atomically. */
+    internal fun writeStore(file: File, text: String) {
+        val temporary = File(file.parentFile, "${file.name}.tmp")
+        try {
+            temporary.writeText(text)
+            Files.move(temporary.toPath(), file.toPath(), ATOMIC_MOVE, REPLACE_EXISTING)
+        } finally {
+            temporary.delete()
+        }
     }
 
     private fun toJson(record: PractiseRecord): JSONObject {

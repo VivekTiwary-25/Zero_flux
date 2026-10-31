@@ -58,7 +58,7 @@ The camera watches the rescuer's arms. The app works out how fast they're compre
 | **1** | **Point the camera** | Prop the phone up to see the rescuer's upper body from the side. |
 | **2** | **Track the arms** | MediaPipe follows the shoulder, elbow and wrist landmarks in real time, on the device. |
 | **3** | **Read the rhythm** | Signal processing turns the up-and-down wrist motion into a compression rate, works out the elbow angle, and spots pauses. |
-| **4** | **Coach out loud** | Short spoken prompts from on-device TTS, so the rescuer never needs to look at the screen. |
+| **4** | **Coach out loud** | Short spoken prompts from voice clips bundled in the app, so the rescuer never needs to look at the screen. |
 | **5** | **Talk back** | On-device speech recognition handles simple voice commands, so you can use it hands-free. |
 
 ## Two modes, one app
@@ -101,7 +101,7 @@ This needs proper clinical and usability testing before anyone should rely on it
 
 CPR instructions are only useful if you understand them while panicking.
 
-CPR Coach uses **on-device speech-to-text and text-to-speech models** that our team has already tested, aiming for **10 languages**. We're starting with **Kannada and English**. Everything runs locally, so there's no cloud API, no data leaving the phone, and no dead zones where it stops working.
+CPR Coach uses **offline speech models**: recognition runs on the device, and the spoken coaching is generated ahead of time and shipped as clips. Clips cover **10 languages**; recognition covers a language once its model is installed on the phone. Everything runs locally, so there's no cloud API, no data leaving the phone, and no dead zones where it stops working.
 
 > The final language list, model sizes and supported devices will be published after full integration testing. Every emergency instruction stays usable **without** voice.
 
@@ -109,17 +109,15 @@ CPR Coach uses **on-device speech-to-text and text-to-speech models** that our t
 
 ```mermaid
 flowchart LR
-    CAM["Camera"] --> POSE["MediaPipe Pose<br/>shoulder · elbow · wrist"]
-    IMU["Accelerometer<br/>(fallback)"] --> SIG
-    POSE --> SIG["Signal processing<br/>rate · angle · pauses"]
+    CAM["CameraX frames"] --> POSE["MediaPipe Pose<br/>shoulder · elbow · wrist"]
+    POSE --> SIG["Kotlin signal processing<br/>autocorrelation rate · elbow angle · pauses"]
     SIG --> LOGIC{"Feedback &<br/>safety logic"}
-    MIC["Mic"] --> STT["On-device STT"] --> LOGIC
-    LOGIC --> TTS["On-device TTS"] --> SPK["Spoken coaching"]
-    LOGIC --> UI["Visual guidance<br/>+ metronome"]
+    MIC["Mic"] --> STT["sherpa-onnx STT<br/>Whisper · IndicConformer"] --> LOGIC
+    LOGIC --> VOICE["Bundled voice clips<br/>+ sample-counted metronome"] --> SPK["Spoken coaching"]
+    LOGIC --> UI["Visual guidance<br/>+ live rate and score"]
 
     style LOGIC fill:#ff2d55,stroke:#ff2d55,color:#fff
     style CAM fill:#0e1628,stroke:#5eead4,color:#fff
-    style IMU fill:#0e1628,stroke:#5eead4,color:#fff
     style MIC fill:#0e1628,stroke:#5eead4,color:#fff
 ```
 
@@ -127,15 +125,18 @@ flowchart LR
 
 | Layer | Tech |
 |---|---|
-| App | React / HTML · CSS · JS |
-| Pose estimation | MediaPipe Pose Landmarker |
-| Motion analysis | Browser-side signal processing + peak detection |
-| Speech | Team-tested on-device STT & TTS models |
-| Audio | Web Audio API + pre-recorded fallback prompts |
-| Sensors | DeviceMotion API (accelerometer fallback) |
-| Offline | Service worker + locally bundled models |
+| App | Native Android, Kotlin, Jetpack Compose (Material 3); `minSdk` 30, `arm64-v8a` |
+| Camera | CameraX on the `camera2` backend; frames arrive as `ImageProxy` |
+| Pose estimation | MediaPipe Tasks Vision Pose Landmarker in `LIVE_STREAM` mode, GPU delegate with CPU fallback, model bundled in the APK |
+| Motion analysis | Kotlin on-device signal processing: torso-normalised wrist signal → 30 Hz resampling → drift removal → normalised **autocorrelation** with parabolic peak refinement; elbow angle from shoulder–elbow–wrist geometry; pauses from the absence of a steady beat |
+| Coaching logic | Deterministic Kotlin policy: a correction must hold steady, then a cooldown, and never the same phrase twice in a row |
+| Speech in | sherpa-onnx offline recognisers: Whisper `tiny.en` for English, IndicConformer for the nine Indic languages, Silero VAD for hands-free listening |
+| Speech out | Pre-recorded voice clips per language, generated ahead of time with sherpa-onnx TTS, mixed with a sample-counted metronome on one streaming `AudioTrack` — no live synthesis |
+| State and storage | Kotlin coroutines and `StateFlow`; `SharedPreferences` for the chosen language |
+| Offline | Models and clips ship with the app; no `INTERNET` permission and no networking code |
+| Tests and tooling | JUnit4 JVM unit tests over synthetic rate traces; a Python/numpy trace analyser for recordings pulled off a phone |
 
-> Camera, sensor and on-device model support varies between phones and browsers. We may need a native wrapper for some devices.
+> Needs Android 11+ on an `arm64-v8a` phone. Pose uses the GPU delegate where the device supports it and falls back to CPU; recognition models load per language, so the first transcription after a language switch takes longer.
 
 ## What it can and can't measure
 
@@ -170,7 +171,7 @@ Demoed on a **training manikin**, never on a real person.
 
 - [ ] Training screen with audible metronome and offline instructions
 - [ ] Live camera pose tracking with rate, elbow angle and pause detection
-- [ ] On-device TTS/STT working for a verified subset of languages
+- [ ] On-device speech recognition and bundled voice clips for a verified subset of languages
 - [ ] Session summary and score
 - [ ] Rate accuracy checked against a hand-counted reference video
 
@@ -183,7 +184,7 @@ Before we claim any numbers, we'll measure:
 - Compression-rate error against an independently counted reference
 - Pose detection across camera angles, lighting and devices
 - Time to feedback and false-alarm rate
-- STT accuracy and TTS clarity for each language
+- STT accuracy and voice clip clarity for each language
 - Offline startup, model load time, latency and battery use
 - Feedback from qualified CPR trainers
 
@@ -195,7 +196,7 @@ Anything we test during the hackathon is an **informal prototype test**, not cli
 - [ ] Training UI + metronome
 - [ ] Camera pose tracking
 - [ ] Rate, elbow and pause estimation
-- [ ] On-device STT + TTS integration
+- [ ] On-device speech recognition integration
 - [ ] Verify languages and offline device support
 - [ ] Accuracy and usability testing
 - [ ] Accelerometer fallback

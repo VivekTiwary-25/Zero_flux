@@ -60,6 +60,7 @@ fun DashboardScreen(
 ) {
     val context = LocalContext.current
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val zone = remember { ZoneId.systemDefault() }
     val scope = rememberCoroutineScope()
     var sessions by remember { mutableStateOf<List<DatedSession>?>(null) }
@@ -91,24 +92,24 @@ fun DashboardScreen(
     Column(
         modifier
             .fillMaxSize()
-            .background(CoachColors.Navy)
+            .background(colors.Navy)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
         TextButton(onClick = onHome, modifier = Modifier.heightIn(min = 48.dp)) {
-            Text(strings.get("walk_back"), color = CoachColors.TextSecondary)
+            Text(strings.get("walk_back"), color = colors.TextSecondary)
         }
         Text(
             text = strings.get("home_dashboard"),
             style = MaterialTheme.typography.headlineSmall,
-            color = CoachColors.TextPrimary,
+            color = colors.TextPrimary,
             fontWeight = FontWeight.SemiBold,
         )
         Text(
             text = strings.get("dash_intro"),
             modifier = Modifier.padding(top = 6.dp),
             style = MaterialTheme.typography.bodyMedium,
-            color = CoachColors.TextSecondary,
+            color = colors.TextSecondary,
         )
         when {
             sessions == null -> Spacer(Modifier.height(24.dp))
@@ -120,7 +121,7 @@ fun DashboardScreen(
                     text = strings.get("dash_basis"),
                     modifier = Modifier.padding(top = 8.dp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = CoachColors.TextSecondary,
+                    color = colors.TextSecondary,
                 )
                 Spacer(Modifier.height(16.dp))
                 DonutCard(stats, missing)
@@ -156,7 +157,7 @@ fun DashboardScreen(
                 Text(
                     text = strings.get("dash_sessions"),
                     style = MaterialTheme.typography.titleMedium,
-                    color = CoachColors.TextPrimary,
+                    color = colors.TextPrimary,
                 )
                 sessions!!.forEach { item ->
                     SessionRow(item, zone, missing, onClick = { selectedId = item.record.id })
@@ -175,7 +176,7 @@ fun DashboardScreen(
                         },
                         modifier = Modifier.heightIn(min = 48.dp),
                     ) {
-                        Text(strings.get("dash_clear"), color = CoachColors.TextSecondary)
+                        Text(strings.get("dash_clear"), color = colors.TextSecondary)
                     }
                 }
             }
@@ -186,18 +187,19 @@ fun DashboardScreen(
 @Composable
 private fun EmptyHistory() {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     Column(Modifier.fillMaxWidth().padding(top = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = strings.get("dash_empty"),
             style = MaterialTheme.typography.titleLarge,
-            color = CoachColors.TextPrimary,
+            color = colors.TextPrimary,
             textAlign = TextAlign.Center,
         )
         Text(
             text = strings.get("dash_empty_body"),
             modifier = Modifier.padding(top = 8.dp),
             style = MaterialTheme.typography.bodyMedium,
-            color = CoachColors.TextSecondary,
+            color = colors.TextSecondary,
             textAlign = TextAlign.Center,
         )
     }
@@ -232,13 +234,14 @@ private fun OverviewGrid(stats: DashboardStats, missing: String, tags: Set<Sessi
 
 @Composable
 private fun StatTile(label: String, value: String, modifier: Modifier = Modifier, unit: String = "") {
+    val colors = LocalCoachColors.current
     Column(modifier.padding(12.dp)) {
-        Text(label, style = MaterialTheme.typography.bodySmall, color = CoachColors.TextSecondary)
+        Text(label, style = MaterialTheme.typography.bodySmall, color = colors.TextSecondary)
         Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineMedium,
-                color = CoachColors.TextPrimary,
+                color = colors.TextPrimary,
                 fontWeight = FontWeight.SemiBold,
             )
             if (unit.isNotEmpty()) {
@@ -246,7 +249,7 @@ private fun StatTile(label: String, value: String, modifier: Modifier = Modifier
                     text = unit,
                     modifier = Modifier.padding(start = 4.dp, bottom = 4.dp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = CoachColors.TextSecondary,
+                    color = colors.TextSecondary,
                 )
             }
         }
@@ -256,6 +259,7 @@ private fun StatTile(label: String, value: String, modifier: Modifier = Modifier
 @Composable
 private fun DonutCard(stats: DashboardStats, missing: String) {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val split = stats.split
     val total = split?.let { it.tooSlowSeconds + it.inRangeSeconds + it.tooFastSeconds } ?: 0
     val center = if (split == null || total == 0) {
@@ -275,13 +279,13 @@ private fun DonutCard(stats: DashboardStats, missing: String) {
                     val arcSize = Size(size.width - 20.dp.toPx(), size.height - 20.dp.toPx())
                     val topLeft = Offset(10.dp.toPx(), 10.dp.toPx())
                     if (split == null || total == 0) {
-                        drawArc(CoachColors.Raised, 0f, 360f, false, topLeft, arcSize, style = stroke)
+                        drawArc(colors.GlassEdge, 0f, 360f, false, topLeft, arcSize, style = stroke)
                     } else {
                         var start = -90f
                         val parts = listOf(
-                            split.tooSlowSeconds to CoachColors.Amber,
-                            split.inRangeSeconds to CoachColors.Teal,
-                            split.tooFastSeconds to CoachColors.Coral,
+                            split.tooSlowSeconds to colors.Amber,
+                            split.inRangeSeconds to colors.Teal,
+                            split.tooFastSeconds to colors.Coral,
                         )
                         for ((seconds, color) in parts) {
                             if (seconds <= 0) continue
@@ -291,12 +295,12 @@ private fun DonutCard(stats: DashboardStats, missing: String) {
                         }
                     }
                 }
-                Text(center, color = CoachColors.TextPrimary, style = MaterialTheme.typography.titleLarge)
+                Text(center, color = colors.TextPrimary, style = MaterialTheme.typography.titleLarge)
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                LegendLine(CoachColors.Amber, strings.get("dash_too_slow"), split?.tooSlowSeconds, missing)
-                LegendLine(CoachColors.Teal, strings.get("dash_band"), split?.inRangeSeconds, missing)
-                LegendLine(CoachColors.Coral, strings.get("dash_too_fast"), split?.tooFastSeconds, missing)
+                LegendLine(colors.Amber, strings.get("dash_too_slow"), split?.tooSlowSeconds, missing)
+                LegendLine(colors.Teal, strings.get("dash_band"), split?.inRangeSeconds, missing)
+                LegendLine(colors.Coral, strings.get("dash_too_fast"), split?.tooFastSeconds, missing)
             }
         }
         if (stats.leftOutOfDonut > 0) {
@@ -304,7 +308,7 @@ private fun DonutCard(stats: DashboardStats, missing: String) {
                 text = strings.get("dash_left_out").replace("{n}", stats.leftOutOfDonut.toString()),
                 modifier = Modifier.padding(top = 10.dp),
                 style = MaterialTheme.typography.bodySmall,
-                color = CoachColors.TextSecondary,
+                color = colors.TextSecondary,
             )
         }
     }
@@ -313,12 +317,13 @@ private fun DonutCard(stats: DashboardStats, missing: String) {
 @Composable
 private fun LegendLine(color: androidx.compose.ui.graphics.Color, label: String, seconds: Int?, missing: String) {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Canvas(Modifier.size(10.dp)) { drawCircle(color) }
         Text(
             text = "$label ${seconds?.let { "$it${strings.get("score_seconds_unit")}" } ?: missing}",
             style = MaterialTheme.typography.bodySmall,
-            color = CoachColors.TextSecondary,
+            color = colors.TextSecondary,
         )
     }
 }
@@ -339,11 +344,12 @@ private fun LineCard(
 @Composable
 private fun BarCard(points: List<ChartPoint>, missing: String, zone: ZoneId) {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     ChartCard(strings.get("score_in_range"), tagsOf(points)) {
         Text(
             text = strings.get("dash_last_6"),
             style = MaterialTheme.typography.bodySmall,
-            color = CoachColors.Teal,
+            color = colors.Teal,
         )
         BarChart(points, missing, zone)
     }
@@ -352,6 +358,7 @@ private fun BarCard(points: List<ChartPoint>, missing: String, zone: ZoneId) {
 @Composable
 private fun SummaryRow(stats: DashboardStats, missing: String, tags: Set<SessionTag>, onOpen: (String) -> Unit) {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val best = stats.best
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         GlassPanel(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
@@ -361,28 +368,28 @@ private fun SummaryRow(stats: DashboardStats, missing: String, tags: Set<Session
                     .clickable(enabled = best != null, role = Role.Button) { best?.let { onOpen(it.record.id) } }
                     .padding(16.dp),
             ) {
-                Text(strings.get("dash_best"), color = CoachColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+                Text(strings.get("dash_best"), color = colors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                 Text(
                     text = best?.let { formatSessionWhen(it.atEpochMs, ZoneId.systemDefault()) } ?: missing,
-                    color = CoachColors.TextPrimary,
+                    color = colors.TextPrimary,
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
                     text = best?.record?.secondsInRange?.let { "$it${strings.get("score_seconds_unit")}" } ?: missing,
-                    color = CoachColors.TextSecondary,
+                    color = colors.TextSecondary,
                     style = MaterialTheme.typography.bodySmall,
                 )
-                Text(strings.get("dash_best_note"), color = CoachColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+                Text(strings.get("dash_best_note"), color = colors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                 TagRow(setOfNotNull(best?.record?.tag?.takeIf { it != SessionTag.NONE }))
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GlassPanel(modifier = Modifier.weight(1f), shape = RoundedCornerShape(20.dp)) {
                 Column(Modifier.padding(16.dp)) {
-                    Text(strings.get("dash_streak"), color = CoachColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    Text(strings.get("dash_streak"), color = colors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                     Text(
                         text = stats.streakDays.toString(),
-                        color = CoachColors.TextPrimary,
+                        color = colors.TextPrimary,
                         style = MaterialTheme.typography.headlineSmall,
                     )
                     TagRow(tags)
@@ -390,10 +397,10 @@ private fun SummaryRow(stats: DashboardStats, missing: String, tags: Set<Session
             }
             GlassPanel(modifier = Modifier.weight(1f), shape = RoundedCornerShape(20.dp)) {
                 Column(Modifier.padding(16.dp)) {
-                    Text(strings.get("dash_compressions"), color = CoachColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    Text(strings.get("dash_compressions"), color = colors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                     Text(
                         text = stats.aboutCompressions?.let { "${strings.get("dash_about")} $it" } ?: missing,
-                        color = CoachColors.TextPrimary,
+                        color = colors.TextPrimary,
                         style = MaterialTheme.typography.headlineSmall,
                     )
                     TagRow(tags)
@@ -406,6 +413,7 @@ private fun SummaryRow(stats: DashboardStats, missing: String, tags: Set<Session
 @Composable
 private fun SessionRow(item: DatedSession, zone: ZoneId, missing: String, onClick: () -> Unit) {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val rate = item.record.averageRate
     Row(
         Modifier
@@ -417,22 +425,22 @@ private fun SessionRow(item: DatedSession, zone: ZoneId, missing: String, onClic
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(Modifier.weight(1f)) {
-            Text(strings.get("home_practise"), color = CoachColors.TextPrimary, style = MaterialTheme.typography.titleSmall)
+            Text(strings.get("home_practise"), color = colors.TextPrimary, style = MaterialTheme.typography.titleSmall)
             Text(
                 text = formatSessionWhen(item.atEpochMs, zone),
-                color = CoachColors.TextSecondary,
+                color = colors.TextSecondary,
                 style = MaterialTheme.typography.bodySmall,
             )
             TagRow(setOfNotNull(item.record.tag.takeIf { it != SessionTag.NONE }))
         }
         Column(horizontalAlignment = Alignment.End) {
-            Text(formatElapsed(item.record.durationSeconds), color = CoachColors.TextPrimary)
+            Text(formatElapsed(item.record.durationSeconds), color = colors.TextPrimary)
             Text(
                 text = rate?.let { "$it ${strings.get("live_per_minute")}" } ?: missing,
                 color = if (rate != null && rate in DashboardLogic.TARGET_MIN..DashboardLogic.TARGET_MAX) {
-                    CoachColors.Teal
+                    colors.Teal
                 } else {
-                    CoachColors.TextSecondary
+                    colors.TextSecondary
                 },
                 style = MaterialTheme.typography.bodySmall,
             )
@@ -448,38 +456,39 @@ private fun SessionDetail(
     modifier: Modifier = Modifier,
 ) {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val missing = strings.get("dash_missing")
     val record = item.record
     val split = DashboardLogic.splitOf(record.rates)
     Column(
         modifier
             .fillMaxSize()
-            .background(CoachColors.Navy)
+            .background(colors.Navy)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
         TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) {
-            Text(strings.get("walk_back"), color = CoachColors.TextSecondary)
+            Text(strings.get("walk_back"), color = colors.TextSecondary)
         }
         Text(
             text = strings.get("home_practise"),
             style = MaterialTheme.typography.headlineSmall,
-            color = CoachColors.TextPrimary,
+            color = colors.TextPrimary,
             fontWeight = FontWeight.SemiBold,
         )
         Text(
             text = formatSessionWhen(item.atEpochMs, zone),
             modifier = Modifier.padding(top = 4.dp),
-            color = CoachColors.TextSecondary,
+            color = colors.TextSecondary,
         )
         TagRow(setOfNotNull(record.tag.takeIf { it != SessionTag.NONE }))
         Text(
             text = formatElapsed(record.durationSeconds),
             modifier = Modifier.padding(top = 12.dp),
             style = MaterialTheme.typography.displaySmall,
-            color = CoachColors.TextPrimary,
+            color = colors.TextPrimary,
         )
-        Text(strings.get("dash_duration"), color = CoachColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+        Text(strings.get("dash_duration"), color = colors.TextSecondary, style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(12.dp))
         GlassPanel(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(28.dp)) {
             Column(Modifier.padding(8.dp)) {
@@ -495,14 +504,14 @@ private fun SessionDetail(
         Spacer(Modifier.height(12.dp))
         ChartCard(strings.get("dash_rate_chart"), setOfNotNull(record.tag.takeIf { it != SessionTag.NONE })) {
             if (!DashboardLogic.hasMeasuredRates(record)) {
-                Text(strings.get("dash_no_rates"), color = CoachColors.TextSecondary)
+                Text(strings.get("dash_no_rates"), color = colors.TextSecondary)
             } else {
                 RateTimeline(record.rates.orEmpty(), strings.get("dash_rate_chart"))
                 Text(
                     text = strings.get("dash_gaps"),
                     modifier = Modifier.padding(top = 8.dp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = CoachColors.TextSecondary,
+                    color = colors.TextSecondary,
                 )
             }
         }
@@ -511,20 +520,22 @@ private fun SessionDetail(
 
 @Composable
 private fun DetailStat(label: String, value: String) {
+    val colors = LocalCoachColors.current
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(label, color = CoachColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
-        Text(value, color = CoachColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
+        Text(label, color = colors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+        Text(value, color = colors.TextPrimary, style = MaterialTheme.typography.titleMedium)
     }
 }
 
 @Composable
 private fun ChartCard(title: String, tags: Set<SessionTag>, content: @Composable () -> Unit) {
+    val colors = LocalCoachColors.current
     GlassPanel(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(28.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            Text(title, color = CoachColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
+            Text(title, color = colors.TextPrimary, style = MaterialTheme.typography.titleMedium)
             TagRow(tags)
             Spacer(Modifier.height(10.dp))
             content()
@@ -544,12 +555,13 @@ private fun TagRow(tags: Set<SessionTag>) {
 
 @Composable
 private fun TagChip(label: String) {
+    val colors = LocalCoachColors.current
     Text(
         text = label,
         modifier = Modifier
-            .background(CoachColors.Raised, RoundedCornerShape(8.dp))
+            .background(colors.Amber.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 2.dp),
-        color = CoachColors.Amber,
+        color = colors.Amber,
         style = MaterialTheme.typography.labelSmall,
     )
 }
@@ -561,10 +573,11 @@ private fun SeriesChart(
     missing: String,
     zone: ZoneId,
 ) {
+    val colors = LocalCoachColors.current
     val measurer = rememberTextMeasurer()
-    val labelStyle = TextStyle(color = CoachColors.TextSecondary, fontSize = 10.sp)
+    val labelStyle = TextStyle(color = colors.TextSecondary, fontSize = 10.sp)
     if (points.none { it.value != null }) {
-        Text(missing, color = CoachColors.TextSecondary)
+        Text(missing, color = colors.TextSecondary)
         return
     }
     Canvas(Modifier.fillMaxWidth().height(150.dp)) {
@@ -579,7 +592,7 @@ private fun SeriesChart(
         fun xOf(index: Int) = if (points.size == 1) (left + right) / 2 else left + index * (right - left) / (points.size - 1)
         if (band) {
             drawRect(
-                CoachColors.Teal.copy(alpha = 0.18f),
+                colors.Teal.copy(alpha = 0.18f),
                 Offset(left, yOf(DashboardLogic.TARGET_MAX)),
                 Size(right - left, yOf(DashboardLogic.TARGET_MIN) - yOf(DashboardLogic.TARGET_MAX)),
             )
@@ -599,10 +612,10 @@ private fun SeriesChart(
                 } else {
                     path.lineTo(x, y)
                 }
-                drawCircle(CoachColors.Teal, 3.dp.toPx(), Offset(x, y))
+                drawCircle(colors.Teal, 3.dp.toPx(), Offset(x, y))
             }
         }
-        drawPath(path, CoachColors.Teal, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+        drawPath(path, colors.Teal, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
         if (points.size <= 8) {
             points.forEachIndexed { index, point ->
                 val day = Instant.ofEpochMilli(point.atEpochMs).atZone(zone).dayOfMonth.toString()
@@ -615,10 +628,11 @@ private fun SeriesChart(
 
 @Composable
 private fun BarChart(points: List<ChartPoint>, missing: String, zone: ZoneId) {
+    val colors = LocalCoachColors.current
     val measurer = rememberTextMeasurer()
-    val labelStyle = TextStyle(color = CoachColors.TextSecondary, fontSize = 10.sp)
+    val labelStyle = TextStyle(color = colors.TextSecondary, fontSize = 10.sp)
     if (points.none { it.value != null }) {
-        Text(missing, color = CoachColors.TextSecondary)
+        Text(missing, color = colors.TextSecondary)
         return
     }
     Canvas(Modifier.fillMaxWidth().height(150.dp)) {
@@ -632,7 +646,7 @@ private fun BarChart(points: List<ChartPoint>, missing: String, zone: ZoneId) {
             if (value != null) {
                 val height = (size.height - labelH) * value / maxValue
                 drawRoundRect(
-                    color = CoachColors.Teal,
+                    color = colors.Teal,
                     topLeft = Offset(left, size.height - labelH - height),
                     size = Size(barWidth, height),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(6.dp.toPx(), 6.dp.toPx()),
@@ -647,8 +661,9 @@ private fun BarChart(points: List<ChartPoint>, missing: String, zone: ZoneId) {
 
 @Composable
 private fun RateTimeline(rates: List<Int?>, chartLabel: String) {
+    val colors = LocalCoachColors.current
     val measurer = rememberTextMeasurer()
-    val labelStyle = TextStyle(color = CoachColors.TextSecondary, fontSize = 10.sp)
+    val labelStyle = TextStyle(color = colors.TextSecondary, fontSize = 10.sp)
     Canvas(
         Modifier
             .fillMaxWidth()
@@ -665,7 +680,7 @@ private fun RateTimeline(rates: List<Int?>, chartLabel: String) {
         fun yOf(value: Int) = top + (1f - (value - minY).toFloat() / (maxY - minY).coerceAtLeast(1)) * (bottom - top)
         fun xOf(index: Int) = if (rates.size <= 1) (left + right) / 2 else left + index * (right - left) / (rates.size - 1)
         drawRect(
-            CoachColors.Teal.copy(alpha = 0.18f),
+            colors.Teal.copy(alpha = 0.18f),
             Offset(left, yOf(DashboardLogic.TARGET_MAX)),
             Size(right - left, yOf(DashboardLogic.TARGET_MIN) - yOf(DashboardLogic.TARGET_MAX)),
         )
@@ -685,11 +700,11 @@ private fun RateTimeline(rates: List<Int?>, chartLabel: String) {
                 }
                 // A lone sample between gaps has no line to carry it, so it gets a dot.
                 if (rates.getOrNull(index - 1) == null && rates.getOrNull(index + 1) == null) {
-                    drawCircle(CoachColors.Teal, 3.dp.toPx(), Offset(x, y))
+                    drawCircle(colors.Teal, 3.dp.toPx(), Offset(x, y))
                 }
             }
         }
-        drawPath(path, CoachColors.Teal, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round))
+        drawPath(path, colors.Teal, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round))
         val low = measurer.measure("100", labelStyle)
         val high = measurer.measure("120", labelStyle)
         drawText(high, topLeft = Offset(0f, yOf(120) - high.size.height / 2))

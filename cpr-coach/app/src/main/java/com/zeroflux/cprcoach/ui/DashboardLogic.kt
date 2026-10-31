@@ -90,7 +90,7 @@ internal object DashboardLogic {
         endedAtEpochMs = endedAtEpochMs,
         durationSeconds = durationSeconds,
         averageRate = averageRate,
-        secondsInRange = secondsInRange,
+        secondsInRange = secondsInRange.takeIf { measuredSeconds > 0 },
         elbowsStraightPercent = elbowsStraightPercent,
         pauses = pauses,
         measuredSeconds = measuredSeconds,
@@ -100,11 +100,7 @@ internal object DashboardLogic {
     fun parseSamples(text: String): List<PractiseRecord> = parseStore(text).sessions
 
     fun parseStore(text: String): HistoryFile {
-        val root = try {
-            DashboardJson.parse(text) as? Map<*, *> ?: return HistoryFile()
-        } catch (_: RuntimeException) {
-            return HistoryFile()
-        }
+        val root = DashboardJson.parse(text) as? Map<*, *> ?: return HistoryFile()
         val cleared = root["samplesCleared"] == true
         val sessions = (root["sessions"] as? List<*>).orEmpty().mapNotNull { item ->
             (item as? Map<*, *>)?.let { recordFrom(it) }

@@ -48,6 +48,8 @@ import com.zeroflux.cprcoach.ui.CameraOverlay
 import com.zeroflux.cprcoach.ui.PushLog
 import com.zeroflux.cprcoach.ui.CameraUiState
 import com.zeroflux.cprcoach.ui.CoachColors
+import com.zeroflux.cprcoach.ui.CameraChrome
+import com.zeroflux.cprcoach.ui.LocalCoachColors
 import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.engine.TrackingState
 import com.zeroflux.cprcoach.ui.DashboardStore
@@ -195,7 +197,7 @@ private fun PractiseQuietScreen(
         onDispose { unbind() }
     }
     Column(
-        Modifier.fillMaxSize().background(CoachColors.Navy)
+        Modifier.fillMaxSize().background(LocalCoachColors.current.Navy)
             .windowInsetsPadding(WindowInsets.safeDrawing),
     ) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -366,6 +368,7 @@ private fun PractiseCamera(
         }
     }
 
+    CameraChrome {
     Box(Modifier.fillMaxSize().background(CoachColors.Navy)) {
         if (!replaying && cameraPermission) {
             PoseCameraView(onImage = capture::submit, modifier = Modifier.fillMaxSize())
@@ -392,6 +395,7 @@ private fun PractiseCamera(
                 Text(LocalStrings.current.get("practise_help"), color = CoachColors.TextPrimary)
             }
         }
+    }
     }
 }
 

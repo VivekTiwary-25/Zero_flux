@@ -84,3 +84,4 @@ Legend: T = machine translated, unreviewed. P = Hindi or Kannada guide text copi
 | dash_gaps | T | T | T | T | T | T | T | T | T |
 | dash_no_rates | T | T | T | T | T | T | T | T | T |
 | dash_basis | T | T | T | T | T | T | T | T | T |
+A second machine checked these and corrections were applied to ta, te, ml, mr, gu, bn and or; no person has checked them. The same review also flags hi and kn step 1 "lightly" for the shoulder tap, the hi "sternum" word, and kn "join" for interlock, left as the prototype has them.

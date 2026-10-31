@@ -38,9 +38,13 @@ class DashboardLogicTest {
         assertEquals(listOf(110, null), session.rates)
     }
 
+    @Test(expected = IllegalStateException::class)
+    fun `malformed store json reaches the persistence error handler`() {
+        DashboardLogic.parseStore("{")
+    }
+
     @Test
-    fun `malformed json and emergency records do not become zeroed sessions`() {
-        assertTrue(DashboardLogic.parseStore("{").sessions.isEmpty())
+    fun `non object json and emergency records do not become zeroed sessions`() {
         assertTrue(DashboardLogic.parseStore("[]").sessions.isEmpty())
         val parsed = DashboardLogic.parseSamples(
             """
@@ -75,6 +79,44 @@ class DashboardLogicTest {
         )
         val parsed = DashboardLogic.parseStore(DashboardLogic.encodeStore(original))
         assertEquals(original, parsed)
+    }
+
+    @Test
+    fun `scorecard without measured seconds keeps in range time missing`() {
+        val record = DashboardLogic.fromScorecard(
+            id = "unmeasured",
+            endedAtEpochMs = now,
+            durationSeconds = 30,
+            averageRate = null,
+            secondsInRange = 0,
+            elbowsStraightPercent = null,
+            pauses = 0,
+            measuredSeconds = 0,
+            rates = listOf(null, null),
+        )
+        assertNull(record.secondsInRange)
+        assertEquals("—", DashboardLogic.displayNumber(record.secondsInRange))
+        assertNull(statsOf(record).inRangeBars.single().value)
+        assertNull(DashboardLogic.parseStore(DashboardLogic.encodeStore(
+            HistoryFile(sessions = listOf(record)),
+        )).sessions.single().secondsInRange)
+    }
+
+    @Test
+    fun `measured scorecard keeps a real zero in range time`() {
+        val record = DashboardLogic.fromScorecard(
+            id = "measured",
+            endedAtEpochMs = now,
+            durationSeconds = 30,
+            averageRate = 90,
+            secondsInRange = 0,
+            elbowsStraightPercent = null,
+            pauses = 0,
+            measuredSeconds = 2,
+            rates = listOf(90, 90),
+        )
+        assertEquals(0, record.secondsInRange)
+        assertEquals(0, statsOf(record).inRangeBars.single().value)
     }
 
     @Test

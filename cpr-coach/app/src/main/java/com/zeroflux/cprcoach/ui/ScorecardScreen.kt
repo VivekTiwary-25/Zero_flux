@@ -46,6 +46,7 @@ fun ScorecardScreen(
     modifier: Modifier = Modifier,
 ) {
     val strings = LocalStrings.current
+    val colors = LocalCoachColors.current
     val animationsEnabled = remember { ValueAnimator.areAnimatorsEnabled() }
     val entrance = if (animationsEnabled) {
         fadeIn(tween(durationMillis = 380)) + slideInVertically(
@@ -64,7 +65,7 @@ fun ScorecardScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(CoachColors.Navy)
+                .background(colors.Navy)
                 .safeDrawingPadding(),
             contentAlignment = Alignment.Center,
         ) {
@@ -77,7 +78,7 @@ fun ScorecardScreen(
             ) {
                 GlassPanel(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
+                    shape = RoundedCornerShape(20.dp),
                 ) {
                     Column(
                         modifier = Modifier
@@ -87,14 +88,14 @@ fun ScorecardScreen(
                         Text(
                             text = strings.get("score_title"),
                             style = MaterialTheme.typography.headlineSmall,
-                            color = CoachColors.TextPrimary,
+                            color = colors.TextPrimary,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Spacer(Modifier.height(14.dp))
                         Text(
                             text = strings.get("score_in_range"),
                             style = MaterialTheme.typography.titleMedium,
-                            color = CoachColors.TextSecondary,
+                            color = colors.TextSecondary,
                         )
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -103,14 +104,14 @@ fun ScorecardScreen(
                                 text = card.secondsInRange.toString(),
                                 modifier = Modifier.alignByBaseline(),
                                 style = MaterialTheme.typography.displayLarge,
-                                color = CoachColors.TextPrimary,
+                                color = colors.Teal,
                                 fontWeight = FontWeight.Bold,
                             )
                             Text(
                                 text = strings.get("score_seconds_unit"),
                                 modifier = Modifier.alignByBaseline(),
                                 style = MaterialTheme.typography.titleLarge,
-                                color = CoachColors.TextSecondary,
+                                color = colors.TextSecondary,
                             )
                         }
                         Spacer(Modifier.height(14.dp))
@@ -119,8 +120,8 @@ fun ScorecardScreen(
                             value = card.averageRate?.toString() ?: strings.get("score_not_measured"),
                             valueColor = card.averageRate
                                 ?.takeIf { it in 100..120 }
-                                ?.let { CoachColors.Teal }
-                                ?: CoachColors.TextPrimary,
+                                ?.let { colors.Teal }
+                                ?: colors.TextPrimary,
                         )
                         ScorecardResult(
                             label = strings.get("score_elbows"),
@@ -135,7 +136,7 @@ fun ScorecardScreen(
                             text = strings.get("score_rate_measured")
                                 .format(card.measuredSeconds, card.sessionSeconds),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = CoachColors.TextSecondary,
+                            color = colors.TextSecondary,
                         )
                     }
                 }
@@ -145,13 +146,13 @@ fun ScorecardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 52.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    border = BorderStroke(1.dp, CoachColors.Teal),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, colors.Teal),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 ) {
                     Text(
                         text = strings.get("score_swap"),
-                        color = CoachColors.Teal,
+                        color = colors.Teal,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                     )
@@ -162,7 +163,7 @@ fun ScorecardScreen(
                         .padding(top = 4.dp)
                         .heightIn(min = 48.dp),
                 ) {
-                    Text(strings.get("score_home"), color = CoachColors.TextSecondary)
+                    Text(strings.get("score_home"), color = colors.TextSecondary)
                 }
             }
         }
@@ -173,8 +174,9 @@ fun ScorecardScreen(
 private fun ScorecardResult(
     label: String,
     value: String,
-    valueColor: Color = CoachColors.TextPrimary,
+    valueColor: Color? = null,
 ) {
+    val colors = LocalCoachColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -186,13 +188,13 @@ private fun ScorecardResult(
             text = label,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyLarge,
-            color = CoachColors.TextSecondary,
+            color = colors.TextSecondary,
         )
         Spacer(Modifier.size(16.dp))
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium,
-            color = valueColor,
+            color = valueColor ?: colors.TextPrimary,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.End,
         )
