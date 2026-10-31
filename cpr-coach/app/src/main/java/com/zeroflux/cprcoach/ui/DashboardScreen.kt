@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +34,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
@@ -550,7 +553,12 @@ private fun ChartCard(title: String, tags: Set<SessionTag>, content: @Composable
 private fun TagRow(tags: Set<SessionTag>) {
     if (tags.isEmpty()) return
     val strings = LocalStrings.current
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {
+    // Whole chips wrap; a squeezed Row was breaking "Synthetic" mid-word on the narrow cards.
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.padding(top = 4.dp),
+    ) {
         if (SessionTag.TESTING in tags) TagChip(strings.get("dash_tag_testing"))
         if (SessionTag.SYNTHETIC in tags) TagChip(strings.get("dash_tag_synthetic"))
     }
@@ -562,9 +570,13 @@ private fun TagChip(label: String) {
     Text(
         text = label,
         modifier = Modifier
+            .wrapContentWidth(unbounded = true)
             .background(colors.Amber.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 2.dp),
-        color = colors.Amber,
+        // Light amber #886622 is 4.29:1 on the page outside cards.
+        color = if (colors.Amber == Color(0xFF886622)) Color(0xFF806020) else colors.Amber,
+        softWrap = false,
+        maxLines = 1,
         style = MaterialTheme.typography.labelSmall,
     )
 }

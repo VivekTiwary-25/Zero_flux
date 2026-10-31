@@ -44,19 +44,21 @@ Docs that matter, in `cpr-coach/docs/`: `TAKEOVER_LOG.md`, `PLAN_0810.md`, `DEMO
 - **Merge order still to do:** vivid colours, dashboard, AED, pictures.
 
 ## Current state
-Written 10:01 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
+Written 10:14 on 31 Oct 2026. Newest commit on `cpr-coach`, then recent history:
 ```
+9dfd6ef cpr-coach: handover files and log
+52efc62 cpr-coach: merge polish from reviews
+ff7000a cpr-coach: log
+5d18d84 cpr-coach: dashboard tags keep whole words, three contrast fixes
+1ec48f1 cpr-coach: handover files and log
 88fa66f cpr-coach: merge AED explained, keeping dashboard and AED strings
 0e362b1 cpr-coach: log
 12799d5 cpr-coach: merge 5 Dashboard
-ce82009 cpr-coach: log
-032a232 cpr-coach: merge Vivid colours, approved by the user
-e076540 cpr-coach: log
-70fb804 cpr-coach: AED help beside the first AED, new Emergency wording, Gujarati and Tamil fixes
-8a3531c cpr-coach: handover files and log
 ```
 Takeover branches on GitHub:
 ```
+origin/takeover/revert-dashboard-save 4c56067
+origin/takeover/revert-model-load fb999d5
 origin/takeover/t0-replay-check 3d43225
 origin/takeover/t1-emergency-talk 91785d2
 origin/takeover/t2-snappy be51948
@@ -68,6 +70,7 @@ origin/takeover/t5-dashboard db95ba5
 origin/takeover/t5-final 0e8b329
 origin/takeover/t6-reskin 5868dd3
 origin/takeover/t6b-vivid af421fa
+origin/takeover/t6c-polish 5d18d84
 origin/takeover/t8-aed 70fb804
 origin/takeover/t9-docs d1bf758
 origin/takeover/t9b-docs 71b13b9
@@ -75,27 +78,25 @@ origin/takeover/t9b-docs 71b13b9
 Swarm jobs:
 ```
 RUNNING
-  prabal-pc/codex-sol      t261031-0955-4dbc  Contrast check  (5m)
-  vivek-pc/codex-luna      t261031-0959-e135  T7 two pictures remake  (2m)
+  vivek-pc/codex-sol       t261031-1009-4db2  T7 swap approved pictures  (5m)
 QUEUED
 WAITING REVIEW  (swarm review <id> / merge <id> / reject <id>)
-  vivek-pc/antigravity     t261031-0943-5f51  Check dashboard screenshots
 ```
 Workers:
 ```
 moksh-pc/ag-argon    google-antigravity/gemi~ idle     -                        13% Nov 05 15:47 (in
 moksh-pc/antigravity google-antigravity/gemi~ idle     -                        13% Nov 05 15:47 (in
 prabal-pc/codex-luna openai-codex/gpt-6-luna  idle     -                        36% Nov 04 12:10 (in
-prabal-pc/codex-sol  openai-codex/gpt-6.1-sol busy     t261031-0955-4dbc Contr~ 36% Nov 04 12:10 (in
+prabal-pc/codex-sol  openai-codex/gpt-6.1-sol idle     -                        36% Nov 04 12:10 (in
 pratham-pc/flash     opencode-go/deepseek-v4~ idle     -                        ?                   
 pratham-pc/muse      opencode-go/muse-spark-~ idle     -                        ?                   
 pratham-pc/codex-lu~ openai-codex/gpt-6-luna  idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-sol openai-codex/gpt-6.1-sol idle     -                        62% Nov 05 10:25 (in
 pratham-pc/codex-as~ openai-codex/gpt-6-astra idle     -                        62% Nov 05 10:25 (in
-vivek-pc/codex-luna  openai-codex/gpt-6-luna  busy     t261031-0959-e135 T7 tw~ 51% Nov 04 18:34 (in
-vivek-pc/codex-sol   openai-codex/gpt-6.1-sol idle     -                        51% Nov 04 18:34 (in
-vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        39% Nov 06 23:38 (in
-vivek-pc/antigravity google-antigravity/gemi~ idle     -                        86% 13:13 (in 3h11m)
+vivek-pc/codex-luna  openai-codex/gpt-6-luna  idle     -                        51% Nov 04 18:34 (in
+vivek-pc/codex-sol   openai-codex/gpt-6.1-sol busy     t261031-1009-4db2 T7 sw~ 51% Nov 04 18:34 (in
+vivek-pc/grok        xai-oauth/grok-4.7       idle     -                        37% Nov 06 23:38 (in
+vivek-pc/antigravity google-antigravity/gemi~ idle     -                        86% 13:13 (in 2h58m)
 ```
 
 ### Tasks
@@ -110,17 +111,19 @@ vivek-pc/antigravity google-antigravity/gemi~ idle     -                        
 | 6b. Vivid colours | Merged, approved by the user | `032a232` |
 | 5. Dashboard | Merged | `12799d5` |
 | 8. AED explained | Merged | `88fa66f` |
-| 7. Pictures | Page published, waiting for the user's reply; rows 1 and 2 being remade by vivek-pc/codex-luna as guide-1-v2.png and guide-2-v2.png | Files only: `D:\projects\apk-builds\pictures\new\`. Page: https://claude.ai/artifact/VCRrK1CFovjSHD8Zqp1rjs . After approval: branch `takeover/t7-pictures`, swap pictures only, no logic changes, before/after screenshots, then gate and merge |
+| 7. Pictures | All approved by the user at 10:07. Being swapped in by vivek-pc/codex-sol | `C:\Users\Arena\.swarm\work\wt-t7-pictures`, branch `takeover/t7-pictures`, uncommitted until the boss commits. Screenshots go to `D:\projects\apk-builds\screens\pictures\`; send them to the user, then gate and merge |
 | 9. Demo script and judge answers | Merged | `6ca1b17` |
 | Final test sheet | Merged, needs a final check at build time | `docs/FINAL_TEST.md`, `6ca1b17` |
 | Debug banner | Answered, no code change | Shows only if the app is started by a command with a replay setting. Tapping the icon never does. Don't change the replay tool |
 
-### Reverts to prepare once the dashboard is merged
-One ready-to-merge revert branch for `be51948` (Practise loads the pose model on a background thread), and one for the dashboard save step in `PractiseHost.kt`, so either can be undone alone if the final phone test shows a Practise problem. Not made yet, because both touch the same file.
+### Ready reverts, not merged
+Merge only if the final phone test shows a Practise problem, and only on the user's say:
+- `takeover/revert-model-load` `fb999d5`: undoes `be51948`, the Practise model load on a background thread.
+- `takeover/revert-dashboard-save` `4c560676`: stops Practise saving to the dashboard and removes the sampling; the Dashboard screen and samples stay. Both passed the gate. Either may need updating to the newest `cpr-coach` first.
 
 ### Approval pages
 - Colour page: https://claude.ai/artifact/P63RE6eRdDMqJgksdwJ1bM . Published from Vachana's account; if the user can't open it, republish `D:\projects\apk-builds\screens\vivid\` images from the user's account.
-- Pictures page: https://claude.ai/artifact/VCRrK1CFovjSHD8Zqp1rjs , published from Vachana's account. Waiting for the reply.
+- Pictures page: https://claude.ai/artifact/VCRrK1CFovjSHD8Zqp1rjs , approved: all rows.
 - Each page must show at the top what the user is approving and how to reply, such as "colours approved", or "pictures: approve 1, 2, 3, 5; redo 4". Open the page for the user and give its exact link.
 - The earlier re-skin page, https://claude.ai/artifact/8RgEWwPV6Yo2MtRECEBxCW, is on Vachana's account. It's private, so the user's own account can't open it unless it's shared. Publish new pages from the user's account. All its images are in `D:\projects\apk-builds\screens\before` and `after`.
 
@@ -137,10 +140,9 @@ CPH2467 has 270070e (APK sha1 `2db874361b2f24c03c104e87ee567f246092a545`), insta
 The swarm's save step fails on some jobs, though no work is lost. During a weak uneven lean the app shows pause; demo with a steady firm lean, short, phone still. Translations are machine made and no person has checked them. Everything since ee682a1 has not been run through a real phone test.
 
 ## Still pending from me
-- The colour page: reply "colours approved", or say what to redo.
-- The pictures page: reply like "pictures: approve 1, 2, 3, 5; redo 4".
-- "install" for the final build, then the final phone test, under 4 minutes. Some steps need two people.
-- Decide on `be51948` and the dashboard save step after that test. Reverts will be ready.
+- The boss no longer waits for my approval: it merges when the checks pass, and installs the final build itself when the phone is plugged in and no session is running.
+- Run the final phone test, under 4 minutes, `docs/FINAL_TEST.md`. Some steps need two people.
+- Decide on `be51948` and the dashboard save step after that test. Reverts are ready on `takeover/revert-model-load` and `takeover/revert-dashboard-save`.
 - Kannada and Hindi listening, and teammates reading the Hindi and Kannada guide text.
 - Rehearse the 2-minute demo: its timing is an estimate.
 - I own "Person 4: Feedback & Emergency" for judge questions; `JUDGE_QA.md` has the answers.
