@@ -14,7 +14,7 @@ so the art was drawn as vector line art instead.
 |---|---|---|---|---|
 | `rescuer.png` (cover) | Not shown: a cushion stands in for the chest, so placement can't be judged | Yes: shoulder, elbow and wrist on one vertical line (x = 400) | Yes: shoulder joint directly above the hands (same x) | Pass for what it shows; it makes no placement claim |
 | `rescuer_guide.png` (slide 9) | Not shown (same as above) | Yes, same geometry | Yes, plus a dashed vertical guide through shoulder and hands | Pass for what it shows |
-| `chest.png` (slide 9) | Yes: breastbone runs y 120 to 330; its lower half (y 225 to 330) is teal; the stacked hands are centred at y 277, inside the lower half | n/a (top view) | n/a (top view) | Pass |
+| `chest.png` (slide 9) | Yes (v4: torso cut at the rib margin and lower ribs drawn under the hands, so they read as on the chest, not the stomach): breastbone runs y 120 to 330; its lower half (y 225 to 330) is teal; the stacked hands are centred at y 277, inside the lower half | n/a (top view) | n/a (top view) | Pass |
 
 Slide 9 shows the two drawings together, so all three points appear on one slide. Nothing failed, so nothing was dropped.
 

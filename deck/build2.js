@@ -83,8 +83,8 @@ async function line(file, w, h, segs) {
   // and the stacked hands are centred on it (y 277).
   const chestSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'>
     <g fill='none' stroke-linecap='round' stroke-linejoin='round'>
-      <path d='M210 50 L210 95 Q160 100 110 120 Q85 135 85 170 L95 330 Q100 400 150 440 M350 440 Q400 400 405 330 L415 170 Q415 135 390 120 Q340 100 290 95 L290 50' stroke='#${HEX.text}' stroke-width='3'/>
-      <path d='M235 170 Q180 172 125 195 M265 170 Q320 172 375 195 M235 210 Q180 214 120 240 M265 210 Q320 214 380 240' stroke='#${HEX.muted}' stroke-width='3' stroke-opacity='0.5'/>
+      <path d='M210 50 L210 95 Q160 100 110 120 Q85 135 85 170 L92 362 M408 362 L415 170 Q415 135 390 120 Q340 100 290 95 L290 50' stroke='#${HEX.text}' stroke-width='3'/>
+      <path d='M235 170 Q180 172 125 195 M265 170 Q320 172 375 195 M235 210 Q180 214 120 240 M265 210 Q320 214 380 240 M238 330 Q170 334 100 352 M262 330 Q330 334 400 352' stroke='#${HEX.muted}' stroke-width='3' stroke-opacity='0.5'/>
       <path d='M250 120 L250 225' stroke='#${HEX.text}' stroke-width='3'/>
       <path d='M250 225 L250 330' stroke='#${HEX.teal}' stroke-width='4'/>
       <path d='M232 225 L268 225' stroke='#${HEX.teal}' stroke-width='3'/>
@@ -287,7 +287,7 @@ async function line(file, w, h, segs) {
 
   // 7b LABELLED ILLUSTRATION: technique
   {
-    const s = slide("Push on the lower breastbone, arms straight, shoulders over hands", "Solution");
+    const s = slide("Good CPR needs three things; the app measures one of them", "Solution");
     img(s, "assets3/chest.png", M, 2.3, 3.4, 3.4, "Line drawing, top view of a chest: two stacked hands on the lower half of the breastbone");
     img(s, "assets3/rescuer_guide.png", 4.3, 2.75, 4.5, 3.0, "Line drawing, side view: arms straight, shoulders directly over hands, on a vertical guide line");
     tb(s, "1", { x: 2.85, y: 4.0, w: 0.4, h: 0.4, fontFace: MONO, fontSize: 20, bold: true, color: TEAL });
@@ -368,11 +368,11 @@ async function line(file, w, h, segs) {
   pres.addSection({ title: "Close" });
   {
     const s = slide("Next: count it by hand,\nthen test it with CPR trainers", "Close", "INK", { shot: "dawn", veil: 30 });
-    tb(s, "Then pilot it with NSS units, first-aid clubs and schools.", { x: M, y: 2.25, w: 8.0, h: 0.5, fontSize: 24, color: MUTED });
+    tb(s, "Then pilot it with NSS units, first-aid clubs and schools.", { x: M, y: 2.25, w: 8.0, h: 0.5, fontSize: 24, color: s.film ? TEXT : MUTED });
     img(s, "assets2/close.png", M, 3.3, 7.67, 0.73, "A slow amber rhythm corrected into a steady teal rhythm");
     s.addImage({ path: "assets/qr.png", x: 9.85, y: 2.15, w: 2.73, h: 2.73, altText: "QR code linking to github.com/VivekTiwary-25/Zero_flux" });
     tb(s, "Scan for the code and test records", { x: 9.2, y: 5.0, w: 3.6, h: 0.35, fontSize: 18, align: "center" });
-    tb(s, "github.com/VivekTiwary-25/Zero_flux", { x: 9.0, y: 5.42, w: 3.95, h: 0.3, fontFace: MONO, fontSize: 12, color: MUTED, align: "center" });
+    tb(s, "github.com/VivekTiwary-25/Zero_flux", { x: 9.0, y: 5.42, w: 3.95, h: 0.3, fontFace: MONO, fontSize: 12, color: s.film ? TEXT : MUTED, align: "center" });
     tb(s, [{ text: "Not a medical device. ", options: { bold: true, color: RED } }, { text: "In an emergency, call 112 (108 for an ambulance) and start CPR.", options: { color: TEXT } }], { x: M, y: 4.75, w: 8.2, h: 0.9, fontSize: 20 });
     tb(s, [{ text: "Team Zero Flux", options: { bold: true, color: TEXT } }, { text: "   Vivek · Pratham · Prabal · Moksh", options: { color: MUTED } }], { x: M, y: 6.3, w: 8, h: 0.4, fontSize: 18 });
     s.addNotes("Next, we count it by hand to get a real accuracy number, then put it in front of certified CPR trainers, then pilot it with NSS units, first-aid clubs and schools. The code and our test records are open: scan the code. And the line that matters most: this is not a medical device. In a real emergency, call 112 or 108 and start CPR. Thank you.");

@@ -16,3 +16,11 @@ one phone with a blank teal screen; colour grade; left third dark. Every placed 
 | circle | 10 | none | silhouettes from behind only | none | yes | USED |
 | dawn | 14 | none (train windows are blurred light) | silhouettes from behind; no facial features | none | yes (small, between the people) | USED (warmer than the night grade on purpose: it is the dawn) |
 | dawn, circle (swarm) | - | - | - | - | - | NOT MADE: prabal-pc and pratham-pc codex-luna have no image tool; tasks rejected |
+
+## Independent review (moksh-pc ag-argon, Gemini, had not seen the plan), 12:02
+- Fixed: slide 9 hands looked like they were on the stomach -> chest drawing now stops at the rib margin with the lower ribs under the hands.
+- Fixed: slide 9 headline read like a generic rulebook -> "Good CPR needs three things; the app measures one of them".
+- Fixed: slide 14 grey subhead and URL faint on the image -> white on film slides.
+- Not fixed (time): text crosses the dimmed phone on slides 2, 8 and 11 (still readable); demo sits mid-deck and slide 14's "count it by hand" headline are v3 choices kept on purpose.
+- Not fixed, pre-existing from v2: slide 6's app illustration (assets/phone.png) shows an angled arm. It is labelled "values are examples" and shows what the app would correct, but a judge may read it as wrong technique.
+- Reviewer flagged the phone standing upright on the ground vs "held side-on": the stills are the story's phone, not the demo set-up; left as is.
