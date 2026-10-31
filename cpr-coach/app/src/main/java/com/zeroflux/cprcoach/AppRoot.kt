@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,15 +22,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.zeroflux.cprcoach.audio.MetronomeService
+import androidx.compose.ui.unit.dp
 import com.zeroflux.cprcoach.ui.AppSettings
 import com.zeroflux.cprcoach.ui.AssetStrings
 import com.zeroflux.cprcoach.ui.CoachTheme
 import com.zeroflux.cprcoach.ui.EmergencyContact
 import com.zeroflux.cprcoach.ui.EmergencyContactDialog
 import com.zeroflux.cprcoach.ui.HomeScreen
+import com.zeroflux.cprcoach.ui.GuideNavigationIcon
 import com.zeroflux.cprcoach.ui.GuideScreen
+import com.zeroflux.cprcoach.ui.HomeNavigationIcon
+import com.zeroflux.cprcoach.ui.MainNavigationBar
+import com.zeroflux.cprcoach.ui.MainNavigationDestination
 import com.zeroflux.cprcoach.ui.LocalStrings
 import com.zeroflux.cprcoach.voice.VoiceCommand
 
@@ -74,11 +81,13 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
     }
     val micState by voice.state.collectAsState()
     val strings = remember(language) { AssetStrings.load(activity, language.code) }
-    val goHome: () -> Unit = {
-        // Stop immediately, not only after Compose disposes the old host.
-        MetronomeService.stop(activity)
-        cameraVisible = false
-        screen = Screen.HOME
+    val goHome: () -> Unit = remember(activity) {
+        {
+            // Stop immediately, not only after Compose disposes the old host.
+            MetronomeService.stop(activity)
+            cameraVisible = false
+            screen = Screen.HOME
+        }
     }
 
     SideEffect { voice.setLanguage(language) }
@@ -118,61 +127,67 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
 
     CoachTheme {
         CompositionLocalProvider(LocalStrings provides strings) {
-            when (screen) {
-                Screen.HOME -> {
-                    DisposableEffect(voice) {
-                        val unbind = voice.bind(
-                            setOf(VoiceCommand.EMERGENCY, VoiceCommand.PRACTISE),
-                            allowLanguages = true,
-                        ) { command ->
-                            screen = when (command) {
-                                VoiceCommand.EMERGENCY -> Screen.EMERGENCY
-                                VoiceCommand.PRACTISE -> Screen.PRACTISE
-                                else -> Screen.HOME
+            val mainDestinations = remember(language, micState, emergencyContact) {
+                listOf(
+                    MainNavigationDestination(
+                        destination = Screen.HOME,
+                        labelKey = "score_home",
+                        icon = { HomeNavigationIcon() },
+                    ) {
+                        DisposableEffect(voice) {
+                            val unbind = voice.bind(
+                                setOf(VoiceCommand.EMERGENCY, VoiceCommand.PRACTISE),
+                                allowLanguages = true,
+                            ) { command ->
+                                screen = when (command) {
+                                    VoiceCommand.EMERGENCY -> Screen.EMERGENCY
+                                    VoiceCommand.PRACTISE -> Screen.PRACTISE
+                                    else -> Screen.HOME
+                                }
                             }
+                            onDispose { unbind() }
                         }
-                        onDispose { unbind() }
-                    }
-                    HomeScreen(
-                        language = language,
-                        micState = micState,
-                        onEmergency = { screen = Screen.EMERGENCY },
-                        onPractise = { screen = Screen.PRACTISE },
-                        onGuide = { screen = Screen.GUIDE },
-                        onLanguageChosen = { chosen ->
-                            voice.setLanguage(chosen)
-                            settings.language = chosen
-                            language = chosen
-                        },
-                        onMicTap = voice::toggle,
-                        emergencyContactName = emergencyContact?.name,
-                        onEmergencyContact = { showContactDialog = true },
-                    )
-                    if (showContactDialog) {
-                        EmergencyContactDialog(
-                            current = emergencyContact,
-                            onSave = { typed ->
-                                // A blank name or number clears the contact (the store enforces it).
-                                settings.emergencyContact = typed
-                                emergencyContact = settings.emergencyContact
-                                showContactDialog = false
+                        HomeScreen(
+                            language = language,
+                            micState = micState,
+                            onEmergency = { screen = Screen.EMERGENCY },
+                            onPractise = { screen = Screen.PRACTISE },
+                            onLanguageChosen = { chosen ->
+                                voice.setLanguage(chosen)
+                                settings.language = chosen
+                                language = chosen
                             },
-                            onPick = {
-                                showContactDialog = false
-                                contactPicker.launch(
-                                    Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI),
-                                )
-                            },
-                            onClear = {
-                                settings.emergencyContact = null
-                                emergencyContact = null
-                                showContactDialog = false
-                            },
-                            onDismiss = { showContactDialog = false },
+                            onMicTap = voice::toggle,
+                            emergencyContactName = emergencyContact?.name,
+                            onEmergencyContact = { showContactDialog = true },
                         )
-                    }
+                    },
+                    MainNavigationDestination(
+                        destination = Screen.GUIDE,
+                        labelKey = "cprGuideNav",
+                        icon = { GuideNavigationIcon() },
+                    ) {
+                        GuideScreen(
+                            onBack = goHome,
+                            onEmergency = { screen = Screen.EMERGENCY },
+                            modifier = Modifier.padding(bottom = 80.dp),
+                        )
+                    },
+                    // Add Dashboard here once merged, with its screen, label, icon and content.
+                )
+            }
+            val mainDestination = mainDestinations.firstOrNull { it.destination == screen }
+            when {
+                mainDestination != null -> Box(Modifier.fillMaxSize()) {
+                    mainDestination.content()
+                    MainNavigationBar(
+                        destinations = mainDestinations,
+                        selectedDestination = screen,
+                        onDestinationSelected = { screen = it },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
                 }
-                Screen.PRACTISE -> Box(Modifier.fillMaxSize().safeDrawingPadding()) {
+                screen == Screen.PRACTISE -> Box(Modifier.fillMaxSize().safeDrawingPadding()) {
                     PractiseHost(
                         settings = settings,
                         language = language,
@@ -183,7 +198,7 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                     )
                 }
                 // Edge to edge: its screens apply their own insets, and the camera and frame fill the display.
-                Screen.EMERGENCY -> Box(Modifier.fillMaxSize()) {
+                screen == Screen.EMERGENCY -> Box(Modifier.fillMaxSize()) {
                     EmergencyHost(
                         language = language,
                         voice = voice,
@@ -193,12 +208,29 @@ fun AppRoot(activity: Activity, cameraPermission: Boolean) {
                         emergencyContact = emergencyContact,
                     )
                 }
-                Screen.GUIDE -> Box(Modifier.fillMaxSize()) {
-                    GuideScreen(
-                        onBack = goHome,
-                        onEmergency = { screen = Screen.EMERGENCY },
-                    )
-                }
+            }
+            if (screen == Screen.HOME && showContactDialog) {
+                EmergencyContactDialog(
+                    current = emergencyContact,
+                    onSave = { typed ->
+                        // A blank name or number clears the contact (the store enforces it).
+                        settings.emergencyContact = typed
+                        emergencyContact = settings.emergencyContact
+                        showContactDialog = false
+                    },
+                    onPick = {
+                        showContactDialog = false
+                        contactPicker.launch(
+                            Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI),
+                        )
+                    },
+                    onClear = {
+                        settings.emergencyContact = null
+                        emergencyContact = null
+                        showContactDialog = false
+                    },
+                    onDismiss = { showContactDialog = false },
+                )
             }
         }
     }

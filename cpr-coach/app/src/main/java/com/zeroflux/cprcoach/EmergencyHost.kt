@@ -37,6 +37,7 @@ import com.zeroflux.cprcoach.engine.LiveReading
 import com.zeroflux.cprcoach.engine.PoseEngine
 import com.zeroflux.cprcoach.engine.TrackingState
 import com.zeroflux.cprcoach.ui.AppLanguage
+import com.zeroflux.cprcoach.ui.CameraChrome
 import com.zeroflux.cprcoach.ui.CoachColors
 import com.zeroflux.cprcoach.ui.BeatSource
 import com.zeroflux.cprcoach.ui.EmergencyContact
@@ -218,6 +219,7 @@ fun EmergencyHost(
         )
         return
     }
+    CameraChrome {
     EmergencyScreen(
         state = EmergencyUiState(
             // The opening steps say what to do first, until the camera has something better.
@@ -261,6 +263,7 @@ fun EmergencyHost(
             }
         },
     )
+    }
 }
 
 /** Camera failure of any kind only means no corrections, so nothing here may reach the audio. */
